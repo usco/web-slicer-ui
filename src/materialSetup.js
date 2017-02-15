@@ -1,9 +1,8 @@
-
+import i18next from 'i18next'
 
 export default function(){
   const header = {
     valid: true,
-    message: `You have `
   }
 
  return <section>
