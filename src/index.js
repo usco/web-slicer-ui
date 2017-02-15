@@ -15,11 +15,11 @@ run(main, drivers)*/
 import i18next from 'i18next'
 import { h, render } from 'preact-cycle'
 /** @jsx h */
-import PrintSettings from './ui/printSettings'
-import MaterialSetup from './ui/materialSetup'
+
+import App from './ui/app'
 
 
-const strings_en = require('../assets/i18n/en/strings.json')
+const stringsEn = require('../assets/i18n/en/strings.json')
 const materials = require('../assets/materials.json')
 
 let state = {
@@ -28,22 +28,17 @@ let state = {
   brim: {toggled: true},
   qualityPreset: undefined,
   extruders: [],
-  loadedMaterials: []
+  loadedMaterials: [],
+  currentStep: 0,
+  steps: [{name: 'Material Setup'}, {name:'Print Settings'}]
 }
 
-const App = (state) => {
-  console.log('state', state)
-  return <div id='app'>
-           <h1>{state.t('app_name')}</h1>
-           <PrintSettings state={state} />
-         </div>
-}
 
 i18next.init({
   lng: 'en',
   resources: {
     en: {
-      translation: strings_en
+      translation: stringsEn
     }
   }
 }, (err, t) => {

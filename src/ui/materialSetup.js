@@ -1,4 +1,6 @@
-import i18next from 'i18next'
+import { h, render } from 'preact-cycle'
+import classNames from 'classnames'
+/** @jsx h */
 
 export default function(){
   const header = {
@@ -19,5 +21,4 @@ export default function(){
 
 
  </section>
-
 }
