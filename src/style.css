@@ -1,0 +1,66 @@
+button {
+  display: inline-block;
+  margin: 0 10px 0 0;
+  padding: 15px 5px;
+  border: none;
+}
+
+button:focus {
+  outline: none
+}
+
+
+/*print settings*/
+.printSettings{
+
+}
+
+.printSettings section{
+  margin:10px;
+}
+
+.profile button {
+  background: #f2f2f2;
+}
+
+.profile button:hover{
+  background: #0ca9e3;
+}
+
+.layerHeights ul{
+  list-style: none;
+  display: flex;
+  /*flex-direction: row;
+  flex-wrap: wrap;*/
+  width: 100%;
+  padding-left: 0;
+}
+
+.layerHeights li {
+  flex: 1;
+  /*list-style: none;
+  display: inline-block;
+  flex-basis: 100%;
+  height: 64px;
+
+  padding: 5px 5px;*/
+  margin-left: 10px;
+  border : 1px solid black;
+  text-align: center;
+}
+
+.layerHeights li:hover {
+  color: red;
+}
+
+.layerHeights button{
+  /*width:64px;
+  height:64px;*/
+  width:100%;
+}
+
+div :disabled{
+  color:red;
+  background: #ccc;
+  pointer-events:none;
+}
