@@ -8,28 +8,36 @@ function main (sources) {
     DOM: just(div('foo'))
   }
 }
-
 const drivers = {
   DOM: makeDomDriver(document.getElementById('app'))
 }
-
 run(main, drivers)*/
 import i18next from 'i18next'
 import { h, render } from 'preact-cycle'
 /** @jsx h */
-import PrintSettings from './printSettings'
+import PrintSettings from './ui/printSettings'
+import MaterialSetup from './ui/materialSetup'
+
 
 const strings_en = require('../assets/i18n/en/strings.json')
+const materials = require('../assets/materials.json')
 
+let state = {
+  machineType: 'ultimaker3',
+  support: {toggled: true},
+  brim: {toggled: true},
+  qualityPreset: undefined,
+  extruders: [],
+  loadedMaterials: []
+}
 
-let state = {}
-
-const App = ({t}) => (
-  <div id='app'>
-    {t('app_name')}
-    <PrintSettings t={t}> </PrintSettings>
-  </div>
-)
+const App = (state) => {
+  console.log('state', state)
+  return <div id='app'>
+           <h1>{state.t('app_name')}</h1>
+           <PrintSettings state={state} />
+         </div>
+}
 
 i18next.init({
   lng: 'en',
@@ -39,11 +47,6 @@ i18next.init({
     }
   }
 }, (err, t) => {
-  // initialized and ready to go!
-  //const hw = t('app_name')
-  //console.log('hw', hw)
-
-  console.log('foo')
-  render(App, {t}, document.body)
-
+  state.t = t
+  render(App, state, document.body)
 })

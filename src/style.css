@@ -1,3 +1,10 @@
+/*
+  main colors:
+    - blue : #0ca9e3;
+    - gray: #f2f2f2;
+
+*/
+
 button {
   display: inline-block;
   margin: 0 10px 0 0;
@@ -17,6 +24,21 @@ button:focus {
 
 .printSettings section{
   margin:10px;
+}
+
+.printSettings .selected button{
+  background: #0ca9e3;
+  
+}
+
+section .info{
+  min-height: 100px;
+  padding: 10px;
+  background: #0ca9e3;
+  color: white;
+  text-align: justify;;
+  font-weight: bold;
+  font-size: 1.0em;
 }
 
 .profile button {
