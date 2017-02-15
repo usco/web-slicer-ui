@@ -2,7 +2,9 @@ import { h, render } from 'preact-cycle'
 import classNames from 'classnames'
 /** @jsx h */
 
-export default function(){
+const MaterialSetup = ({state}) => {
+  const mutation = state.mutation
+  const {t} = state
   const header = {
     valid: true,
   }
@@ -11,6 +13,9 @@ export default function(){
   <header>
 
   </header>
+  <section className='info'>
+    {t('activity_print_settings_text_the_app_only_supports')}
+  </section>
   <div>
     The printer is currently loaded with
   </div>
@@ -22,3 +27,4 @@ export default function(){
 
  </section>
 }
+export default MaterialSetup
