@@ -4,6 +4,17 @@
     - gray: #f2f2f2;
 
 */
+#app{
+  background: #f2f2f2;
+  /* width: 100%; */
+  height: 100%;
+  position: absolute;
+  margin: 0;
+  padding: 10px;
+  border: 0;
+  left: 0;
+  top: 0;
+}
 
 button {
   display: inline-block;
@@ -28,7 +39,7 @@ button:focus {
 
 .printSettings .selected button{
   background: #0ca9e3;
-  
+
 }
 
 section .info{
@@ -85,4 +96,17 @@ div :disabled{
   color:red;
   background: #ccc;
   pointer-events:none;
+}
+
+/*materialSetup*/
+.materialSetup{
+}
+.materialSetup .coresAndMaterial ul{
+  list-style: none;
+  padding: 0;
+}
+.materialSetup .coresAndMaterial li{
+  background: white;
+  padding: 10px;
+  margin: 2px;
 }

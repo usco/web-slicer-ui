@@ -8,8 +8,18 @@ const MaterialSetup = ({state}) => {
   const header = {
     valid: true,
   }
+  //TODO check materials combo
+  const validMaterialCoresCombo = true
 
- return <section>
+  if(validMaterialCoresCombo){
+    //activity_check_material_textview_material_invalid
+  }
+  const coresAndMaterials = ['Foo','Bar']
+  const coresAndMaterialsUi = coresAndMaterials.map(function(coresAndMaterial, index){
+    return <li>(extruder{index+1})</li>
+  })
+
+ return <section className='materialSetup'>
   <header>
 
   </header>
@@ -17,13 +27,17 @@ const MaterialSetup = ({state}) => {
     {t('activity_print_settings_text_the_app_only_supports')}
   </section>
   <div>
-    The printer is currently loaded with
+    {t('activity_check_material_printer_is_currently_loaded_with')}
   </div>
 
-  <div>
-
+  <div className='coresAndMaterial'>
+    <ul>
+      {coresAndMaterialsUi}
+    </ul>
   </div>
-
+  <footer>
+   {t('activity_check_material_supported_materials')}
+  </footer>
 
  </section>
 }

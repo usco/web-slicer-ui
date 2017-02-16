@@ -23,11 +23,11 @@ const App = (state) => {
   ]
   let prevStepUi = currentStep > 0 ? <button onClick={mutation(PrevStep, state)}> Previous step </button> : null
   let nextStepUi = currentStep < steps.length -1 ? <button onClick={mutation(NextStep, state)}> Next step </button> : null
-
+  let startPrntUi = currentStep === steps.length -1 ? <button> Start Print</button> : null
   return <div id='app'>
            <h1>{t('app_name')}</h1>
            <h1>{steps[currentStep].name}</h1>
-           {prevStepUi}{nextStepUi}
+           {prevStepUi}{nextStepUi}{startPrntUi}
            <section>
             {stepContents[currentStep]}
            </section>
