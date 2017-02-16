@@ -89,7 +89,7 @@ const PrintSettings = ({state}) => {
            <header>
              {maintext}
            </header>
-           <section className='info'>
+           <section className='status info'>
              {t('activity_print_settings_text_the_app_only_supports')}
            </section>
            <section className='profile'>

@@ -3,6 +3,10 @@
     - blue : #0ca9e3;
     - gray: #f2f2f2;
 
+  status color:s
+    - valid/green: #88d128
+    - invalid/orange: #ff6600
+
 */
 #app{
   background: #f2f2f2;
@@ -27,6 +31,15 @@ button:focus {
   outline: none
 }
 
+.valid{
+  background: #88d128;
+  color: white;
+}
+
+.invalid{
+  background: #ff6600;
+  color: white;
+}
 
 /*print settings*/
 .printSettings{
@@ -101,6 +114,12 @@ div :disabled{
 /*materialSetup*/
 .materialSetup{
 }
+
+.materialSetup header{
+  min-height: 80px;
+  padding: 10px;
+}
+
 .materialSetup .coresAndMaterial ul{
   list-style: none;
   padding: 0;
@@ -108,5 +127,6 @@ div :disabled{
 .materialSetup .coresAndMaterial li{
   background: white;
   padding: 10px;
-  margin: 2px;
+  margin: 5px;
+  font-size: 1.2em;
 }
