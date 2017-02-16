@@ -18,7 +18,6 @@ import { h, render } from 'preact-cycle'
 
 import App from './ui/app'
 
-
 const stringsEn = require('../assets/i18n/en/strings.json')
 const materials = require('../assets/materials.json')
 
@@ -30,7 +29,7 @@ let state = {
   extruders: [],
   loadedMaterials: [],
   currentStep: 0,
-  steps: [{name: 'Material Setup'}, {name:'Print Settings'}]
+  steps: [{name: 'Material Setup'}, {name: 'Print Settings'}]
 }
 
 
