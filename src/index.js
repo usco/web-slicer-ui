@@ -12,13 +12,12 @@ const drivers = {
   DOM: makeDomDriver(document.getElementById('app'))
 }
 run(main, drivers)*/
-import i18next from 'i18next'
 import { h, render } from 'preact-cycle'
 /** @jsx h */
 
 import App from './ui/app'
+import {getTranslations} from './utils/getTranslations'
 
-const stringsEn = require('../assets/i18n/en/strings.json')
 const materials = require('../assets/materials.json')
 
 let state = {
@@ -32,15 +31,8 @@ let state = {
   steps: [{name: 'Material Setup'}, {name: 'Print Settings'}]
 }
 
-
-i18next.init({
-  lng: 'en',
-  resources: {
-    en: {
-      translation: stringsEn
-    }
-  }
-}, (err, t) => {
-  state.t = t
-  render(App, state, document.body)
-})
+getTranslations({en: require('../assets/i18n/en/strings.json')})
+  .forEach(t => {
+    state.t = t
+    render(App, state, document.body)
+  })
