@@ -6,8 +6,9 @@
   "main": "src/index.js",
   "scripts": {
     "test": "ava './src/utils/**/*.test.js' --require babel-register --verbose",
-    "build": "browserify src/index.js -o dist/viewer.js -t [babelify browserify minifyify]",
+    "build": "browserify src/index.js -o dist/index.js -t [babelify browserify minifyify]",
     "start-dev": "budo src/index.js:dist/index.js --port=8080 --live -- -t babelify",
+    "start-app": "electron main.js",
     "release-patch": "git checkout master; npm version patch && npm run build; git commit -a -m 'chore(dist): built dist/'; git push origin master --tags ",
     "release-minor": "git checkout master; npm version minor && npm run build; git commit -a -m 'chore(dist): built dist/'; git push origin master --tags ",
     "release-major": "git checkout master; npm version major && npm run build; git commit -a -m 'chore(dist): built dist/'; git push origin master --tags "
@@ -15,11 +16,20 @@
   "author": "Mark 'kaosat-dev' Moissette",
   "license": "MIT",
   "dependencies": {
+    "@cycle/dom": "^14.3.0",
+    "@cycle/most-run": "^4.4.0",
+    "@most/create": "^2.0.1",
+    "babel-plugin-transform-react-jsx": "^6.23.0",
     "classnames": "^2.2.5",
+    "crypto-js": "^3.1.9-1",
+    "env2": "^2.1.1",
     "i18next": "^7.0.0",
+    "js-sha256": "^0.5.0",
     "most": "^1.2.2",
     "preact-cycle": "^0.4.1",
-    "preact-hyperscript": "^0.7.1"
+    "preact-hyperscript": "^0.7.1",
+    "snabbdom-jsx": "^0.3.1",
+    "xstream": "^10.2.0"
   },
   "devDependencies": {
     "ava": "^0.15.2",
@@ -32,6 +42,8 @@
     "babelify": "^7.2.0",
     "browserify": "^13.0.0",
     "budo": "^9.4.7",
+    "electron": "^1.4.15",
+    "electron-packager": "^8.5.1",
     "minifyify": "^7.3.3",
     "rollupify": "^0.3.4",
     "watchify": "^3.7.0"
