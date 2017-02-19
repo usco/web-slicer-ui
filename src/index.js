@@ -1,38 +1,40 @@
-/*import { run } from '@cycle/most-run'
-import { makeDOMDriver, div } from '@cycle/dom'
-import { just } from 'most'
-
-function main (sources) {
-  console.log(sources)
-  return {
-    DOM: just(div('foo'))
-  }
-}
-const drivers = {
-  DOM: makeDomDriver(document.getElementById('app'))
-}
-run(main, drivers)*/
-import { h, render } from 'preact-cycle'
-/** @jsx h */
-
-import App from './ui/app'
+import { run } from '@cycle/most-run'
+import { div, span, label, input, hr, h1, makeDOMDriver, button } from '@cycle/dom'
+import { html } from 'snabbdom-jsx'
+import { of, combine } from 'most'
 import {getTranslations} from './utils/getTranslations'
 
-const materials = require('../assets/materials.json')
+import MaterialSetup from './ui/MaterialSetup'
+import PrintSettings from './ui/PrintSettings'
 
-let state = {
-  machineType: 'ultimaker3',
-  support: {toggled: true},
-  brim: {toggled: true},
-  qualityPreset: undefined,
-  extruders: [],
-  loadedMaterials: [],
-  currentStep: 0,
-  steps: [{name: 'Material Setup'}, {name: 'Print Settings'}]
+function main (sources) {
+  // initial state
+  const init = () => ({
+    machineType: 'ultimaker3',
+    support: {toggled: true},
+    brim: {toggled: true},
+    qualityPreset: undefined,
+    extruders: [],
+    loadedMaterials: [],
+    currentStep: 0,
+    steps: [{name: 'Material Setup'}, {name: 'Print Settings'}]
+  })
+
+  const translations$ = getTranslations({en: require('../assets/i18n/en/strings.json')})
+  const state$ = combine((state, t) => ({...state, t}), of(init()), translations$)
+
+  const SetQualityPresetAction$ = sources.DOM.select('SetQualityPreset').events('click')
+  const ToggleBrimAction$ = sources.DOM.select('ToggleBrim').events('click')
+  const ToggleSupportAction$ = sources.DOM.select('ToggleSupport').events('click')
+
+
+  return {
+    DOM: state$.map(PrintSettings)
+  }
 }
 
-getTranslations({en: require('../assets/i18n/en/strings.json')})
-  .forEach(t => {
-    state.t = t
-    render(App, state, document.body)
-  })
+const drivers = {
+  DOM: makeDOMDriver('#app')
+}
+
+run(main, drivers)

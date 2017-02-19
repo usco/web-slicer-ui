@@ -1,37 +1,70 @@
-import { h, render } from 'preact-cycle'
 import classNames from 'classnames'
 /** @jsx h */
 import PrintSettings from './printSettings'
 import MaterialSetup from './materialSetup'
 
-//go to next step
-const NextStep = (state, input) => {
-  state = { ...state, currentStep: Math.max(state.currentStep+1, state.steps.length-1) }
-  return state
-}
-const PrevStep = (state, input) => {
-  state = { ...state, currentStep: Math.min(state.currentStep-1, 0) }
-  return state
+
+
+//query printer for infos
+// => get printhead & material infos
+// => get transformation matrix of active object
+// => upload file & start print
+// => provide controls to pause/resume abort print
+
+
+function App(sources) {
+  const init = () => ({})
+  //go to next step
+  const NextStep = (state, input) => ({ ...state, currentStep: Math.max(state.currentStep+1, state.steps.length-1) })
+  const PrevStep = (state, input) => ({ ...state, currentStep: Math.min(state.currentStep-1, 0) })
+  const StartPrint = (state, input) => ({...state, printStatus: 'started' })
+
+  const view = (state) => {
+    //console.log('state', state)
+    const {steps, currentStep} = state
+    const stepContents = [
+      <MaterialSetup state={state} />,
+      <PrintSettings state={state} />
+    ]
+    const prevStepUi = currentStep > 0 ? <button className='PrevStep'> Previous step </button> : null
+    const nextStepUi = currentStep < steps.length -1 ? <button className='NextStep'> Next step </button> : null
+    const startPrintUi = currentStep === steps.length -1 ? <button className='StartPrint'> Start Print</button> : null
+
+    //<h1>{t('app_name')}</h1>
+    return <div id='app'>
+             <section id='wrapper'>
+              <section id='printerPicker'>
+                <div> Select printer </div>
+              </section>
+               <section id='viewer'>
+                3D viewer here
+               </section>
+               <section id='settings'>
+                <h1>{steps[currentStep].name} {prevStepUi} {nextStepUi} {startPrintUi}</h1>
+                {stepContents[currentStep]}
+               </section>
+             </section>
+           </div>
+  }
+
+  const _domEvent = domEvent.bind(null, sources)
+  const incAction$ = _domEvent('.inc', 'click')
+  const decAction$ = _domEvent('.dec', 'click')
+  const setTextAction$ = xs.merge(
+    _domEvent('.input', 'input'),
+    _domEvent('.input', 'change')
+    )
+  .map(e=>e.target.value)
+  const toggleAction$ = _domEvent('.toggle', 'click')
+
+  const {state$, reducer$} = makeStateAndReducers$({incAction$, decAction$, setTextAction$, toggleAction$}, {init, inc, dec, setText, toggle}, sources)
+
+  return {
+    DOM: state$.map(view),
+    onion: reducer$
+  }
 }
 
-const App = (state) => {
-  //console.log('state', state)
-  const {mutation, t, steps, currentStep} = state
-  const stepContents = [
-    <MaterialSetup state={state} />,
-    <PrintSettings state={state} />
-  ]
-  let prevStepUi = currentStep > 0 ? <button onClick={mutation(PrevStep, state)}> Previous step </button> : null
-  let nextStepUi = currentStep < steps.length -1 ? <button onClick={mutation(NextStep, state)}> Next step </button> : null
-  let startPrntUi = currentStep === steps.length -1 ? <button> Start Print</button> : null
 
-  //<h1>{t('app_name')}</h1>
-  return <div id='app'>
-           <h1>{steps[currentStep].name} {prevStepUi} {nextStepUi} {startPrntUi}</h1>
-           <section>
-            {stepContents[currentStep]}
-           </section>
-         </div>
-}
 
 export default App

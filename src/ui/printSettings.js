@@ -1,6 +1,5 @@
-import { h, render } from 'preact-cycle'
 import classNames from 'classnames'
-/** @jsx h */
+import { html } from 'snabbdom-jsx'
 
 const ToggleBrim = (state, input) => {
   console.log('ToggleBrim')
@@ -28,9 +27,9 @@ const SetLayerHeight = (state, input) => {
 }
 
 const actions = {ToggleBrim, ToggleSupport, SetLayerHeight, SetQualityPreset}
+export {actions}
 
-const PrintSettings = ({state}) => {
-  const mutation = state.mutation
+const PrintSettings = (state) => {
 
   const selectedSupportMaterial = 'pva'
 
@@ -54,7 +53,7 @@ const PrintSettings = ({state}) => {
     const qualityDetails = `${height} ${layerHeightUnit}`
     const isSelected = state.qualityPreset === qualityPreset
     return <li className={classNames({ 'selected': isSelected })}>
-             <button onClick={mutation(SetQualityPreset, qualityPreset)}>
+             <button className='SetQualityPreset'>
                <h2>{qualityPreset}</h2>
                <div>
                  {qualityDetails}
@@ -107,7 +106,7 @@ const PrintSettings = ({state}) => {
              <header>
                <h1>
                 <span>{t('activity_print_settings_text_support_structure')}</span>
-                <input type='checkbox' checked={support.toggled} onClick={mutation(ToggleSupport, state)} />
+                <input type='checkbox' checked={support.toggled} className='.ToggleSupport'/>
                </h1>
              </header>
              <div disabled={support.toggled ? false : 'disabled'}>
@@ -121,7 +120,7 @@ const PrintSettings = ({state}) => {
              <header>
               <h1>
                 <span>{t('activity_print_settings_text_adhesion_brim')}</span>
-                <input type='checkbox' checked={brim.toggled} onClick={mutation(ToggleBrim, state)}/>
+                <input type='checkbox' checked={brim.toggled} className='.ToggleBrim'/>
               </h1>
              </header>
              <div disabled={brim.toggled ? false : 'disabled'}>
