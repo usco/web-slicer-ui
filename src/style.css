@@ -22,6 +22,8 @@ html, body {
   border: 0;
   left: 0;
   top: 0;
+  right:0;
+  bottom:0;
   overflow: hidden;
   font-size: 0.8em;
 }
@@ -51,6 +53,13 @@ button:focus {
 .invalid{
   background: #ff6600;
   color: white;
+}
+
+#wrapper{
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
 }
 
 /*print settings*/
@@ -136,4 +145,19 @@ div :disabled{
   padding: 10px;
   margin: 5px;
   font-size: 1.2em;
+}
+
+/*viewer*/
+#viewer{
+  width: 50%;
+  min-height: 400px;
+  flex-grow: 0;
+  display:inline-block;
+}
+
+#settings{
+  width: 50%;
+  min-height: 400px;
+  flex-grow: 0;
+  display:inline-block;
 }
