@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { html } from 'snabbdom-jsx'
-import {domEvent, fromMost, makeStateAndReducers$, makeDefaultReducer} from '../utils/cycle'
+import {domEvent, fromMost, makeStateAndReducers$, makeDefaultReducer, toMost} from '../utils/cycle'
 import { div, button, li, ul, h2 } from '@cycle/dom'
 
 const init = makeDefaultReducer({})
@@ -33,6 +33,8 @@ const SetLayerHeight = (state, input) => {
 const actions = {init, ToggleBrim, ToggleSupport, SetLayerHeight, SetQualityPreset}
 
 const view = (state) => {
+  console.log('state for PrintSettings',state)
+
   if (!state.hasOwnProperty('t')) return null // FIXME : bloody hack
 
   const selectedSupportMaterial = 'pva'
@@ -55,8 +57,8 @@ const view = (state) => {
   const layerHeightButtons = layerHeights.map(function (height, index) {
     const qualityPreset = `${layerHeightNames[height]}`
     const qualityDetails = `${height} ${layerHeightUnit}`
-    const isSelected = state.qualityPreset === qualityPreset
-    return li(classNames({ 'selected': isSelected }), [
+    const isSelected = state.qualityPreset === qualityPresets[index]
+    return li(classNames({ '.selected': isSelected }), [
       button('.SetQualityPreset', {attrs: {'data-index': qualityPresets[index]}}, [
         h2(qualityPreset),
         div(qualityDetails)
@@ -137,28 +139,20 @@ function PrintSettings (sources) {
   const SetQualityPresetAction$ = _domEvent('.SetQualityPreset', 'click').map(x => (x.currentTarget.dataset.index))
   const ToggleBrimAction$ = _domEvent('.ToggleBrim', 'click').map(x => x.target.value)
   const ToggleSupportAction$ = _domEvent('.ToggleSupport', 'click').map(x => x.target.value)
-  /*const SelectSupportExtruder = merge(
-    ToggleSupportAction$.filter(x=>x)*/
-
 
   const actions$ = {
-    SetQualityPresetAction$,
+    /*SetQualityPresetAction$,
     ToggleBrimAction$,
-    ToggleSupportAction$
+    ToggleSupportAction$*/
   }
 
   const {state$, reducer$} = makeStateAndReducers$(actions$, actions, sources)
 
-  const view2 = state => {
-    console.log(state)
-    return <div>
-      I am here
-    </div>
-  }
   return {
     DOM: state$.map(view),
     onion: reducer$
   }
 }
 
+export {init, actions}
 export default PrintSettings

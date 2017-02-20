@@ -14,7 +14,7 @@ import onionify from 'cycle-onionify'
 import isolate from '@cycle/isolate'
 
 // import MaterialSetup from './ui/MaterialSetup'
-import PrintSettings from './ui/PrintSettings'
+import App from './ui/App'
 
 function main (sources) {
   // initial state
@@ -34,21 +34,26 @@ function main (sources) {
   const translations$ = fromMost(getTranslations({en: {translation: require('../assets/i18n/en/strings.json')}}))
 
   // sub components
-  const printSettings = PrintSettings(sources)
+  const app = App(sources)
 
   const setTranslationsReducer$ = translations$.map(t => state => ({...state, t}))
   const state$ = sources.onion.state$
 
   const reducer$ = merge(
     setTranslationsReducer$,
-    mergeReducers(init, [printSettings])
+    mergeReducers(init, [app])
   )
 
-  const vdom$ = xs.combine(state$, printSettings.DOM)
+  /*const vdom$ = xs.combine(state$, printSettings.DOM)
      .map(([ state, printSettings ]) => div([
        div(JSON.stringify(state, null, 4)),
        printSettings
-     ]))
+     ]))*/
+  const vdom$ = xs.combine(state$, app.DOM)
+    .map(([ state, app ]) => div([
+      div(JSON.stringify(state, null, 4)),
+      app
+    ]))
 
   return {
     DOM: vdom$, // state$.map(state=><div>dsffds</div>),
