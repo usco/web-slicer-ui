@@ -1,23 +1,52 @@
 import classNames from 'classnames'
 import { html } from 'snabbdom-jsx'
-import {domEvent, fromMost, makeStateAndReducers$, makeDefaultReducer} from '../utils/cycle'
 import { div, button, li, ul, h2 } from '@cycle/dom'
+
+import * as R from 'ramda'
+
+import {domEvent, fromMost, makeStateAndReducers$, makeDefaultReducer} from '../utils/cycle'
+import {pickExtruders, pickMaterials, pickHotends} from '../core/printerDataHelpers'
+import {materials} from '../core/lookupMaterial'
 
 const init = () => ({})
 
 const actions = {init}
 
 const view = (state) => {
-  //console.log('state for MaterialSetup', state)
+  // console.log('state for MaterialSetup', state)
   if (!state.hasOwnProperty('t')) return null // FIXME : bloody hack
 
   const {t} = state
+
+  const activePrinterInfos = R.prop('infos', R.find(R.propEq('id', state.activePrinterId), state.printers))
+
+  //console.log('activePrinter', activePrinterInfos)
+
+  let usefulData = {
+    extruders: [],
+    materials: [],
+    hotends: []
+  }
+  // FIXME: temporary hack, look into sanctuary lib or other way of dealing with empty data
+  if (Object.keys(activePrinterInfos).length > 0) {
+    const extruders = pickExtruders(activePrinterInfos)
+    usefulData = {
+      extruders,
+      materials: pickMaterials(extruders),
+      hotends: pickHotends(extruders)
+    }
+  }
   // TODO check materials combo
   const validMaterialCoresCombo = true
 
   const statusHeaderText = validMaterialCoresCombo ? t('activity_check_material_configuration_valid') : t('activity_check_material_textview_material_invalid')
 
-  const coresAndMaterials = [{core: 'AA 0.4', material: 'PLA', valid: true}, {core: 'BB 0.4', material: 'PVA', valid: false}]
+  const coresAndMaterials = usefulData.hotends.map(function (hotend, index) {
+    const material = R.find(R.propEq('guid', usefulData.materials[index]))(materials)
+    const materialString = material ? `${material.color} ${material.type}` : 'n/a'
+    return {core: hotend, material:materialString, valid: true}
+  })
+  // [{core: 'AA 0.4', material: 'PLA', valid: true}, {core: 'BB 0.4', material: 'PVA', valid: false}]
   const coresAndMaterialsUi = coresAndMaterials.map(function (data, index) {
     return <li>
       <span>{`Valid:${data.valid}`}</span>
