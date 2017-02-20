@@ -1,16 +1,13 @@
 import classNames from 'classnames'
-/** @jsx h */
 import PrintSettings from './printSettings'
 import MaterialSetup from './materialSetup'
-
-
+import {merge} from 'most'
 
 //query printer for infos
 // => get printhead & material infos
 // => get transformation matrix of active object
 // => upload file & start print
 // => provide controls to pause/resume abort print
-
 
 function App(sources) {
   const init = () => ({})
@@ -50,7 +47,7 @@ function App(sources) {
   const _domEvent = domEvent.bind(null, sources)
   const incAction$ = _domEvent('.inc', 'click')
   const decAction$ = _domEvent('.dec', 'click')
-  const setTextAction$ = xs.merge(
+  const setTextAction$ = merge(
     _domEvent('.input', 'input'),
     _domEvent('.input', 'change')
     )
@@ -64,7 +61,5 @@ function App(sources) {
     onion: reducer$
   }
 }
-
-
 
 export default App

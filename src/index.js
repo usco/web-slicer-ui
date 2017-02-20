@@ -1,10 +1,19 @@
-import { run } from '@cycle/most-run'
-import { div, span, label, input, hr, h1, makeDOMDriver, button } from '@cycle/dom'
+// import { run } from '@cycle/most-run'
+import { run } from '@cycle/xstream-run'
+import { makeDOMDriver, div } from '@cycle/dom'
 import { html } from 'snabbdom-jsx'
-import { of, combine } from 'most'
+// import { of, combine, merge, periodic, combineArray } from 'most'
+import xs from 'xstream'
+const {of, merge, combine} = xs
+
 import {getTranslations} from './utils/getTranslations'
 
-import MaterialSetup from './ui/MaterialSetup'
+import {fromMost, mergeReducers, toMost} from './utils/cycle'
+
+import onionify from 'cycle-onionify'
+import isolate from '@cycle/isolate'
+
+// import MaterialSetup from './ui/MaterialSetup'
 import PrintSettings from './ui/PrintSettings'
 
 function main (sources) {
@@ -16,25 +25,41 @@ function main (sources) {
     qualityPreset: undefined,
     extruders: [],
     loadedMaterials: [],
+    supportExtruder: -1,
     currentStep: 0,
-    steps: [{name: 'Material Setup'}, {name: 'Print Settings'}]
+    steps: [{name: 'Material Setup'}, {name: 'Print Settings'}],
+    t: x => ''// stand in
   })
 
-  const translations$ = getTranslations({en: require('../assets/i18n/en/strings.json')})
-  const state$ = combine((state, t) => ({...state, t}), of(init()), translations$)
+  const translations$ = fromMost(getTranslations({en: {translation: require('../assets/i18n/en/strings.json')}}))
 
-  const SetQualityPresetAction$ = sources.DOM.select('SetQualityPreset').events('click')
-  const ToggleBrimAction$ = sources.DOM.select('ToggleBrim').events('click')
-  const ToggleSupportAction$ = sources.DOM.select('ToggleSupport').events('click')
+  // sub components
+  const printSettings = PrintSettings(sources)
 
+  const setTranslationsReducer$ = translations$.map(t => state => ({...state, t}))
+  const state$ = sources.onion.state$
+
+  const reducer$ = merge(
+    setTranslationsReducer$,
+    mergeReducers(init, [printSettings])
+  )
+
+  const vdom$ = xs.combine(state$, printSettings.DOM)
+     .map(([ state, printSettings ]) => div([
+       div(JSON.stringify(state, null, 4)),
+       printSettings
+     ]))
 
   return {
-    DOM: state$.map(PrintSettings)
+    DOM: vdom$, // state$.map(state=><div>dsffds</div>),
+    onion: reducer$
   }
 }
+
+const wrappedMain = onionify(main)
 
 const drivers = {
   DOM: makeDOMDriver('#app')
 }
 
-run(main, drivers)
+run(wrappedMain, drivers)

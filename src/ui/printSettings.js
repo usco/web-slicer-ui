@@ -1,5 +1,9 @@
 import classNames from 'classnames'
 import { html } from 'snabbdom-jsx'
+import {domEvent, fromMost, makeStateAndReducers$, makeDefaultReducer} from '../utils/cycle'
+import { div, button, li, ul, h2 } from '@cycle/dom'
+
+const init = makeDefaultReducer({})
 
 const ToggleBrim = (state, input) => {
   console.log('ToggleBrim')
@@ -26,10 +30,10 @@ const SetLayerHeight = (state, input) => {
   return state
 }
 
-const actions = {ToggleBrim, ToggleSupport, SetLayerHeight, SetQualityPreset}
-export {actions}
+const actions = {init, ToggleBrim, ToggleSupport, SetLayerHeight, SetQualityPreset}
 
-const PrintSettings = (state) => {
+const view = (state) => {
+  if (!state.hasOwnProperty('t')) return null // FIXME : bloody hack
 
   const selectedSupportMaterial = 'pva'
 
@@ -48,36 +52,34 @@ const PrintSettings = (state) => {
   }
   const layerHeightUnit = 'mm'
 
-  const layerHeightButtons = layerHeights.map(function (height) {
+  const layerHeightButtons = layerHeights.map(function (height, index) {
     const qualityPreset = `${layerHeightNames[height]}`
     const qualityDetails = `${height} ${layerHeightUnit}`
     const isSelected = state.qualityPreset === qualityPreset
-    return <li className={classNames({ 'selected': isSelected })}>
-             <button className='SetQualityPreset'>
-               <h2>{qualityPreset}</h2>
-               <div>
-                 {qualityDetails}
-               </div>
-             </button>
-           </li>
+    return li(classNames({ 'selected': isSelected }), [
+      button('.SetQualityPreset', {attrs: {'data-index': qualityPresets[index]}}, [
+        h2(qualityPreset),
+        div(qualityDetails)
+      ])
+    ])
   })
 
   const supportMaterials = ['pva', 'pla']
 
   const supportMaterialsUi = supportMaterials.map(function (supportMaterial, index) {
     return <div>
-             <input
-               type='radio'
-               name='supportMaterials'
-               value={supportMaterial}
-               checked={supportMaterial === selectedSupportMaterial}
+      <input
+        type='radio'
+        name='supportMaterials'
+        value={supportMaterial}
+        checked={supportMaterial === selectedSupportMaterial}
                >
-             {supportMaterial}
-             </input>
+        {supportMaterial}
+      </input>
              Extruder
              {index + 1}:
              {supportMaterial}
-           </div>
+    </div>
   })
 
   const maintext = t('activity_print_settings_text_info')
@@ -85,49 +87,78 @@ const PrintSettings = (state) => {
     .replace(`<font color='black'>%2$s</font>`, printCores[1])
 
   return <section className='printSettings'>
-           <header>
-             {maintext}
-           </header>
-           <section className='status info'>
-             {t('activity_print_settings_text_the_app_only_supports')}
-           </section>
-           <section className='profile'>
-             <header>
-               <h1>{t('activity_print_settings_text_print_profile')}</h1>
-               {t('activity_print_settings_layer_height_description')}
-             </header>
-             <div className='layerHeights'>
-               <ul>
-                 {layerHeightButtons}
-               </ul>
-             </div>
-           </section>
-           <section className='supports'>
-             <header>
-               <h1>
-                <span>{t('activity_print_settings_text_support_structure')}</span>
-                <input type='checkbox' checked={support.toggled} className='.ToggleSupport'/>
-               </h1>
-             </header>
-             <div disabled={support.toggled ? false : 'disabled'}>
-               {t('activity_print_settings_text_select_support_structure_description')}
-               <form>
-                 {supportMaterialsUi}
-               </form>
-             </div>
-           </section>
-           <section className='brim'>
-             <header>
-              <h1>
-                <span>{t('activity_print_settings_text_adhesion_brim')}</span>
-                <input type='checkbox' checked={brim.toggled} className='.ToggleBrim'/>
-              </h1>
-             </header>
-             <div disabled={brim.toggled ? false : 'disabled'}>
-               {t('activity_print_settings_text_brim_description')}
-             </div>
-           </section>
-         </section>
+    <header>
+      {maintext}
+    </header>
+    <section className='status info'>
+      {t('activity_print_settings_text_the_app_only_supports')}
+    </section>
+    <section className='profile'>
+      <header>
+        <h1>{t('activity_print_settings_text_print_profile')}</h1>
+        {t('activity_print_settings_layer_height_description')}
+      </header>
+      <div className='layerHeights'>
+        <ul>
+          {layerHeightButtons}
+        </ul>
+      </div>
+    </section>
+    <section className='supports'>
+      <header>
+        <h1>
+          <span>{t('activity_print_settings_text_support_structure')}</span>
+          <input type='checkbox' checked={support.toggled} className='ToggleSupport' />
+        </h1>
+      </header>
+      <div disabled={support.toggled ? false : 'disabled'}>
+        {t('activity_print_settings_text_select_support_structure_description')}
+        <form>
+          {supportMaterialsUi}
+        </form>
+      </div>
+    </section>
+    <section className='brim'>
+      <header>
+        <h1>
+          <span>{t('activity_print_settings_text_adhesion_brim')}</span>
+          <input type='checkbox' checked={brim.toggled} className='ToggleBrim' />
+        </h1>
+      </header>
+      <div disabled={brim.toggled ? false : 'disabled'}>
+        {t('activity_print_settings_text_brim_description')}
+      </div>
+    </section>
+  </section>
+}
+
+function PrintSettings (sources) {
+  const _domEvent = domEvent.bind(null, sources)
+  const SetQualityPresetAction$ = _domEvent('.SetQualityPreset', 'click').map(x => (x.currentTarget.dataset.index))
+  const ToggleBrimAction$ = _domEvent('.ToggleBrim', 'click').map(x => x.target.value)
+  const ToggleSupportAction$ = _domEvent('.ToggleSupport', 'click').map(x => x.target.value)
+  /*const SelectSupportExtruder = merge(
+    ToggleSupportAction$.filter(x=>x)*/
+
+
+  const actions$ = {
+    SetQualityPresetAction$,
+    ToggleBrimAction$,
+    ToggleSupportAction$
+  }
+
+  const {state$, reducer$} = makeStateAndReducers$(actions$, actions, sources)
+
+  const view2 = state => {
+    console.log(state)
+    return <div>
+      I am here
+    </div>
+  }
+  return {
+    DOM: state$.map(view),
+    onion: reducer$
+  }
 }
 
 export default PrintSettings
