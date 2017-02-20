@@ -59,6 +59,8 @@ button:focus {
   position: absolute;
   top: 0;
   left: 0;
+  bottom: 0;
+  right:0;
   display: flex;
 }
 
@@ -155,7 +157,8 @@ div :disabled{
   display:inline-block;
   position: relative;
   left:0px;
-  top:50px;
+  top:0px;
+  margin: 10px;
 }
 #viewer canvas{
   position: relative;
@@ -168,6 +171,7 @@ div :disabled{
   min-height: 400px;
   flex-grow: 0;
   display:inline-block;
+  margin: 10px;
 }
 
 #printerPicker{

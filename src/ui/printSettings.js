@@ -33,7 +33,7 @@ const SetLayerHeight = (state, input) => {
 const actions = {init, ToggleBrim, ToggleSupport, SetLayerHeight, SetQualityPreset}
 
 const view = (state) => {
-  console.log('state for PrintSettings',state)
+  //console.log('state for PrintSettings',state)
 
   if (!state.hasOwnProperty('t')) return null // FIXME : bloody hack
 
@@ -141,13 +141,14 @@ function PrintSettings (sources) {
   const ToggleSupportAction$ = _domEvent('.ToggleSupport', 'click').map(x => x.target.value)
 
   const actions$ = {
-    /*SetQualityPresetAction$,
+    /* SetQualityPresetAction$,
     ToggleBrimAction$,
-    ToggleSupportAction$*/
+    ToggleSupportAction$ */
   }
 
   const {state$, reducer$} = makeStateAndReducers$(actions$, actions, sources)
-
+  //.map(state => ({...state.print.settings, t: state.t}))
+  
   return {
     DOM: state$.map(view),
     onion: reducer$
