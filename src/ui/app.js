@@ -4,13 +4,16 @@ import { div, button, li, ul, h2 } from '@cycle/dom'
 // import {merge} from 'most'
 import xs from 'xstream'
 const {of, merge, combine} = xs
-import {domEvent, fromMost, makeStateAndReducers$, makeDefaultReducer, mergeReducers} from '../utils/cycle'
+import {domEvent, fromMost, toMost, makeStateAndReducers$, makeDefaultReducer, mergeReducers} from '../utils/cycle'
 import isolate from '@cycle/isolate'
 
 import PrintSettings from './printSettings'
 import MaterialSetup from './materialSetup'
+import Viewer from './viewer'
 
 import {actions as printSettingsActions} from './printSettings'
+
+import {queryEndpoint} from '../core/umc'
 
 // query printer for infos
 // => get printhead & material infos
@@ -19,16 +22,28 @@ import {actions as printSettingsActions} from './printSettings'
 // => provide controls to pause/resume abort print
 
 const init = makeDefaultReducer({})
-// go to next step
 const PrevStep = (state, input) => ({ ...state, currentStep: Math.min(state.currentStep - 1, 0) })
 const NextStep = (state, input) => ({ ...state, currentStep: Math.max(state.currentStep + 1, state.steps.length - 1) })
 const StartPrint = (state, input) => ({ ...state, printStatus: 'startRequested' })
 
-const actions = {init, PrevStep, NextStep, StartPrint}
 
-const view = ([state, printSettings, materialSetup]) => {
+const SetPrinters = (state, input) => {
+  console.log('SetPrinters', input)
+
+  state = { ...state, printers: input }
+  return state
+}
+
+const actions = {
+  init, PrevStep, NextStep, StartPrint,
+  SetPrinters
+}
+
+
+//our main view
+const view = ([state, printSettings, materialSetup, viewer]) => {
   if (!state.hasOwnProperty('t')) return null // FIXME : bloody hack
-  // console.log('state', printSettings, materialSetup)
+  //console.log('state')
   const {steps, currentStep} = state
   const stepContents = [
     materialSetup,
@@ -38,6 +53,8 @@ const view = ([state, printSettings, materialSetup]) => {
   const nextStepUi = currentStep < steps.length - 1 ? button('.NextStep', 'Next step') : ''
   const startPrintUi = currentStep === steps.length - 1 ? button('.StartPrint', 'Start Print') : ''
 
+  const printers = ul('.printersList',state.printers.map(printer => li('',printer.name)))
+
   // <h1>{t('app_name')}</h1>
   return <div id='app'>
     <section id='wrapper'>
@@ -45,12 +62,15 @@ const view = ([state, printSettings, materialSetup]) => {
         <div> Select printer </div>
       </section>
       <section id='viewer'>
-              3D viewer here
-             </section>
+        {viewer}
+      </section>
       <section id='settings'>
         <h1>{steps[currentStep].name}{prevStepUi}{nextStepUi}{startPrintUi}</h1>
         {stepContents[currentStep]}
       </section>
+    </section>
+    <section id='printers'>
+      {printers}
     </section>
   </div>
 }
@@ -61,6 +81,10 @@ function App (sources) {
   const NextStepAction$ = _domEvent('.NextStep', 'click')
   const StartPrintAction$ = _domEvent('.StartPrint', 'click')
 
+  //FIXME: switch to drivers
+  const SetPrintersAction$ = fromMost(queryEndpoint('/printers').map(x=>x.response))//.forEach(x=>console.log(x))
+    queryEndpoint('/printers')//.map(x=>x.response)
+      .forEach(x=>console.log(x))
   // FIXME: temp workarounds
   const SetQualityPresetAction$ = _domEvent('.SetQualityPreset', 'click').map(x => (x.currentTarget.dataset.index))
   const ToggleBrimAction$ = _domEvent('.ToggleBrim', 'click').map(x => x.target.value)
@@ -71,29 +95,26 @@ function App (sources) {
     NextStepAction$,
     StartPrintAction$,
 
+    //SetPrintersAction$,
+
     SetQualityPresetAction$,
     ToggleBrimAction$,
     ToggleSupportAction$
   }
 
+  toMost(StartPrintAction$).forEach(x=>console.log('StartPrintAction'))
+
   const {state$, reducer$} = makeStateAndReducers$(actions$, {...actions, ...printSettingsActions}, sources)
-  /* const _reducer$ = merge(
-    reducer$,
-    merge(...[printSettings, materialSetup].map(x => x.onion))
-  ) */
+
   // sub components
   const printSettings = PrintSettings(sources)
   const materialSetup = MaterialSetup(sources)
+  const viewer = isolate(Viewer, 'viewer')(sources)
 
-  const _reducer$ = merge(
-    reducer$,
-    //mergeReducers(init, [materialSetup, printSettings])
-  )
+  const _reducer$ = merge(reducer$, ...[viewer].map(x=>x.onion))
 
-  const vdom$ = xs.combine(state$, printSettings.DOM, materialSetup.DOM)
-    .map(([ state, printSettings, materialSetup ]) => view([ state, printSettings, materialSetup ]))
-
-     // printSettings.DOM.addListener({next: x=>console.log(x)})
+  const vdom$ = xs.combine(state$, printSettings.DOM, materialSetup.DOM, viewer.DOM)
+    .map((items) => view(items))
 
   return {
     DOM: vdom$,
