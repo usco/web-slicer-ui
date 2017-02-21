@@ -14,7 +14,7 @@ import getBrandingSvgGeometry from '@usco/um-branding/dist/getBrandingSvgGeometr
 import { hexToRgba } from '@usco/image-utils/dist/colorConversions'
 import makeDrawPrintableArea from '@usco/render-utils/dist/drawPrintableArea'
 
-export default function drawEnclosure (regl, params) {
+module.exports = function drawEnclosure (regl, params) {
   const {machine_disallowed_areas, machine_volume, name} = params
 
   const drawGrid = prepareDrawGrid(regl, { size: machine_volume, ticks: 50, centered: true })
