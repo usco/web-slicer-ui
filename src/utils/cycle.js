@@ -1,7 +1,8 @@
-//import { of, merge } from 'most'
+// import { of, merge } from 'most'
 import xs from 'xstream'
 const {of, merge} = xs
 import convert from 'stream-conversions'
+const {create} = require('@most/create')
 
 export function domEvent (sources, selector, event) {
   return sources.DOM.select(selector).events(event)
@@ -41,3 +42,13 @@ export function makeDefaultReducer (defaultstate = {}) {
 const toMost = convert.xstream.to.most
 const fromMost = convert.most.to.xstream
 export { toMost, fromMost }
+
+export function imitateXstream (xstream) {
+  return create((add, end, error) => {
+    xstream.addListener({
+      next: i => add(i),
+      error: err => error(err),
+      complete: () => end()
+    })
+  })
+}
