@@ -27,12 +27,19 @@ import {queryEndpoint} from '../core/umc'
 
 const init = makeDefaultReducer({})
 const PrevStep = (state, input) => ({ ...state, currentStep: Math.max(state.currentStep - 1, 0) })
-const NextStep = (state, input) => ({ ...state, currentStep: Math.min(state.currentStep + 1, state.steps.length - 1) })
+const NextStep = (state, input) => {
+  const activePrinter = R.find(R.propEq('id', state.activePrinterId))(state.printers)
+  if (activePrinter && activePrinter.hasOwnProperty('infos')) {
+    return {...state, currentStep: Math.min(state.currentStep + 1, state.steps.length - 1)}
+  }
+  return state
+}
 const StartPrint = (state, input) => ({ ...state, printStatus: 'startRequested' })
 const SelectPrinter = (state, input) => {
   console.log('SelectPrinter', input)
-
-  state = { ...state, activePrinterId: input }
+  //FIXME: activePrinter is a computed property how do we deal with it ?
+  const activePrinter = R.find(R.propEq('id', state.activePrinterId))(state.printers)
+  state = { ...state, activePrinterId: input, activePrinter }
   console.log('state', state)
   return state
 }
@@ -43,8 +50,8 @@ const SetPrinters = (state, input) => {
   return state
 }
 
-const SetActivePrinterInfos = (state, input) => {
-  console.log('SetActivePrinterInfos', input)
+const GetActivePrinterInfos = (state, input) => {
+  console.log('GetActivePrinterInfos', input)
   const index = R.findIndex(R.propEq('id', state.activePrinterId))(state.printers)
   if (index !== -1) {
     const activePrinter = state.printers[index]
@@ -60,7 +67,7 @@ const actions = {
   SelectPrinter,
 
   SetPrinters,
-  SetActivePrinterInfos
+  GetActivePrinterInfos
 }
 
 // our main view
@@ -72,7 +79,8 @@ const view = ([state, printSettings, materialSetup, viewer]) => {
   const printers = ul('.printersList', state.printers
     .map(function (printer) {
       const isSelected = state.activePrinterId === printer.id
-      return li(classNames({ '.selected': isSelected, '.printerL': true }), {attrs: {'data-id': printer.id}}, printer.name)
+      const isClaimed = printer.claimed
+      return li(classNames({ '.selected': isSelected, '.printerL': true, '.claimed':isClaimed }), {attrs: {'data-id': printer.id}}, printer.name)
     })
   )
   const printerSetup = <section id='printerPicker'>
@@ -86,7 +94,7 @@ const view = ([state, printSettings, materialSetup, viewer]) => {
     printSettings
   ]
   const prevStepUi = currentStep > 0 ? button('.PrevStep', 'Previous step') : ''
-  const nextStepUi = currentStep < steps.length - 1 ? button('.NextStep', 'Next step') : ''
+  const nextStepUi = currentStep < steps.length - 1 && state.activePrinterId  ? button('.NextStep', 'Next step') : ''
   const startPrintUi = currentStep === steps.length - 1 ? button('.StartPrint', 'Start Print') : ''
 
   // <h1>{t('app_name')}</h1>
@@ -107,21 +115,70 @@ function App (sources) {
   const NextStepAction$ = _domEvent('.NextStep', 'click')
   const StartPrintAction$ = _domEvent('.StartPrint', 'click')
 
-  const SelectPrinterAction$ = _domEvent('.printerL', 'click').map(x => (x.currentTarget.dataset.id))
-
   // FIXME: switch to drivers
-  const SetPrintersAction$ = fromMost(queryEndpoint('/printers').map(x => x.response).tap(x => console.log(x)))// .
+  const allPrinters$ = queryEndpoint('/printers').map(x => x.response)
+    .map(printers => printers.map(printer => ({...printer, claimed: undefined})))
+  const claimedPrinters$ = queryEndpoint('/printers/claimed').map(x => x.response)
+    .map(printers => printers.map(printer => ({...printer, claimed: true})))
+
+  const SetPrintersAction$ = most.combineArray(function (claimedPrinters, allPrinters) {
+    let printers = claimedPrinters
+    function addItem (item) {
+      const found = R.find(x => x.id === item.id && x.name === item.name)(printers)// R.propEq('id', item.id)
+      if (found) {
+        if (found.claimed === undefined) {
+          found.claimed = false
+          //printers.push(item)
+        }
+      } else {
+        item.claimed = false
+        printers.push(item)
+      }
+    }
+    allPrinters.forEach(addItem)
+
+    console.log(claimedPrinters, allPrinters)
+    return printers
+  }, [claimedPrinters$, allPrinters$])
+
     // queryEndpointTest('/printers')
   // fetch data for the selectedprinter
-  // const SetActivePrinterInfosAction$ = printerInfos('sdfsdf0').delay(1000)
+  // const GetActivePrinterInfosAction$ = printerInfos('sdfsdf0').delay(1000)
+  const SelectPrinterAction$ = _domEvent('.printerL', 'click').map(x => (x.currentTarget.dataset.id))
 
-  const SetActivePrinterInfosAction$ = imitateXstream(SelectPrinterAction$)
+  const GetActivePrinterInfosAction$ = imitateXstream(SelectPrinterAction$)
     .flatMap(function (id) {
       return queryEndpoint(`/printers/${id}/info`)
-        .flatMapError(error => most.of(undefined))// TODO: dispatch errors
-        .filter(x => x != undefined)
-        .map(x => x.response)
+        // .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
+        .flatMapError(error => {
+          if (error.error === 'client not authorized') {
+            console.log('printer not claimed')
+            return queryEndpoint(`/printers/${id}/claim`, {method: 'POST'})
+              .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
+          }
+          return most.of(undefined)
+        })
     })
+    .filter(x => x !== undefined)
+    .map(x => x.response)
+
+    /* .map(function(data){
+      if('error' in data){
+        if(data.error.error === 'client not authorized'){
+          console.log('printer not claimed')
+          return queryEndpoint(`/printers/${id}/claim`, {method: 'POST'})
+            .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
+        }
+        console.log('error', data)
+      }
+      return data
+      //.filter(x => x != undefined)
+      //.map(x => x.response)
+    })
+    .map(function(foo){
+      console.log('here', foo)
+      return foo
+    }) */
 
   /* const SetCameraImageAction$ = toMost(SelectPrinterAction$)
     .flatMap(function(id){
@@ -145,9 +202,9 @@ function App (sources) {
     NextStepAction$,
     StartPrintAction$,
 
-    SetPrintersAction$,
-    SetActivePrinterInfosAction$: fromMost(SetActivePrinterInfosAction$),
-    
+    SetPrintersAction$: fromMost(SetPrintersAction$),
+    GetActivePrinterInfosAction$: fromMost(GetActivePrinterInfosAction$),
+
     SelectPrinterAction$,
 
     SetQualityPresetAction$,

@@ -188,3 +188,7 @@ div :disabled{
 .printersList .selected{
   background: #0ca9e3;
 }
+
+.printersList .claimed{
+  background: #88d128;
+}
