@@ -35,15 +35,15 @@ function main (sources) {
     currentStep: 0,
     steps: [{name: 'printer Setup'}, {name: 'Material Setup'}, {name: 'Print Settings'}],
 
-    activePrinterId: 0,
+    activePrinterId: undefined,
     printers: [
-      {
-        id: 0,
+      /*{
+        id: 'sdfsdf0',
         name: 'foo',
         infos: {
 
         }},
-      {id: 7, name: 'fba', infos: {type: 'ultimaker3'}}
+      {id: 'dsqdq', name: 'fba', infos: {type: 'ultimaker3'}}*/
     ],
     t: x => ''// stand in
   })
