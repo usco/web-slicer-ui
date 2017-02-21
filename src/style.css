@@ -192,3 +192,8 @@ div :disabled{
 .printersList .claimed{
   background: #88d128;
 }
+
+.printersList li {
+  margin: 10px;
+  padding: 0px 10px 0px 10px;
+}
