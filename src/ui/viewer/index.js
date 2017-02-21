@@ -106,7 +106,7 @@ export default function GLComponent (sources) {
   let container
   const view = () => {
     return h('canvas', {
-      props: {width: 540, height: 400},
+      props: {width: 540*2, height: 400*2},
       hook: {insert: vnode => { regl = initRegl(vnode.elm); container = vnode.elm; setup(regl, container, defaults) }}
     })
   }
