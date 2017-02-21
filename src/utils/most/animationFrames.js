@@ -1,6 +1,6 @@
 // taken from https://github.com/briancavalier/most-behavior/blob/2888b2b69fe2c8e44617c611eb5fdaf512d52007/src/animationFrames.js
 import { Stream } from 'most'
-import create from '@most/create'
+import {create} from '@most/create'
 
 export function animationFrames () {
   return new Stream(new AnimationFramesSource())
