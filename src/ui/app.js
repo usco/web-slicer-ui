@@ -2,16 +2,16 @@ import classNames from 'classnames'
 import { html } from 'snabbdom-jsx'
 import { div, button, li, ul, h2 } from '@cycle/dom'
 // import {merge} from 'most'
+import * as most from 'most'
 import xs from 'xstream'
 const {of, merge, combine} = xs
-import {domEvent, fromMost, toMost, makeStateAndReducers$, makeDefaultReducer, mergeReducers} from '../utils/cycle'
+import {domEvent, fromMost, toMost, makeStateAndReducers$, makeDefaultReducer, mergeReducers, imitateXstream} from '../utils/cycle'
 import isolate from '@cycle/isolate'
 
 import PrintSettings from './printSettings'
 import MaterialSetup from './materialSetup'
 import Viewer from './viewer'
 
-import {head} from 'ramda'
 import * as R from 'ramda'
 
 import {actions as printSettingsActions} from './printSettings'
@@ -29,6 +29,13 @@ const init = makeDefaultReducer({})
 const PrevStep = (state, input) => ({ ...state, currentStep: Math.max(state.currentStep - 1, 0) })
 const NextStep = (state, input) => ({ ...state, currentStep: Math.min(state.currentStep + 1, state.steps.length - 1) })
 const StartPrint = (state, input) => ({ ...state, printStatus: 'startRequested' })
+const SelectPrinter = (state, input) => {
+  console.log('SelectPrinter', input)
+
+  state = { ...state, activePrinterId: input }
+  console.log('state', state)
+  return state
+}
 
 const SetPrinters = (state, input) => {
   console.log('SetPrinters', input)
@@ -49,6 +56,9 @@ const SetActivePrinterInfos = (state, input) => {
 
 const actions = {
   init, PrevStep, NextStep, StartPrint,
+
+  SelectPrinter,
+
   SetPrinters,
   SetActivePrinterInfos
 }
@@ -59,7 +69,12 @@ const view = ([state, printSettings, materialSetup, viewer]) => {
   // console.log('state')
   const {steps, currentStep} = state
 
-  const printers = ul('.printersList', state.printers.map(printer => li('', printer.name)))
+  const printers = ul('.printersList', state.printers
+    .map(function (printer) {
+      const isSelected = state.activePrinterId === printer.id
+      return li(classNames({ '.selected': isSelected, '.printerL': true }), {attrs: {'data-id': printer.id}}, printer.name)
+    })
+  )
   const printerSetup = <section id='printerPicker'>
     <div> Select printer </div>
     {printers}
@@ -80,7 +95,7 @@ const view = ([state, printSettings, materialSetup, viewer]) => {
       {viewer}
     </section>
     <section id='settings'>
-      <h1>{steps[currentStep].name}<span/>{prevStepUi}{nextStepUi}{startPrintUi}</h1>
+      <h1>{steps[currentStep].name}<span />{prevStepUi}{nextStepUi}{startPrintUi}</h1>
       {stepContents[currentStep]}
     </section>
   </section>
@@ -92,11 +107,32 @@ function App (sources) {
   const NextStepAction$ = _domEvent('.NextStep', 'click')
   const StartPrintAction$ = _domEvent('.StartPrint', 'click')
 
+  const SelectPrinterAction$ = _domEvent('.printerL', 'click').map(x => (x.currentTarget.dataset.id))
+
   // FIXME: switch to drivers
-  const SetPrintersAction$ = fromMost(queryEndpoint('/printers').map(x => x.response))// .forEach(x=>console.log(x))
+  const SetPrintersAction$ = fromMost(queryEndpoint('/printers').map(x => x.response).tap(x => console.log(x)))// .
     // queryEndpointTest('/printers')
   // fetch data for the selectedprinter
-  const SetActivePrinterInfosAction$ = printerInfos('fakeId').delay(1000)
+  // const SetActivePrinterInfosAction$ = printerInfos('sdfsdf0').delay(1000)
+
+  const SetActivePrinterInfosAction$ = imitateXstream(SelectPrinterAction$)
+    .flatMap(function (id) {
+      return queryEndpoint(`/printers/${id}/info`)
+        .flatMapError(error => most.of(undefined))// TODO: dispatch errors
+        .filter(x => x != undefined)
+        .map(x => x.response)
+    })
+
+  /* const SetCameraImageAction$ = toMost(SelectPrinterAction$)
+    .flatMap(function(id){
+      return queryEndpoint(`/printers/${id}/camera`,{'Content-Type': 'image/jpeg'}).map(x => x.response)
+    })
+    .forEach(function(data){
+      console.log('got image')
+      console.log(data)
+    }) */
+    // .forEach(x=>console.log('printerInfos',x))
+
     // .tap(x=>console.log('printerInfos',x))
 
   // FIXME: temp workarounds
@@ -109,8 +145,10 @@ function App (sources) {
     NextStepAction$,
     StartPrintAction$,
 
-    // SetPrintersAction$,
+    SetPrintersAction$,
     SetActivePrinterInfosAction$: fromMost(SetActivePrinterInfosAction$),
+    
+    SelectPrinterAction$,
 
     SetQualityPresetAction$,
     ToggleBrimAction$,
@@ -131,7 +169,7 @@ function App (sources) {
   const vdom$ = xs.combine(state$, printSettings.DOM, materialSetup.DOM, viewer.DOM)
     .map((items) => view(items))
 
-  //toMost(state$).forEach(x => console.log('state', x))
+  // toMost(state$).forEach(x => console.log('state', x))
 
   return {
     DOM: vdom$,
