@@ -1,9 +1,15 @@
 import reglM from 'regl'
-import {domEvent, fromMost, makeStateAndReducers$, makeDefaultReducer, toMost} from '../utils/cycle'
+import {domEvent, fromMost, makeStateAndReducers$, makeDefaultReducer, toMost} from '../../utils/cycle'
 import { h } from '@cycle/dom'
 import xs from 'xstream'
 
+import controlsStream from './controls/controlsStream'
+import limitFlow from '../../utils/most/limitFlow'
+import { baseInteractionsFromEvents as interactionsFromEvents, pointerGestures } from 'most-gestures'
 
+import { combine, merge, just, mergeArray, combineArray, from, fromEvent, never } from 'most'
+import { params as cameraDefaults } from '@usco/orbit-controls'
+import { elementSize } from './elementSizing'
 
 const initRegl = (canvas) => {
   return reglM({
@@ -19,7 +25,7 @@ const initRegl = (canvas) => {
   })
 }
 
-function prepareRender (regl) {
+/* function prepareRender (regl) {
   const draw = regl({
     frag: `
   precision mediump float;
@@ -60,11 +66,46 @@ function prepareRender (regl) {
     count: 3
   })
   return draw
+} */
+
+function setup (regl, container, defaults) {
+  const render = require('./rendering/render')(regl)
+
+  const baseInteractions = interactionsFromEvents(container)
+  const gestures = pointerGestures(baseInteractions)
+
+  const projection$ = elementSize(container)
+  const focuses$ = never()
+  const entityFocuses$ = never()
+
+  const camState$ = controlsStream({gestures}, {settings: cameraDefaults, camera: defaults.camera}, focuses$, entityFocuses$, projection$)
+
+  function makeVisualState () {
+    const outOfBoundsColor = [0.55, 0.55, 0.55, 0.8]
+    const background = [0.96, 0.96, 0.96, 0.3]
+    return combineArray(
+      function (camera) {
+        const view = camera.view
+
+        return {entities: [], machine: undefined, view, camera, background, outOfBoundsColor}
+      }, [camState$])
+  }
+
+  const visualState$ = makeVisualState()
+
+  visualState$
+    .thru(limitFlow(33))
+    .tap(x => regl.poll())
+    .tap(render)
+    .flatMapError(function (error) {
+      console.error('error in render', error)
+      return just(null)
+    })
+    .forEach(x => x)
 }
 
-
 export default function GLComponent (sources) {
-  const init = makeDefaultReducer({
+  const defaults = {
     color: [1, 0, 0, 1],
     v1: 0,
     camera: {
@@ -87,45 +128,40 @@ export default function GLComponent (sources) {
     background: {
       color: [0.96, 0.96, 0.96, 0.3]
     }
-  })
+  }
+  const init = makeDefaultReducer(defaults)
   let regl
   let render
+  let container
   const view = () => h('canvas', {
-    hook: {insert: vnode => { regl = initRegl(vnode.elm) }}
+    props: {width: 1000, height: 1000},
+    hook: {insert: vnode => { regl = initRegl(vnode.elm); container = vnode.elm; setup(regl, container, defaults) }}
   })
-
+  //
   const heartBeatAction$ = xs.periodic(5000)
   const heartBeat = (state, input) => {
     state = { ...state, v1: Math.cos(input * 0.05) }
     return state
   }
 
-  const {state$, reducer$} = makeStateAndReducers$({heartBeatAction$}, {init, heartBeat}, sources)
+  const {state$, reducer$} = makeStateAndReducers$({}, {init, heartBeat}, sources)
 
   state$.addListener({next:
     function (state) {
       // console.log('state here', state)
       if (regl) {
         if (!render) {
-          render = prepareRender(regl)
+
+          // render = require('./rendering/render')(regl)
         }
         regl.clear({
           color: state.background.color
         })
-        render({ offset: [-1, -state.v1], color: state.color })
+
+        // render({ offset: [-1, -state.v1], color: state.color })
       }
     }
   })
-
-  /* visualState$
-    .thru(limitFlow(33))
-    .tap(x => regl.poll())
-    .tap(render)
-    .flatMapError(function (error) {
-      console.error('error in render', error)
-      return just(null)
-    })
-    .forEach(x => x) */
 
   return {
     DOM: state$.map(view),
