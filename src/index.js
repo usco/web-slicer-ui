@@ -14,6 +14,7 @@ import windowApiDriver from './sideEffects/windowApiDriver'
 
 import App from './ui/App'
 
+
 function main (sources) {
   // initial state
   const init = () => ({
@@ -33,7 +34,7 @@ function main (sources) {
     supportExtruder: -1,
 
     currentStep: 0,
-    steps: [{name: 'printer Setup'}, {name: 'Material Setup'}, {name: 'Print Settings'}],
+    steps: [{name: 'Printer Setup'}, {name: 'Material Setup'}, {name: 'Print Settings'}],
 
     activePrinterId: undefined,
     printers: [
@@ -61,10 +62,10 @@ function main (sources) {
     mergeReducers(init, [app])
   )
 
-  const vdom$ = app.DOM.map(app => app)
+  //const vdom$ = app.DOM.map(app => app)
 
   return {
-    DOM: vdom$,
+    DOM: app.DOM,
     onion: reducer$
   }
 }
