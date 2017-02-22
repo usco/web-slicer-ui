@@ -23,7 +23,9 @@ function main (sources) {
         brim: {toggled: true},
         qualityPreset: undefined
       },
-      status: 'n/a'
+      status: 'n/a',
+      running: false,
+      paused: false,
     },
     support: {toggled: true},
     brim: {toggled: true},

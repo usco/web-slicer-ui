@@ -16,6 +16,7 @@ import Viewer from './viewer'
 import * as R from 'ramda'
 
 import {actions as printSettingsActions} from './printSettings'
+import {actions as monitorPrintActions} from './monitorPrint'
 
 import {formatImageData} from '../utils/image'
 
@@ -120,9 +121,9 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint]) => {
       const isClaimed = printer.claimed
       const classes = classNames({'.selected': isSelected, '.printerL': true})
       return li(classes, {attrs: {'data-id': printer.id}}, [
-        printer.name, isClaimed ?
-          button('.unClaim .claimed', {attrs: {'data-id': printer.id}}, 'unClaim') :
-          button('.claim', {attrs: {'data-id': printer.id}}, 'claim')
+        printer.name, isClaimed
+          ? button('.unClaim .claimed', {attrs: {'data-id': printer.id}}, 'unClaim')
+          : button('.claim', {attrs: {'data-id': printer.id}}, 'claim')
       ])
     })
   )
@@ -204,6 +205,7 @@ function App (sources) {
     .flatMap(printerInfos)
     .filter(x => x !== undefined)
     .map(x => x.response)
+    .multicast()
 
   const ClaimPrinter$ = imitateXstream(_domEvent('.claim', 'click')).map(x => (x.currentTarget.dataset.id))
     .flatMap(claimPrinter)
@@ -216,6 +218,7 @@ function App (sources) {
   const SetCameraImage$ = imitateXstream(SelectPrinter$)
     .flatMap(function (id) {
       return most.constant(id, most.periodic(10000))
+        .until(imitateXstream(SelectPrinter$))// get images for the current printer id until we select another
     })
     .flatMap(function (id) {
       return printerCamera(id)
@@ -227,13 +230,17 @@ function App (sources) {
     // .tap(x=>console.log('printerInfos',x))
 
   // FIXME: temp workarounds
+  // this is from printSettings
   const SetQualityPreset$ = _domEvent('.SetQualityPreset', 'click').map(x => (x.currentTarget.dataset.index))
   const ToggleBrim$ = _domEvent('.ToggleBrim', 'click').map(x => x.target.value)
   const ToggleSupport$ = _domEvent('.ToggleSupport', 'click').map(x => x.target.value)
+  // this is from MonitorPrint
+  const startpause$ = _domEvent('.startpause', 'click').fold((state, newValue) => !state, false)// FIXME: it is SCAN with most.js
+  const abort$ = _domEvent('.abort', 'click')
 
   const actions$ = {
     PrevStep$,
-    NextStep$,
+    NextStep$: merge(NextStep$, fromMost(SetActivePrinterInfos$.delay(1000))), // once we have the printerInfos , move to next step
     StartPrint$,
 
     ClaimPrinter$: fromMost(ClaimPrinter$),
@@ -247,12 +254,14 @@ function App (sources) {
     // print setting actions
     SetQualityPreset$,
     ToggleBrim$,
-    ToggleSupport$
+    ToggleSupport$,
+
+    // monitorPrint actions
+    startpause$,
+    abort$
   }
 
-  toMost(StartPrint$).forEach(x => console.log('StartPrint'))
-
-  const {state$, reducer$} = makeStateAndReducers$(actions$, {...actions, ...printSettings}, sources)
+  const {state$, reducer$} = makeStateAndReducers$(actions$, {...actions, ...printSettingsActions, ...monitorPrintActions}, sources)
 
   // sub components
   const printSettings = PrintSettings(sources)
