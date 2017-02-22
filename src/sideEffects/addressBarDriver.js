@@ -1,7 +1,7 @@
 import {of} from 'most'
 import create from '@most/create'
 
-export default function addressbarDriver (outgoing$) {
+export default function addressBarDriver (outgoing$) {
   const url = window.location.href
 
   function getParam (name, url) {
@@ -23,7 +23,7 @@ export default function addressbarDriver (outgoing$) {
       .filter(exists)
       .filter(a => (a.length > 0))
   } */
-  const $url = of(url)
+  const url$ = of(url)
 
   const get = (paramName) => {
     return create((add, end, error) => {
