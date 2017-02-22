@@ -17,8 +17,10 @@ import * as R from 'ramda'
 
 import {actions as printSettingsActions} from './printSettings'
 
-import {printerInfos} from '../utils/queries'
-import {queryEndpoint, claimPrinter, unclaimPrinter} from '../core/umc'
+import {formatImageData} from '../utils/image'
+
+// import {printerInfos} from '../utils/queries'
+import {printers, claimedPrinters, claimPrinter, unclaimPrinter, printerInfos, printerCamera} from '../core/umc'
 
 // query printer for infos
 // => get printhead & material infos
@@ -39,6 +41,18 @@ const StartPrint = (state, input) => ({ ...state, printStatus: 'startRequested' 
 
 const ClaimPrinter = (state, input) => {
   console.log('ClaimPrinter', input)
+  const index = R.findIndex(R.propEq('id', state.activePrinterId))(state.printers)
+
+  if (index !== -1) {
+    const activePrinter = state.printers[index]
+    const printers = R.update(index, {...activePrinter, claimed: input}, state.printers)
+    state = { ...state, printers }
+  }
+  return state
+}
+
+const UnClaimPrinter = (state, input) => {
+  console.log('UnClaimPrinter', input)
   const index = R.findIndex(R.propEq('id', state.activePrinterId))(state.printers)
 
   if (index !== -1) {
@@ -76,14 +90,21 @@ const SetActivePrinterInfos = (state, input) => {
   return state
 }
 
+const SetCameraImage = (state, input) => {
+  state = { ...state, image: input }
+  return state
+}
+
 const actions = {
   init, PrevStep, NextStep, StartPrint,
 
   ClaimPrinter,
+  UnClaimPrinter,
   SetPrinters,
   SetActivePrinterInfos,
 
-  SelectPrinter
+  SelectPrinter,
+  SetCameraImage
 
 }
 
@@ -112,8 +133,8 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint]) => {
   const stepContents = [
     printerSetup,
     materialSetup,
-    printSettings,
-    monitorPrint
+    monitorPrint,
+    printSettings
   ]
   const activePrinter = R.find(R.propEq('id', state.activePrinterId))(state.printers)
   // console.log(activePrinter, state.activePrinter)
@@ -145,9 +166,9 @@ function App (sources) {
     imitateXstream(_domEvent('.RefreshPrintersList', 'click')),
     most.of(null)
   ).flatMap(function (_) {
-    const allPrinters$ = queryEndpoint('/printers').map(x => x.response)
+    const allPrinters$ = printers().map(x => x.response)
       .map(printers => printers.map(printer => ({...printer, claimed: undefined})))
-    const claimedPrinters$ = queryEndpoint('/printers/claimed').map(x => x.response)
+    const claimedPrinters$ = claimedPrinters().map(x => x.response)
       .map(printers => printers.map(printer => ({...printer, claimed: true})))
 
     return most.combineArray(function (claimedPrinters, allPrinters) {
@@ -180,16 +201,7 @@ function App (sources) {
       return undefined
     },state$)
     .filter(x=>x!== undefined) */
-    .flatMap(function (id) {
-      const infos$ = queryEndpoint(`/printers/${id}/info`)// .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
-        .flatMapError(error => {
-          /* if (error.error === 'client not authorized') {
-          } */
-          return most.of(undefined)
-        })
-      return infos$
-      // const variant$ = queryEndpoint(`/printers/${id}/system/variant`)
-    })
+    .flatMap(printerInfos)
     .filter(x => x !== undefined)
     .map(x => x.response)
 
@@ -201,33 +213,15 @@ function App (sources) {
     .flatMap(unclaimPrinter)
     .map(R.has('error'))
 
-
-    /* .map(function(data){
-      if('error' in data){
-        if(data.error.error === 'client not authorized'){
-          console.log('printer not claimed')
-          return queryEndpoint(`/printers/${id}/claim`, {method: 'POST'})
-            .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
-        }
-        console.log('error', data)
-      }
-      return data
-      //.filter(x => x != undefined)
-      //.map(x => x.response)
+  const SetCameraImage$ = imitateXstream(SelectPrinter$)
+    .flatMap(function (id) {
+      return most.constant(id, most.periodic(10000))
     })
-    .map(function(foo){
-      console.log('here', foo)
-      return foo
-    }) */
-
-  /* const SetCameraImage$ = toMost(SelectPrinter$)
-    .flatMap(function(id){
-      return queryEndpoint(`/printers/${id}/camera`,{'Content-Type': 'image/jpeg'}).map(x => x.response)
+    .flatMap(function (id) {
+      return printerCamera(id)
     })
-    .forEach(function(data){
-      console.log('got image')
-      console.log(data)
-    }) */
+    .map(formatImageData.bind(null, 'uint8', 'base64'))
+
     // .forEach(x=>console.log('printerInfos',x))
 
     // .tap(x=>console.log('printerInfos',x))
@@ -246,6 +240,7 @@ function App (sources) {
     UnClaimPrinter$: fromMost(UnClaimPrinter$),
     SetPrinters$: fromMost(SetPrinters$),
     SetActivePrinterInfos$: fromMost(SetActivePrinterInfos$),
+    SetCameraImage$: fromMost(SetCameraImage$),
 
     SelectPrinter$,
 

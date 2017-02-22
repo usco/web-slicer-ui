@@ -1,8 +1,9 @@
-import {section, div, button} from '@cycle/dom'
+import {section, div, button, img} from '@cycle/dom'
 import classNames from 'classnames'
 import {domEvent, makeStateAndReducers$} from '../utils/cycle'
 
-const init = () => ({ img: undefined, print: {status: 'paused'} })
+
+const init = () => ({ image: undefined, print: {status: 'paused'} })
 const startpause = (state, input) => ({...state, status: state.status === 'paused' ? 'running' : 'paused'})
 const abort = (state, input) => ({state})
 
@@ -12,12 +13,12 @@ const actions = {
   abort
 }
 
-const view = state => section([
+const view = state => section('.MonitorPrint', [
   div('', [
     button('.startpause', state.paused ? 'play' : 'pause'),
     button('.abort', 'abort')
   ]),
-  img({props: {src: state.img}})
+  img('.printerCameraFrame', {props: {src: state.image ? state.image : ''}})
 ])
 
 function MonitorPrint (sources) {
