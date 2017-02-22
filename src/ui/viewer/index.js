@@ -50,21 +50,18 @@ function setup (regl, container, defaults) {
   const drawEnclosure = require('./rendering/drawEnclosure')(regl, machine.params)
 
   function makeVisualState () {
-    const outOfBoundsColor = [0.55, 0.55, 0.55, 0.8]
-    const background = [0.96, 0.96, 0.96, 0.3]
     return combineArray(
       function (camera) {
         const view = camera.view
 
         machine = Object.assign({}, machine, {draw: drawEnclosure})
 
-        return {entities: [], machine, view, camera, background, outOfBoundsColor}
+        return {entities: [], machine, view, camera, background: defaults.background.color, outOfBoundsColor: defaults.outOfBoundsColor}
       }, [camState$])
   }
 
   const visualState$ = makeVisualState().multicast()
 
-  // visualState$.take(200).forEach(render)
   visualState$
     .thru(limitFlow(33))
     .tap(x => regl.poll())
@@ -106,7 +103,7 @@ export default function GLComponent (sources) {
   let container
   const view = () => {
     return h('canvas', {
-      props: {width: 540*2, height: 400*2},
+      props: {width: 540 * 2, height: 400 * 2},
       hook: {insert: vnode => { regl = initRegl(vnode.elm); container = vnode.elm; setup(regl, container, defaults) }}
     })
   }

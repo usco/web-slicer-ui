@@ -136,19 +136,19 @@ const view = (state) => {
 
 function PrintSettings (sources) {
   const _domEvent = domEvent.bind(null, sources)
-  const SetQualityPresetAction$ = _domEvent('.SetQualityPreset', 'click').map(x => (x.currentTarget.dataset.index))
-  const ToggleBrimAction$ = _domEvent('.ToggleBrim', 'click').map(x => x.target.value)
-  const ToggleSupportAction$ = _domEvent('.ToggleSupport', 'click').map(x => x.target.value)
+  const SetQualityPreset$ = _domEvent('.SetQualityPreset', 'click').map(x => (x.currentTarget.dataset.index))
+  const ToggleBrim$ = _domEvent('.ToggleBrim', 'click').map(x => x.target.value)
+  const ToggleSupport$ = _domEvent('.ToggleSupport', 'click').map(x => x.target.value)
 
   const actions$ = {
-    /* SetQualityPresetAction$,
-    ToggleBrimAction$,
-    ToggleSupportAction$ */
+    /* SetQualityPreset$,
+    ToggleBrim$,
+    ToggleSupport$ */
   }
 
   const {state$, reducer$} = makeStateAndReducers$(actions$, actions, sources)
   //.map(state => ({...state.print.settings, t: state.t}))
-  
+
   return {
     DOM: state$.map(view),
     onion: reducer$

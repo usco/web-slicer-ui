@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import { html } from 'snabbdom-jsx'
 import { div, button, li, ul, h2 } from '@cycle/dom'
-
+import dropRepeats from 'xstream/extra/dropRepeats'
 import * as R from 'ramda'
 
 import {domEvent, fromMost, makeStateAndReducers$, makeDefaultReducer} from '../utils/cycle'
@@ -18,22 +18,26 @@ const view = (state) => {
 
   const {t} = state
 
-  const activePrinterInfos = R.prop('infos', R.find(R.propEq('id', state.activePrinterId), state.printers))
-
-  //console.log('activePrinter', activePrinterInfos)
+  // console.log('activePrinter', activePrinterInfos)
 
   let usefulData = {
     extruders: [],
     materials: [],
     hotends: []
   }
+
+  //console.log('here', state.printers, state.activePrinterId)
   // FIXME: temporary hack, look into sanctuary lib or other way of dealing with empty data
-  if (Object.keys(activePrinterInfos).length > 0) {
-    const extruders = pickExtruders(activePrinterInfos)
-    usefulData = {
-      extruders,
-      materials: pickMaterials(extruders),
-      hotends: pickHotends(extruders)
+  if (state.printers && state.activePrinterId) {
+    const activePrinterInfos = R.prop('infos', R.find(R.propEq('id', state.activePrinterId), state.printers))
+
+    if (activePrinterInfos && activePrinterInfos.hasOwnProperty('heads')) {
+      const extruders = pickExtruders(activePrinterInfos)
+      usefulData = {
+        extruders,
+        materials: pickMaterials(extruders),
+        hotends: pickHotends(extruders)
+      }
     }
   }
   // TODO check materials combo
@@ -44,7 +48,7 @@ const view = (state) => {
   const coresAndMaterials = usefulData.hotends.map(function (hotend, index) {
     const material = R.find(R.propEq('guid', usefulData.materials[index]))(materials)
     const materialString = material ? `${material.color} ${material.type}` : 'n/a'
-    return {core: hotend, material:materialString, valid: true}
+    return {core: hotend, material: materialString, valid: true}
   })
   // [{core: 'AA 0.4', material: 'PLA', valid: true}, {core: 'BB 0.4', material: 'PVA', valid: false}]
   const coresAndMaterialsUi = coresAndMaterials.map(function (data, index) {
@@ -78,7 +82,7 @@ function MaterialSetup (sources) {
   const {state$, reducer$} = makeStateAndReducers$({}, actions, sources)
 
   return {
-    DOM: state$.map(view),
+    DOM: state$.map(state => ({printers: state.printers, activePrinterId: state.activePrinterId, t: state.t })).compose(dropRepeats()).map(view),
     onion: reducer$
   }
 }

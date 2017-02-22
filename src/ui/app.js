@@ -129,13 +129,13 @@ const view = ([state, printSettings, materialSetup, viewer]) => {
 
 function App (sources) {
   const _domEvent = domEvent.bind(null, sources)
-  const PrevStepAction$ = _domEvent('.PrevStep', 'click')
-  const NextStepAction$ = _domEvent('.NextStep', 'click')
-  const StartPrintAction$ = _domEvent('.StartPrint', 'click')
+  const PrevStep$ = _domEvent('.PrevStep', 'click')
+  const NextStep$ = _domEvent('.NextStep', 'click')
+  const StartPrint$ = _domEvent('.StartPrint', 'click')
 
   // FIXME: switch to drivers
 
-  const SetPrintersAction$ = most.merge(
+  const SetPrinters$ = most.merge(
     imitateXstream(_domEvent('.RefreshPrintersList', 'click')),
     most.of(null)
   ).flatMap(function (_) {
@@ -163,14 +163,14 @@ function App (sources) {
   })
 
   // fetch data for the selectedprinter
-  const SelectPrinterAction$ = _domEvent('.printerL', 'click').map(x => (x.currentTarget.dataset.id))
+  const SelectPrinter$ = _domEvent('.printerL', 'click').map(x => (x.currentTarget.dataset.id))
 
   function claimPrinter (id) {
     return queryEndpoint(`/printers/${id}/claim`, {method: 'POST'})
       .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
   }
 
-  const SetActivePrinterInfosAction$ = imitateXstream(SelectPrinterAction$)
+  const SetActivePrinterInfos$ = imitateXstream(SelectPrinter$)
     .flatMap(function (id) {
       const infos$ = queryEndpoint(`/printers/${id}/info`)// .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
         .flatMapError(error => {
@@ -184,7 +184,7 @@ function App (sources) {
     .filter(x => x !== undefined)
     .map(x => x.response)
 
-  const ClaimPrinterAction$ = imitateXstream(_domEvent('.claim', 'click')).map(x => (x.currentTarget.dataset.id))
+  const ClaimPrinter$ = imitateXstream(_domEvent('.claim', 'click')).map(x => (x.currentTarget.dataset.id))
     .flatMap(claimPrinter)
     .map(x => R.has('error'))
 
@@ -206,7 +206,7 @@ function App (sources) {
       return foo
     }) */
 
-  /* const SetCameraImageAction$ = toMost(SelectPrinterAction$)
+  /* const SetCameraImage$ = toMost(SelectPrinter$)
     .flatMap(function(id){
       return queryEndpoint(`/printers/${id}/camera`,{'Content-Type': 'image/jpeg'}).map(x => x.response)
     })
@@ -219,29 +219,29 @@ function App (sources) {
     // .tap(x=>console.log('printerInfos',x))
 
   // FIXME: temp workarounds
-  const SetQualityPresetAction$ = _domEvent('.SetQualityPreset', 'click').map(x => (x.currentTarget.dataset.index))
-  const ToggleBrimAction$ = _domEvent('.ToggleBrim', 'click').map(x => x.target.value)
-  const ToggleSupportAction$ = _domEvent('.ToggleSupport', 'click').map(x => x.target.value)
+  const SetQualityPreset$ = _domEvent('.SetQualityPreset', 'click').map(x => (x.currentTarget.dataset.index))
+  const ToggleBrim$ = _domEvent('.ToggleBrim', 'click').map(x => x.target.value)
+  const ToggleSupport$ = _domEvent('.ToggleSupport', 'click').map(x => x.target.value)
 
   const actions$ = {
-    PrevStepAction$,
-    NextStepAction$,
-    StartPrintAction$,
+    PrevStep$,
+    NextStep$,
+    StartPrint$,
 
-    ClaimPrinterAction$: fromMost(ClaimPrinterAction$),
-    SetPrintersAction$: fromMost(SetPrintersAction$),
-    SetActivePrinterInfosAction$: fromMost(SetActivePrinterInfosAction$),
+    ClaimPrinter$: fromMost(ClaimPrinter$),
+    SetPrinters$: fromMost(SetPrinters$),
+    SetActivePrinterInfos$: fromMost(SetActivePrinterInfos$),
 
-    SelectPrinterAction$,
+    SelectPrinter$,
 
-    SetQualityPresetAction$,
-    ToggleBrimAction$,
-    ToggleSupportAction$
+    SetQualityPreset$,
+    ToggleBrim$,
+    ToggleSupport$
   }
 
-  toMost(StartPrintAction$).forEach(x => console.log('StartPrintAction'))
+  toMost(StartPrint$).forEach(x => console.log('StartPrint'))
 
-  const {state$, reducer$} = makeStateAndReducers$(actions$, {...actions, ...printSettingsActions}, sources)
+  const {state$, reducer$} = makeStateAndReducers$(actions$, {...actions, ...printSettings}, sources)
 
   // sub components
   const printSettings = PrintSettings(sources)

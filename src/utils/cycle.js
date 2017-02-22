@@ -13,7 +13,7 @@ export function makeStateAndReducers$ (actions$, actionFns, sources) {
   const init$ = of(init)
 
   const elements = Object.keys(actions$).map(function (actionName$) {
-    const name = actionName$.replace('Action$', '')
+    const name = actionName$.replace('$', '')
     const actFn = actionFns[name]
     const act$ = actions$[actionName$]
       .map(action => state => actFn(state, action))
