@@ -1,10 +1,10 @@
 import classNames from 'classnames'
 import { html } from 'snabbdom-jsx'
-import { div, button, li, ul, h2, span, section} from '@cycle/dom'
+import { div, button, li, ul, h1, h2, span, section} from '@cycle/dom'
 // import {merge} from 'most'
 import * as most from 'most'
 import xs from 'xstream'
-const {of, merge, combine} = xs
+const {of, merge} = xs
 import {domEvent, fromMost, toMost, makeStateAndReducers$, makeDefaultReducer, mergeReducers, imitateXstream} from '../utils/cycle'
 import isolate from '@cycle/isolate'
 
@@ -106,7 +106,6 @@ const actions = {
 
   SelectPrinter,
   SetCameraImage
-
 }
 
 // our main view
@@ -134,8 +133,8 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint]) => {
   const stepContents = [
     printerSetup,
     materialSetup,
-    monitorPrint,
-    printSettings
+    printSettings,
+    monitorPrint
   ]
   const activePrinter = R.find(R.propEq('id', state.activePrinterId))(state.printers)
   // console.log(activePrinter, state.activePrinter)
@@ -144,7 +143,14 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint]) => {
   const startPrintUi = currentStep === steps.length - 1 ? button('.StartPrint', 'Start Print') : ''
 
   // <h1>{t('app_name')}</h1>
-  return <section id='wrapper'>
+  return section('#wrapper', [
+    section('#viewer', [viewer]),
+    section('#settings', [
+      h1([steps[currentStep].name, prevStepUi, nextStepUi, startPrintUi]),
+      stepContents[currentStep]
+    ])
+  ])
+  /* <section id='wrapper'>
     <section id='viewer'>
       {viewer}
     </section>
@@ -152,7 +158,7 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint]) => {
       <h1>{steps[currentStep].name} {prevStepUi}{nextStepUi}{startPrintUi}</h1>
       {stepContents[currentStep]}
     </section>
-  </section>
+  </section> */
 }
 
 function App (sources) {
@@ -225,9 +231,21 @@ function App (sources) {
     })
     .map(formatImageData.bind(null, 'uint8', 'base64'))
 
-    // .forEach(x=>console.log('printerInfos',x))
+  // not sure how to deal with this one
+  /* const modelUri$ = most.merge(
+    sources.adressBar,
+    sources.window.modelUri$
+  )
+    .flatMapError(function (error) {
+      // console.log('error', error)
+      modelLoaded(false) // error)
+      return just(null)
+    })
+    .filter(x => x !== null)
+    .multicast() */
 
-    // .tap(x=>console.log('printerInfos',x))
+  // console.log(sources.addressBar)
+  // sources.addressBar.url$.forEach(url=>console.log('url',url))
 
   // FIXME: temp workarounds
   // this is from printSettings

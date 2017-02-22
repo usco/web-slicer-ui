@@ -11,6 +11,8 @@ import {fromMost, mergeReducers} from './utils/cycle'
 import onionify from 'cycle-onionify'
 
 import windowApiDriver from './sideEffects/windowApiDriver'
+import addressBarDriver from './sideEffects/addressBarDriver'
+import appMetadataDriver from './sideEffects/appMetadataDriver'
 
 import App from './ui/App'
 
@@ -21,18 +23,16 @@ function main (sources) {
       settings: {
         support: {toggled: true},
         brim: {toggled: true},
-        qualityPreset: undefined
+        qualityPreset: undefined,
+        supportExtruder: -1
       },
       status: 'n/a',
       running: false,
-      paused: false,
+      paused: false
     },
-    support: {toggled: true},
-    brim: {toggled: true},
-    qualityPreset: undefined,
+
     extruders: [],
     loadedMaterials: [],
-    supportExtruder: -1,
 
     currentStep: 0,
     steps: [{name: 'Printer Setup'}, {name: 'Material Setup'}, {name: 'Monitor Print'}, {name: 'Print Settings'}],
@@ -70,7 +70,9 @@ const wrappedMain = onionify(main)
 
 const drivers = {
   DOM: makeDOMDriver('#app'),
-  window: windowApiDriver
+  window: windowApiDriver,
+  addressBar: addressBarDriver,
+  metaData: appMetadataDriver
 }
 
 run(wrappedMain, drivers)

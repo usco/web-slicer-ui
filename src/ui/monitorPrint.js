@@ -25,7 +25,7 @@ export const actions = {
 }
 
 const view = function (state) {
-  console.log('foo', state)
+  console.log('foo', state.print)
   return section('.MonitorPrint', [
     div('', [
       button('.startpause', state.print.paused ? 'play' : 'pause'),

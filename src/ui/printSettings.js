@@ -2,26 +2,31 @@ import classNames from 'classnames'
 import { html } from 'snabbdom-jsx'
 import {domEvent, fromMost, makeStateAndReducers$, makeDefaultReducer, toMost} from '../utils/cycle'
 import { div, button, li, ul, h2 } from '@cycle/dom'
+import * as R from 'ramda'
 
-const init = makeDefaultReducer({})
+const init = (state) => {
+  console.log('init printSettings state', state)
+  state = ({ ...state, print: {...state.print} })
+  return state
+}
 
 const ToggleBrim = (state, input) => {
   console.log('ToggleBrim')
-  const brim = {...state.brim, toggled: !state.brim.toggled}
-  state = { ...state, brim }
+  const propPath = ['print', 'settings', 'brim', 'toggled']
+  state = R.assocPath(propPath, !R.path(propPath)(state), state)
   return state
 }
 
 const ToggleSupport = (state, input) => {
   console.log('ToggleSupport')
-  const support = {...state.support, toggled: !state.support.toggled}
-  state = { ...state, support }
+  const propPath = ['print', 'settings', 'support', 'toggled']
+  state = R.assocPath(propPath, !R.path(propPath)(state), state)
   return state
 }
 
 const SetQualityPreset = (state, input) => {
   console.log('SetQualityPreset', input)
-  state = { ...state, qualityPreset: input }
+  state = R.assocPath(['print', 'settings', 'qualityPreset'], input, state)
   return state
 }
 
@@ -33,7 +38,7 @@ const SetLayerHeight = (state, input) => {
 const actions = {init, ToggleBrim, ToggleSupport, SetLayerHeight, SetQualityPreset}
 
 const view = (state) => {
-  //console.log('state for PrintSettings',state)
+  // console.log('state for PrintSettings',state)
 
   if (!state.hasOwnProperty('t')) return null // FIXME : bloody hack
 
@@ -41,7 +46,9 @@ const view = (state) => {
 
   const printCores = ['BB 0.4', 'AA 0.4']
 
-  const {t, support, brim} = state
+  const {t, print} = state
+  const settings = print.settings
+  const {support, brim, qualityPreset} = settings
 
   const layerHeights = [0.2, 0.15, 0.1, 0.06]
   const qualityPresets = ['draft', 'fast', 'normal', 'high']
@@ -55,12 +62,12 @@ const view = (state) => {
   const layerHeightUnit = 'mm'
 
   const layerHeightButtons = layerHeights.map(function (height, index) {
-    const qualityPreset = `${layerHeightNames[height]}`
+    const qualityPresetName = `${layerHeightNames[height]}`
     const qualityDetails = `${height} ${layerHeightUnit}`
-    const isSelected = state.qualityPreset === qualityPresets[index]
+    const isSelected = qualityPreset === qualityPresets[index]
     return li(classNames({ '.selected': isSelected }), [
       button('.SetQualityPreset', {attrs: {'data-index': qualityPresets[index]}}, [
-        h2(qualityPreset),
+        h2(qualityPresetName),
         div(qualityDetails)
       ])
     ])
@@ -147,7 +154,6 @@ function PrintSettings (sources) {
   }
 
   const {state$, reducer$} = makeStateAndReducers$(actions$, actions, sources)
-  //.map(state => ({...state.print.settings, t: state.t}))
 
   return {
     DOM: state$.map(view),
