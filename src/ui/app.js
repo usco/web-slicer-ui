@@ -10,6 +10,7 @@ import isolate from '@cycle/isolate'
 
 import PrintSettings from './printSettings'
 import MaterialSetup from './materialSetup'
+import MonitorPrint from './monitorPrint'
 import Viewer from './viewer'
 
 import * as R from 'ramda'
@@ -17,7 +18,7 @@ import * as R from 'ramda'
 import {actions as printSettingsActions} from './printSettings'
 
 import {printerInfos} from '../utils/queries'
-import {queryEndpoint} from '../core/umc'
+import {queryEndpoint, claimPrinter, unclaimPrinter} from '../core/umc'
 
 // query printer for infos
 // => get printhead & material infos
@@ -87,7 +88,7 @@ const actions = {
 }
 
 // our main view
-const view = ([state, printSettings, materialSetup, viewer]) => {
+const view = ([state, printSettings, materialSetup, viewer, monitorPrint]) => {
   if (!state.hasOwnProperty('t')) return null // FIXME : bloody hack
   // console.log('state')
   const {steps, currentStep} = state
@@ -97,7 +98,11 @@ const view = ([state, printSettings, materialSetup, viewer]) => {
       const isSelected = state.activePrinterId === printer.id
       const isClaimed = printer.claimed
       const classes = classNames({'.selected': isSelected, '.printerL': true})
-      return li(classes, {attrs: {'data-id': printer.id}}, [printer.name, isClaimed ? span('.claimed', 'claimed') : button('.claim', {attrs: {'data-id': printer.id}}, 'claim')])
+      return li(classes, {attrs: {'data-id': printer.id}}, [
+        printer.name, isClaimed ?
+          button('.unClaim .claimed', {attrs: {'data-id': printer.id}}, 'unClaim') :
+          button('.claim', {attrs: {'data-id': printer.id}}, 'claim')
+      ])
     })
   )
   const printerSetup = section('', [
@@ -107,7 +112,8 @@ const view = ([state, printSettings, materialSetup, viewer]) => {
   const stepContents = [
     printerSetup,
     materialSetup,
-    printSettings
+    printSettings,
+    monitorPrint
   ]
   const activePrinter = R.find(R.propEq('id', state.activePrinterId))(state.printers)
   // console.log(activePrinter, state.activePrinter)
@@ -165,12 +171,15 @@ function App (sources) {
   // fetch data for the selectedprinter
   const SelectPrinter$ = _domEvent('.printerL', 'click').map(x => (x.currentTarget.dataset.id))
 
-  function claimPrinter (id) {
-    return queryEndpoint(`/printers/${id}/claim`, {method: 'POST'})
-      .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
-  }
-
   const SetActivePrinterInfos$ = imitateXstream(SelectPrinter$)
+    /* .combine(function(id, state){
+      const activePrinter = R.findIndex(R.propEq('id', id))(state.printers)
+      if(activePrinter && activePrinter.claimed){
+        return id
+      }
+      return undefined
+    },state$)
+    .filter(x=>x!== undefined) */
     .flatMap(function (id) {
       const infos$ = queryEndpoint(`/printers/${id}/info`)// .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
         .flatMapError(error => {
@@ -186,7 +195,12 @@ function App (sources) {
 
   const ClaimPrinter$ = imitateXstream(_domEvent('.claim', 'click')).map(x => (x.currentTarget.dataset.id))
     .flatMap(claimPrinter)
-    .map(x => R.has('error'))
+    .map(!R.has('error'))
+
+  const UnClaimPrinter$ = imitateXstream(_domEvent('.unClaim', 'click')).map(x => (x.currentTarget.dataset.id))
+    .flatMap(unclaimPrinter)
+    .map(R.has('error'))
+
 
     /* .map(function(data){
       if('error' in data){
@@ -229,11 +243,13 @@ function App (sources) {
     StartPrint$,
 
     ClaimPrinter$: fromMost(ClaimPrinter$),
+    UnClaimPrinter$: fromMost(UnClaimPrinter$),
     SetPrinters$: fromMost(SetPrinters$),
     SetActivePrinterInfos$: fromMost(SetActivePrinterInfos$),
 
     SelectPrinter$,
 
+    // print setting actions
     SetQualityPreset$,
     ToggleBrim$,
     ToggleSupport$
@@ -247,10 +263,11 @@ function App (sources) {
   const printSettings = PrintSettings(sources)
   const materialSetup = MaterialSetup(sources)
   const viewer = isolate(Viewer, 'viewer')(sources)
+  const monitorPrint = MonitorPrint(sources)
 
   const _reducer$ = merge(reducer$, ...[viewer].map(x => x.onion))
 
-  const vdom$ = xs.combine(state$, printSettings.DOM, materialSetup.DOM, viewer.DOM)
+  const vdom$ = xs.combine(state$, printSettings.DOM, materialSetup.DOM, viewer.DOM, monitorPrint.DOM)
     .map((items) => view(items))
 
   return {
