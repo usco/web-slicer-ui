@@ -30,17 +30,19 @@ function main (sources) {
       running: false,
       paused: false
     },
-
-    extruders: [],
-    loadedMaterials: [],
-
-    currentStep: 0,
-    steps: [{name: 'Printer Setup'}, {name: 'Material Setup'}, {name: 'Monitor Print'}, {name: 'Print Settings'}],
-
-    activePrinterId: undefined,
     printers: [
       /* {id: 'dsqdq', name: 'fba', infos: {type: 'ultimaker3'}} */
     ],
+
+    settings: {
+      printersPollRate: 10000, // how often to update the camera
+      cameraPollRate: 30000 // how often to update the camera
+    },
+    // extruders: [],
+    // loadedMaterials: [],
+    steps: [{name: 'Printer Setup'}, {name: 'Material Setup'}, {name: 'Monitor Print'}, {name: 'Print Settings'}],
+    activePrinterId: undefined,
+    currentStep: 0,
     image: undefined,
     t: x => ''// stand in
   })
