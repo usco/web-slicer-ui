@@ -20,8 +20,9 @@ import {actions as monitorPrintActions} from './monitorPrint'
 
 import {formatImageData} from '../utils/image'
 
-// import {printerInfos} from '../utils/queries'
 import {printers, claimedPrinters, claimPrinter, unclaimPrinter, printerInfos, printerCamera, printerSystem} from '../core/umc'
+
+import {dataSources} from '../io/dataSources'
 
 // query printer for infos
 // => get printhead & material infos
@@ -110,6 +111,12 @@ const SetCameraImage = (state, input) => {
   return state
 }
 
+// I don't think this should be here
+function addEntities (state, inputs) {
+  console.log('addEntities')
+  return {...state, entities: state.entities.concat([inputs])}
+}
+
 const actions = {
   init, PrevStep, NextStep, StartPrint,
 
@@ -120,7 +127,10 @@ const actions = {
   SetActivePrinterSystem,
 
   SelectPrinter,
-  SetCameraImage
+  SetCameraImage,
+
+
+  addEntities
 }
 
 // our main view
@@ -267,6 +277,10 @@ function App (sources) {
   // console.log(sources.addressBar)
   // sources.addressBar.url$.forEach(url=>console.log('url',url))
 
+  //FIXME this should go elsewhere
+  const addEntities$ = dataSources(sources)
+    .tap(x => console.log('adding entities', x))
+
   // FIXME: temp workarounds
   // this is from printSettings
   const SetQualityPreset$ = _domEvent('.SetQualityPreset', 'click').map(x => (x.currentTarget.dataset.index))
@@ -297,7 +311,10 @@ function App (sources) {
 
     // monitorPrint actions
     startpause$,
-    abort$
+    abort$,
+
+    // buildplate, 3d models
+    addEntities$ : fromMost(addEntities$)
   }
 
   const {state$, reducer$} = makeStateAndReducers$(actions$, {...actions, ...printSettingsActions, ...monitorPrintActions}, sources)
@@ -305,7 +322,7 @@ function App (sources) {
   // sub components
   const printSettings = PrintSettings(sources)
   const materialSetup = MaterialSetup(sources)
-  const viewer = isolate(Viewer, 'viewer')(sources)
+  const viewer = Viewer(sources)
   const monitorPrint = MonitorPrint(sources)
 
   const _reducer$ = merge(reducer$, ...[viewer].map(x => x.onion))
