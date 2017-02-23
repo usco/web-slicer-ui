@@ -1,5 +1,5 @@
 import {of} from 'most'
-import create from '@most/create'
+import {create} from '@most/create'
 
 export default function addressBarDriver (outgoing$) {
   const url = window.location.href
