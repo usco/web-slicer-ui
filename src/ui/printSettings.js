@@ -120,7 +120,7 @@ const view = (state) => {
           <input type='checkbox' checked={support.toggled} className='ToggleSupport' />
         </h1>
       </header>
-      <div disabled={support.toggled ? false : 'disabled'}>
+      <div className={classNames({ disabled: !support.toggled})} >
         {t('activity_print_settings_text_select_support_structure_description')}
         <form>
           {supportMaterialsUi}
@@ -134,7 +134,7 @@ const view = (state) => {
           <input type='checkbox' checked={brim.toggled} className='ToggleBrim' />
         </h1>
       </header>
-      <div disabled={brim.toggled ? false : 'disabled'}>
+      <div className={classNames({ disabled: !brim.toggled})} >
         {t('activity_print_settings_text_brim_description')}
       </div>
     </section>
