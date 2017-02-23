@@ -38,6 +38,10 @@ function main (sources) {
       printersPollRate: 10000, // how often to update the camera
       cameraPollRate: 30000 // how often to update the camera
     },
+    //buildplate ?
+    entities: [],
+
+
     // extruders: [],
     // loadedMaterials: [],
     steps: [{name: 'Printer Setup'}, {name: 'Material Setup'}, {name: 'Monitor Print'}, {name: 'Print Settings'}],

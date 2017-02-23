@@ -1,5 +1,5 @@
 import reglM from 'regl'
-import {domEvent, makeStateAndReducers$, makeDefaultReducer} from '../../utils/cycle'
+import {domEvent, makeStateAndReducers$, makeDefaultReducer, imitateXstream} from '../../utils/cycle'
 import { h } from '@cycle/dom'
 
 import controlsStream from './controls/controlsStream'
@@ -12,6 +12,26 @@ import { elementSize } from './elementSizing'
 
 // import drawEnclosure from './rendering/drawEnclosure'
 import { formatRawMachineData } from '@usco/printing-utils'
+
+// TODO deal with this correctly
+const machinePresets = {
+  'ultimaker3_extended': {
+    'name': 'ultimaker3_extended',
+    'machine_width': 215,
+    'machine_depth': 215,
+    'machine_height': 300,
+    'printable_area': [200, 200]
+  },
+  'ultimaker3':{
+    'name': 'ultimaker3',
+    'machine_width': 215,
+    'machine_depth': 215,
+    'machine_height': 230,
+    'printable_area': [200, 200]
+
+  }
+
+}
 
 const initRegl = (canvas) => {
   return reglM({
@@ -27,7 +47,7 @@ const initRegl = (canvas) => {
   })
 }
 
-function setup (regl, container, defaults) {
+function setup (regl, container, defaults, extState$) {
   const render = require('./rendering/render')(regl)
 
   const baseInteractions = interactionsFromEvents(container)
@@ -39,28 +59,34 @@ function setup (regl, container, defaults) {
 
   const camState$ = controlsStream({gestures}, {settings: cameraDefaults, camera: defaults.camera}, focuses$, entityFocuses$, projection$)
 
-  let machine = {params: formatRawMachineData({
-    'name': 'ultimaker3_extended',
-    'machine_width': 215,
-    'machine_depth': 215,
-    'machine_height': 300,
-    'printable_area': [200, 200]
-  })}
+  let machine = {params: formatRawMachineData(machinePresets['ultimaker3'])}
 
   const drawEnclosure = require('./rendering/drawEnclosure')(regl, machine.params)
 
-  function makeVisualState () {
+  function makeVisualState (extState$) {
     return combineArray(
-      function (camera) {
+      function (camera, entities) {
         const view = camera.view
 
-        machine = Object.assign({}, machine, {draw: drawEnclosure})
-
-        return {entities: [], machine, view, camera, background: defaults.background.color, outOfBoundsColor: defaults.outOfBoundsColor}
-      }, [camState$])
+        machine = {...machine, draw: drawEnclosure}
+        // entities.forEach(x => console.log('entity', x))
+        return {entities, machine, view, camera, background: defaults.background.color, outOfBoundsColor: defaults.outOfBoundsColor}
+      }, [camState$, extState$])
   }
 
-  const visualState$ = makeVisualState().multicast()
+  extState$ = extState$
+    .map(function (entities) {
+      return entities.map(function (entity) {
+        let {visuals} = entity
+        if (!visuals.initialized) {
+          const draw = visuals.drawFn(regl) // one command per mesh, but is faster
+          console.log('draw')
+          visuals = {...visuals, draw, initialized: true}
+        }
+        return {...entity, visuals}
+      })
+    })
+  const visualState$ = makeVisualState(extState$).multicast()
 
   visualState$
     .thru(limitFlow(33))
@@ -99,16 +125,23 @@ export default function GLComponent (sources) {
     }
   }
   const init = makeDefaultReducer({})
+  const {state$, reducer$} = makeStateAndReducers$({}, {init}, sources)
+
   let regl
   let container
+  let extState$ = imitateXstream(state$)
+      .map(state => state.entities)
+      .skipRepeats()
   const view = () => {
     return h('canvas', {
       props: {width: 540 * 2, height: 400 * 2},
-      hook: {insert: vnode => { regl = initRegl(vnode.elm); container = vnode.elm; setup(regl, container, defaults) }}
+      hook: {insert: vnode => { regl = initRegl(vnode.elm); container = vnode.elm; setup(regl, container, defaults, extState$) }}
     })
   }
 
-  const {state$, reducer$} = makeStateAndReducers$({}, {init}, sources)
+    // .forEach(x=>console.log('state passed to viewer',x))
+  /*
+  */
 
   return {
     DOM: state$.take(1).map(view),
