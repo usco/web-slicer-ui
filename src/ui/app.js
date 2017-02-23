@@ -21,7 +21,7 @@ import {actions as monitorPrintActions} from './monitorPrint'
 import {formatImageData} from '../utils/image'
 
 // import {printerInfos} from '../utils/queries'
-import {printers, claimedPrinters, claimPrinter, unclaimPrinter, printerInfos, printerCamera} from '../core/umc'
+import {printers, claimedPrinters, claimPrinter, unclaimPrinter, printerInfos, printerCamera, printerSystem} from '../core/umc'
 
 // query printer for infos
 // => get printhead & material infos
@@ -91,6 +91,20 @@ const SetActivePrinterInfos = (state, input) => {
   return state
 }
 
+const SetActivePrinterSystem = (state, input) => {
+  console.log('SetActivePrinterSystem', input)
+  const index = R.findIndex(R.propEq('id', state.activePrinterId))(state.printers)
+  const inputDefaults = {'variant': 'Ultimaker 3'} // if there is no 'variant' set it to Ultimaker 3
+
+  if (index !== -1) {
+    const activePrinter = state.printers[index]
+    input = {...inputDefaults, ...input}
+    const printers = R.update(index, {...activePrinter, system: input}, state.printers)
+    state = { ...state, printers }
+  }
+  return state
+}
+
 const SetCameraImage = (state, input) => {
   state = { ...state, image: input }
   return state
@@ -103,6 +117,7 @@ const actions = {
   UnClaimPrinter,
   SetPrinters,
   SetActivePrinterInfos,
+  SetActivePrinterSystem,
 
   SelectPrinter,
   SetCameraImage
@@ -164,10 +179,10 @@ function App (sources) {
     imitateXstream(_domEvent('.RefreshPrintersList', 'click')),
     most.of(null)
   )
-  /*.combine((_, state) => ({state}), imitateXstream(sources.onion.state$))
+  /* .combine((_, state) => ({state}), imitateXstream(sources.onion.state$))
   .flatMap(function ({state}) { // refresh printers list every 30 seconds
     return most.constant(null, most.periodic(state.settings.printersPollRate))
-  })*/
+  }) */
   .flatMap(function (_) {
     const allPrinters$ = printers().map(x => x.response)
       .map(printers => printers.map(printer => ({...printer, claimed: undefined})))
@@ -201,6 +216,12 @@ function App (sources) {
     .map(x => x.response)
     .multicast()
 
+  const SetActivePrinterSystem$ = imitateXstream(SelectPrinter$)
+    .flatMap(printerSystem)
+    .filter(x => x !== undefined)
+    .map(x => x.response)
+    .multicast()
+
   const ClaimPrinter$ = imitateXstream(_domEvent('.claim', 'click')).map(x => (x.currentTarget.dataset.id))
     .flatMap(claimPrinter)
     .map(!R.has('error'))
@@ -220,7 +241,7 @@ function App (sources) {
     })
     .map(formatImageData.bind(null, 'uint8', 'base64'))
 
-    most.merge(
+    /* most.merge(
       imitateXstream(_domEvent('.RefreshPrintersList', 'click')),
       most.of(null)
     )
@@ -228,7 +249,7 @@ function App (sources) {
     .flatMap(function ({state}) { // refresh printers list every 30 seconds
       console.log('state changed', state)
       return most.constant(null, most.periodic(state.printersPollRate))
-    }).forEach(x=>console.log('combined state stuff',x ))
+    }).forEach(x=>console.log('combined state stuff',x )) */
 
   // not sure how to deal with this one
   /* const modelUri$ = most.merge(
@@ -264,6 +285,7 @@ function App (sources) {
     UnClaimPrinter$: fromMost(UnClaimPrinter$),
     SetPrinters$: fromMost(SetPrinters$),
     SetActivePrinterInfos$: fromMost(SetActivePrinterInfos$),
+    SetActivePrinterSystem$: fromMost(SetActivePrinterSystem$),
     SetCameraImage$: fromMost(SetCameraImage$),
 
     SelectPrinter$,
