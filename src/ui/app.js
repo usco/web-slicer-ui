@@ -19,10 +19,11 @@ import {actions as printSettingsActions} from './printSettings'
 import {actions as monitorPrintActions} from './monitorPrint'
 
 import {formatImageData} from '../utils/image'
-
-import {printers, claimedPrinters, claimPrinter, unclaimPrinter, printerInfos, printerCamera, printerSystem} from '../core/umc'
-
+import {printers, claimedPrinters, claimPrinter, unclaimPrinter,
+   printerInfos, printerCamera, printerSystem, uploadAndStartPrint, abortPrint} from '../core/umc'
 import {dataSources} from '../io/dataSources'
+import {formatDataForPrint} from '../core/formatDataForPrint'
+import {extrudersHotendsAndMaterials} from '../core/printerDataHelpers'
 
 // query printer for infos
 // => get printhead & material infos
@@ -129,7 +130,6 @@ const actions = {
   SelectPrinter,
   SetCameraImage,
 
-
   addEntities
 }
 
@@ -165,7 +165,7 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint]) => {
   // console.log(activePrinter, state.activePrinter)
   const prevStepUi = currentStep > 0 ? button('.PrevStep', 'Previous step') : ''
   const nextStepUi = (currentStep < steps.length - 1 && activePrinter && activePrinter.infos) ? button('.NextStep', 'Next step') : ''
-  const startPrintUi = currentStep === steps.length - 1 ? button('.StartPrint', 'Start Print') : ''
+  const startPrintUi = currentStep === steps.length - 1 ? button('.StartPrint', {attrs: {disabled: state.entities.length === 0 }}, 'Start Print') : ''
 
   // <h1>{t('app_name')}</h1>
   return section('#wrapper', [
@@ -181,7 +181,34 @@ function App (sources) {
   const _domEvent = domEvent.bind(null, sources)
   const PrevStep$ = _domEvent('.PrevStep', 'click')
   const NextStep$ = _domEvent('.NextStep', 'click')
-  const StartPrint$ = _domEvent('.StartPrint', 'click')
+  const StartPrint$ = _domEvent('.StartPrint', 'click')// TODO add out of bound checks
+
+  const printStateStuff$ = imitateXstream(StartPrint$)
+    .combine((_, state) => state, imitateXstream(sources.onion.state$)
+    // imitateXstream(sources.onion.state$)
+    // .map(state => ({entities: state.entities, activePrinterId: state.activePrinterId}))
+    ).skipRepeats()
+    .take(1)
+    .flatMap(function (state) {
+      console.log('state', state)
+
+      const activePrinterInfos = R.prop('infos', R.find(R.propEq('id', state.activePrinterId), state.printers))
+      const {materials} = extrudersHotendsAndMaterials(activePrinterInfos)
+
+      const data = formatDataForPrint(state.entities)
+      const file = new Blob([data], {type: 'application/sla'})
+      console.log('material_guid',materials[0])
+      return uploadAndStartPrint(state.activePrinterId, {material_guid: materials[0]}, file)
+    })
+    .forEach(x => console.log('print???',x))
+
+  const abort$ = _domEvent('.abort', 'click')
+
+  imitateXstream(abort$)
+    .combine((_, state) => state, imitateXstream(sources.onion.state$))
+    .map(function (state) {
+      abortPrint(state.activePrinterId)
+    })
 
   // FIXME: switch to drivers
 
@@ -189,14 +216,19 @@ function App (sources) {
     imitateXstream(_domEvent('.RefreshPrintersList', 'click')),
     most.of(null)
   )
-  /* .combine((_, state) => ({state}), imitateXstream(sources.onion.state$))
-  .flatMap(function ({state}) { // refresh printers list every 30 seconds
-    return most.constant(null, most.periodic(state.settings.printersPollRate))
-  }) */
+  .combine((_, state) => ({state}), imitateXstream(sources.onion.state$).map(state => state.settings.printersPollRate).skipRepeats())
+  .map(function (pollRate) { // refresh printers list every 30 seconds
+    return most.constant(null, most.periodic(pollRate))
+  })
+  .switch()
   .flatMap(function (_) {
     const allPrinters$ = printers().map(x => x.response)
+      .flatMapError(x => most.of(undefined))// TODO error handling
+      .filter(x => x !== undefined)
       .map(printers => printers.map(printer => ({...printer, claimed: undefined})))
     const claimedPrinters$ = claimedPrinters().map(x => x.response)
+      .flatMapError(x => most.of(undefined))// TODO error handling
+      .filter(x => x !== undefined)
       .map(printers => printers.map(printer => ({...printer, claimed: true})))
 
     return most.combineArray(function (claimedPrinters, allPrinters) {
@@ -246,10 +278,12 @@ function App (sources) {
       return most.constant(id, most.periodic(state.settings.cameraPollRate))
         .until(imitateXstream(SelectPrinter$))// get images for the current printer id until we select another
     })
+    .take(1)
     .flatMap(function (id) {
       return printerCamera(id)
     })
-    .map(formatImageData.bind(null, 'uint8', 'base64'))
+    .tap(x=>console.log('image',x))
+    .map(formatImageData.bind(null, 'blob', 'img'))
 
     /* most.merge(
       imitateXstream(_domEvent('.RefreshPrintersList', 'click')),
@@ -277,7 +311,7 @@ function App (sources) {
   // console.log(sources.addressBar)
   // sources.addressBar.url$.forEach(url=>console.log('url',url))
 
-  //FIXME this should go elsewhere
+  // FIXME this should go elsewhere
   const addEntities$ = dataSources(sources)
     .tap(x => console.log('adding entities', x))
 
@@ -288,7 +322,6 @@ function App (sources) {
   const ToggleSupport$ = _domEvent('.ToggleSupport', 'click').map(x => x.target.value)
   // this is from MonitorPrint
   const startpause$ = _domEvent('.startpause', 'click').fold((state, newValue) => !state, false)// FIXME: it is SCAN with most.js
-  const abort$ = _domEvent('.abort', 'click')
 
   const actions$ = {
     PrevStep$,
@@ -314,7 +347,7 @@ function App (sources) {
     abort$,
 
     // buildplate, 3d models
-    addEntities$ : fromMost(addEntities$)
+    addEntities$: fromMost(addEntities$)
   }
 
   const {state$, reducer$} = makeStateAndReducers$(actions$, {...actions, ...printSettingsActions, ...monitorPrintActions}, sources)
