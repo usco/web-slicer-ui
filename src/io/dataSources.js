@@ -3,7 +3,7 @@ import { dragEvents, dragAndDropEffect } from '../sideEffects/dragDropDriver'
 import {combineDataSources} from './combineDataSources'
 import makeStlStream from 'usco-stl-parser'
 
-import entityPrep from '../entities/entityPrep'
+import entityPrep from '../core/entities/entityPrep'
 
 export function dataSources (sources) {
   console.log(sources)

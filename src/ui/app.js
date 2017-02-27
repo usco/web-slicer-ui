@@ -11,6 +11,8 @@ import isolate from '@cycle/isolate'
 import PrintSettings from './printSettings'
 import MaterialSetup from './materialSetup'
 import MonitorPrint from './monitorPrint'
+import EntityInfos from './entityInfos'
+
 import Viewer from './viewer'
 
 import * as R from 'ramda'
@@ -25,6 +27,8 @@ import {dataSources} from '../io/dataSources'
 import {formatDataForPrint} from '../core/formatDataForPrint'
 import {extrudersHotendsAndMaterials} from '../core/printerDataHelpers'
 
+import * as entityActions from '../core/entities/reducers'
+import * as printerActions from '../core/printers/reducers'
 // query printer for infos
 // => get printhead & material infos
 // => get transformation matrix of active object
@@ -40,101 +44,20 @@ const NextStep = (state, input) => {
   }
   return state
 }
-const StartPrint = (state, input) => ({ ...state, printStatus: 'startRequested' })
 
-const ClaimPrinter = (state, input) => {
-  console.log('ClaimPrinter', input)
-  const index = R.findIndex(R.propEq('id', state.activePrinterId))(state.printers)
 
-  if (index !== -1) {
-    const activePrinter = state.printers[index]
-    const printers = R.update(index, {...activePrinter, claimed: input}, state.printers)
-    state = { ...state, printers }
-  }
-  return state
-}
-
-const UnClaimPrinter = (state, input) => {
-  console.log('UnClaimPrinter', input)
-  const index = R.findIndex(R.propEq('id', state.activePrinterId))(state.printers)
-
-  if (index !== -1) {
-    const activePrinter = state.printers[index]
-    const printers = R.update(index, {...activePrinter, claimed: input}, state.printers)
-    state = { ...state, printers }
-  }
-  return state
-}
-
-const SelectPrinter = (state, input) => {
-  console.log('SelectPrinter', input)
-  // FIXME: activePrinter is a computed property how do we deal with it ?
-  // const activePrinter = R.find(R.propEq('id', state.activePrinterId))(state.printers)
-  state = { ...state, activePrinterId: input }
-  console.log('state', state)
-  return state
-}
-
-const SetPrinters = (state, input) => {
-  console.log('SetPrinters', input)
-  state = { ...state, printers: input }
-  return state
-}
-
-const SetActivePrinterInfos = (state, input) => {
-  console.log('SetActivePrinterInfos', input)
-  const index = R.findIndex(R.propEq('id', state.activePrinterId))(state.printers)
-
-  if (index !== -1) {
-    const activePrinter = state.printers[index]
-    const printers = R.update(index, {...activePrinter, infos: input}, state.printers)
-    state = { ...state, printers }
-  }
-  return state
-}
-
-const SetActivePrinterSystem = (state, input) => {
-  console.log('SetActivePrinterSystem', input)
-  const index = R.findIndex(R.propEq('id', state.activePrinterId))(state.printers)
-  const inputDefaults = {'variant': 'Ultimaker 3'} // if there is no 'variant' set it to Ultimaker 3
-
-  if (index !== -1) {
-    const activePrinter = state.printers[index]
-    input = {...inputDefaults, ...input}
-    const printers = R.update(index, {...activePrinter, system: input}, state.printers)
-    state = { ...state, printers }
-  }
-  return state
-}
-
-const SetCameraImage = (state, input) => {
-  state = { ...state, image: input }
-  return state
-}
-
-// I don't think this should be here
-function addEntities (state, inputs) {
-  console.log('addEntities')
-  return {...state, entities: state.entities.concat([inputs])}
-}
 
 const actions = {
   init, PrevStep, NextStep, StartPrint,
 
-  ClaimPrinter,
-  UnClaimPrinter,
-  SetPrinters,
-  SetActivePrinterInfos,
-  SetActivePrinterSystem,
+  ...printerActions,
 
-  SelectPrinter,
-  SetCameraImage,
-
-  addEntities
+  addEntities,
+  clearEntities
 }
 
 // our main view
-const view = ([state, printSettings, materialSetup, viewer, monitorPrint]) => {
+const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entityInfos]) => {
   if (!state.hasOwnProperty('t')) return null // FIXME : bloody hack
   // console.log('state')
   const {steps, currentStep} = state
@@ -170,6 +93,7 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint]) => {
   // <h1>{t('app_name')}</h1>
   return section('#wrapper', [
     section('#viewer', [viewer]),
+    section('#entityInfos', [entityInfos]),
     section('#settings', [
       h1([steps[currentStep].name, prevStepUi, nextStepUi, startPrintUi]),
       stepContents[currentStep]
@@ -209,6 +133,7 @@ function App (sources) {
     .map(function (state) {
       abortPrint(state.activePrinterId)
     })
+    .forEach(x=>x)
 
   // FIXME: switch to drivers
 
@@ -278,11 +203,9 @@ function App (sources) {
       return most.constant(id, most.periodic(state.settings.cameraPollRate))
         .until(imitateXstream(SelectPrinter$))// get images for the current printer id until we select another
     })
-    .take(1)
     .flatMap(function (id) {
       return printerCamera(id)
     })
-    .tap(x=>console.log('image',x))
     .map(formatImageData.bind(null, 'blob', 'img'))
 
     /* most.merge(
@@ -357,10 +280,11 @@ function App (sources) {
   const materialSetup = MaterialSetup(sources)
   const viewer = Viewer(sources)
   const monitorPrint = MonitorPrint(sources)
+  const entityInfos = EntityInfos(sources)
 
   const _reducer$ = merge(reducer$, ...[viewer].map(x => x.onion))
 
-  const vdom$ = xs.combine(state$, printSettings.DOM, materialSetup.DOM, viewer.DOM, monitorPrint.DOM)
+  const vdom$ = xs.combine(state$, printSettings.DOM, materialSetup.DOM, viewer.DOM, monitorPrint.DOM, entityInfos.DOM)
     .map((items) => view(items))
 
   return {
