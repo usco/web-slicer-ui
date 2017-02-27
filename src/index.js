@@ -33,20 +33,28 @@ function main (sources) {
     printers: [
       /* {id: 'dsqdq', name: 'fba', infos: {type: 'ultimaker3'}} */
     ],
-
     settings: {
       printersPollRate: 10000, // how often to update the camera
-      cameraPollRate: 30000 // how often to update the camera
+      cameraPollRate: 30000, // how often to update the camera
+
+      transforms: {
+        snapRotation: false,
+        snapTranslation: false,
+        snapScaling: false,
+        uniformScaling: false
+      }
     },
-    //buildplate ?
+    // should this be called  buildplate ?
     entities: [],
 
-
-    // extruders: [],
-    // loadedMaterials: [],
+    // ui related
     steps: [{name: 'Printer Setup'}, {name: 'Material Setup'}, {name: 'Monitor Print'}, {name: 'Print Settings'}],
-    activePrinterId: undefined,
     currentStep: 0,
+    activePrinterId: undefined,
+    activeTool: -1,
+    selections: {
+      instIds: []
+    },
     image: undefined,
     t: x => ''// stand in
   })
