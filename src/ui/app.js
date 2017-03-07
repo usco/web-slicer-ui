@@ -25,6 +25,7 @@ import * as entityActions from '../core/entities/reducers'
 import * as printerActions from '../core/printers/reducers'
 
 import {default as printerIntents} from '../core/printers/intents'
+import {default as entityIntents} from '../core/entities/intents'
 
 // query printer for infos
 // => get printhead & material infos
@@ -97,26 +98,22 @@ function App (sources) {
   const _domEvent = domEvent.bind(null, sources)
   const PrevStep$ = _domEvent('.PrevStep', 'click')
   const NextStep$ = _domEvent('.NextStep', 'click')
-  // console.log(sources.addressBar)
-  // sources.addressBar.url$.forEach(url=>console.log('url',url))
 
   const printerIntents$ = printerIntents(sources)
+  const _entityIntents = entityIntents(sources)//
+  //console.log('_entityIntents', _entityIntents$)
+  _entityIntents.setActiveTool$.forEach(x => console.log('foo', x))
 
   // FIXME this should go elsewhere
   const addEntities$ = dataSources(sources)
     .tap(x => console.log('adding entities', x))
 
-  // FIXME: temp workarounds
-  // this is from printSettings
-  const SetQualityPreset$ = _domEvent('.SetQualityPreset', 'click').map(x => (x.currentTarget.dataset.index))
-  const ToggleBrim$ = _domEvent('.ToggleBrim', 'click').map(x => x.target.value)
-  const ToggleSupport$ = _domEvent('.ToggleSupport', 'click').map(x => x.target.value)
   // this is from MonitorPrint
-  const startpause$ = _domEvent('.startpause', 'click').fold((state, newValue) => !state, false)// FIXME: it is SCAN with most.js
+  const startpause$ = _domEvent('.startpause', 'click').scan((state, newValue) => !state, false)// FIXME: it is SCAN with most.js
 
   const actions$ = {
-    PrevStep$,
-    NextStep$: merge(NextStep$, fromMost(printerIntents$.SetActivePrinterInfos$.delay(1000))), // once we have the printerInfos , move to next step
+    PrevStep$:fromMost(PrevStep$),
+    NextStep$: merge(fromMost(NextStep$), fromMost(printerIntents$.SetActivePrinterInfos$.delay(1000))), // once we have the printerInfos , move to next step
     StartPrint$: fromMost(printerIntents$.StartPrint$),
 
     ClaimPrinter$: fromMost(printerIntents$.ClaimPrinter$),
@@ -129,12 +126,12 @@ function App (sources) {
     SelectPrinter$: fromMost(printerIntents$.SelectPrinter$),
 
     // print setting actions
-    SetQualityPreset$,
-    ToggleBrim$,
-    ToggleSupport$,
+    SetQualityPreset$: fromMost(printerIntents$.SetQualityPreset$),
+    ToggleBrim$: fromMost(printerIntents$.ToggleBrim$),
+    ToggleSupport$: fromMost(printerIntents$.ToggleSupport$),
 
     // monitorPrint actions
-    startpause$,
+    //startpause$,
     abort$: fromMost(printerIntents$.AbortPrint$),
 
     // buildplate, 3d models

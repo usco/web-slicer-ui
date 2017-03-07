@@ -31,8 +31,8 @@ const view = function (state) {
 
 function MonitorPrint (sources) {
   const _domEvent = domEvent.bind(null, sources)
-  const startpause$ = _domEvent('.startpause', 'click').fold((state, newValue) => !state, false)// FIXME: it is SCAN with most.js
-  const abort$ = _domEvent('.abort', 'click')
+  //const startpause$ = _domEvent('.startpause', 'click').fold((state, newValue) => !state, false)// FIXME: it is SCAN with most.js
+  //const abort$ = _domEvent('.abort', 'click')
 
   const actions$ = {
     // startpause$, abort$

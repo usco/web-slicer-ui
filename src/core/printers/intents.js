@@ -9,7 +9,7 @@ import {printers, claimedPrinters, claimPrinter, unclaimPrinter,
    printerInfos, printerCamera, printerSystem, uploadAndStartPrint, abortPrint} from '../umc'
 import {formatImageData} from '../../utils/image'
 
-import {formatDataForPrint} from '../formatDataForPrint'
+import {formatDataForPrint} from './formatDataForPrint'
 import {extrudersHotendsAndMaterials} from './utils'
 
 export default function intents (sources) {

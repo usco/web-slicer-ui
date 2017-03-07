@@ -1,4 +1,4 @@
-import {combineGeometries} from '../utils/geometry/combineGeometries'
+import {combineGeometries} from '../../utils/geometry/combineGeometries'
 
 export function generateCloudSlicerOptions (data, modelFile, materials) {
   return {
