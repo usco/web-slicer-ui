@@ -1,3 +1,4 @@
+import {div, span, label, a} from '@cycle/dom'
 
 import {html} from 'snabbdom-jsx'
 import Menu from '../widgets/Menu'
@@ -19,9 +20,9 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 </svg>`
 
 export function renderScaleUi (state) {
-  const settings = state.settings
-  const activeTool = settings.activeTool
+  const {settings, activeTool} = state.buildplate
   const toggled = activeTool === 'scale'
+  console.log('foo scale', settings, activeTool)
 
   const snapDefaults = 0.1 // snap scaling snaps to tens of percentages
   const transformStep = settings.snapScaling ? snapDefaults : 0.1
@@ -45,7 +46,26 @@ export function renderScaleUi (state) {
   const valuePercents = (transforms.sca || [0, 0, 0]).map(x => x * 100)
   const values = bounds ? (bounds.size || [0, 0, 0]).map((x, index) => x * valuePercents[index] / 100) : [0, 0, 0]
 //
-  const subTools = <span className='scalingSubTools twoColumns'>
+  const subTools = span('.scalingSubTools .twoColumns', [
+    div('.transformsGroup',
+      transformInputs({fieldName: 'sca', unit: '', showPercents: true, step: transformStep, values, valuePercents, precision, min,
+        disabled: false, extraKlasses: ['absScaling'] })    ),
+    div('.optionsGroup', [
+      label('.menuContent', [
+        checkbox({id: 'snapScaling', className: 'snapScaling', checked: state.settings.snapScaling}),
+        'snap scaling'
+      ])
+    ]),
+    div('.defaultsGroup',[
+      label('.resetScaling', [
+        a('.textLink','Reset Scaling')
+      ])
+    ])
+  ])
+
+
+/*
+  <span className='scalingSubTools twoColumns'>
     <div className='transformsGroup'>
       {transformInputs({fieldName: 'sca', unit: '', showPercents: true, step: transformStep, values, valuePercents, precision, min,
       disabled: false, extraKlasses: ['absScaling'] })}
@@ -67,10 +87,9 @@ export function renderScaleUi (state) {
         <a className='textLink'>Reset Scaling</a>
       </label>
     </div>
-  </span>
+  </span>*/
 
-  return Menu({toggled, icon, klass: 'toScaleMode',
-    tooltip: 'scale', tooltipPos: 'bottom', content: subTools})
+  return Menu({toggled, icon, klass: 'toScaleMode', tooltip: 'scale', tooltipPos: 'bottom', content: subTools})
 }
 
 export function view (state$) {

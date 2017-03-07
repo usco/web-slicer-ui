@@ -1,4 +1,4 @@
-import { div, span, label } from '@cycle/dom'
+import {div, span, label} from '@cycle/dom'
 
 import Menu from '../widgets/Menu'
 import checkbox from '../widgets/Checkbox'
@@ -17,8 +17,7 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 </svg>`
 
 export function renderPositionUi (state) {
-  const settings = state.settings
-  const activeTool = state.activeTool
+  const {settings, activeTool} = state.buildplate
   const toggled = activeTool === 'translate'
 
   const transformStep = 0.1
@@ -44,9 +43,9 @@ export function renderPositionUi (state) {
   const values = avg || [0, 0, 0]
 
   const subTools = span('.movingSubTools', [
-    div('.transformsGroup', [
+    div('.transformsGroup',
       transformInputs({fieldName: 'pos', unit: '', step: transformStep, values, precision})
-    ]),
+    ),
     div('.optionsGroup', [
       label('.menuContent', [
         checkbox({id: 'snapTranslation', className: 'snapTranslation', checked: state.settings.snapRotation}),
@@ -55,8 +54,7 @@ export function renderPositionUi (state) {
     ])
   ])
 
-  return Menu({toggled, icon, klass: 'toTranslateMode',
-    tooltip: 'move', tooltipPos: 'bottom', content: subTools})
+  return Menu({toggled, icon, klass: 'toTranslateMode', tooltip: 'move', tooltipPos: 'bottom', content: subTools})
 }
 
 export function view (state$) {

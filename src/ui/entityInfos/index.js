@@ -2,6 +2,7 @@ import {section, div, button, img} from '@cycle/dom'
 import {domEvent, makeStateAndReducers$} from '../../utils/cycle'
 import {renderPositionUi} from './position'
 import {renderRotationUi} from './rotation'
+import {renderScaleUi} from './scale'
 
 const init = (state) => {
   console.log('init entityInfos state', state)
@@ -16,7 +17,8 @@ const view = function (state) {
   console.log('EntityInfos', state)
   return div('EntityInfos',[
     renderPositionUi(state),
-    renderRotationUi(state)
+    renderRotationUi(state),
+    renderScaleUi(state)
   ])
 }
 /* section('.MonitorPrint', [

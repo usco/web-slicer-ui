@@ -1,12 +1,10 @@
-
-import {html} from 'snabbdom-jsx'
+import {div, span, label} from '@cycle/dom'
 import Menu from '../widgets/Menu'
 import checkbox from '../widgets/Checkbox'
 import {transformInputs} from './helpers'
 
-import { toDegree } from '../../utils/formatters'
+import {toDegree} from '../../utils/formatters'
 import {pluck} from 'ramda'
-
 
 const icon = `<svg viewBox="0 0 25 24" preserveAspectRatio="xMidYMid meet" class='icon'
 version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -20,8 +18,7 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 </svg>`
 
 export function renderRotationUi (state) {
-  const settings = state.settings
-  const activeTool = state.settings.activeTool
+  const {settings, activeTool} = state.buildplate
   const toggled = activeTool === 'rotate'
 
   const snapDefaults = 10 // snap rotation snaps to tens of degrees
@@ -38,28 +35,27 @@ export function renderRotationUi (state) {
   if (transforms.length > 0) transforms = transforms[0]
 
   // compute the average rotation
-  const avg= pluck('rot')(data.transforms)
+  const avg = pluck('rot')(data.transforms)
     .reduce(function (acc, cur) {
-      if(!acc) return cur
+      if (!acc) return cur
       return [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]].map(x => x * 0.5)
     }, undefined)
 
   const values = (avg || [0, 0, 0]).map(toDegree)// convert to degrees
 
-  const subTools = <span className='rotationSubTools'>
-    <div className='transformsGroup'>
-      {transformInputs({fieldName: 'rot', unit: 'deg', step: transformStep, values, precision})}
-    </div>
-    <div className='optionsGroup'>
-      <label className='menuContent'>
-        {checkbox({id: 'snapRotation', className: 'snapRotation', checked: state.settings.snapRotation})}
-        snap rotation
-      </label>
-    </div>
-  </span>
+  const subTools = span('.rotationSubTools', [
+    div('.transformsGroup',
+      transformInputs({fieldName: 'rot', unit: 'deg', step: transformStep, values, precision})
+    ),
+    div('.optionsGroup', [
+      label('.menuContent', [
+        checkbox({id: 'snapRotation', className: 'snapRotation', checked: state.settings.snapRotation}),
+        'snap translation'
+      ])
+    ])
+  ])
 
-  return Menu({toggled, icon, klass: 'toRotateMode',
-    tooltip: 'rotate', tooltipPos: 'bottom', content: subTools})
+  return Menu({toggled, icon, klass: 'toRotateMode', tooltip: 'rotate', tooltipPos: 'bottom', content: subTools})
 }
 
 export function view (state$) {
