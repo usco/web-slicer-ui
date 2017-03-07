@@ -1,5 +1,4 @@
 import {section, div, button, img} from '@cycle/dom'
-import classNames from 'classnames'
 import {domEvent, makeStateAndReducers$} from '../utils/cycle'
 
 const init = (state) => {
@@ -7,21 +6,9 @@ const init = (state) => {
   state = ({ ...state, image: undefined, print: {...state.print, status: 'paused'} })
   return state
 }
-const startpause = (state, input) => {
-  console.log('startpause')
-  // state.status === 'paused' ? 'running' : 'paused'
-  state = { ...state, print: {...state.print, paused: input} }
-  return state
-}
-const abort = (state, input) => {
-  console.log('abort')
-  return state
-}
 
 export const actions = {
-  init,
-  startpause,
-  abort
+  init
 }
 
 const view = function (state) {
