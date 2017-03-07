@@ -72,6 +72,17 @@ export const SetCameraImage = (state, input) => { // FIXME: purely UI , does not
   return state
 }
 
+export const startpause = (state, input) => {
+  console.log('startpause')
+  // state.status === 'paused' ? 'running' : 'paused'
+  state = { ...state, print: {...state.print, paused: input} }
+  return state
+}
+export const abort = (state, input) => {
+  console.log('abort')
+  return state
+}
+
 /*const printerActios = {
   SetPrinters,
   SelectPrinter,
