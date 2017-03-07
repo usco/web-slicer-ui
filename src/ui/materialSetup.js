@@ -5,8 +5,8 @@ import dropRepeats from 'xstream/extra/dropRepeats'
 import * as R from 'ramda'
 
 import {domEvent, fromMost, makeStateAndReducers$, makeDefaultReducer} from '../utils/cycle'
-import {pickExtruders, pickMaterials, pickHotends} from '../core/printerDataHelpers'
-import {materials} from '../core/lookupMaterial'
+import {pickExtruders, pickMaterials, pickHotends} from '../core/printers/utils'
+import {materials} from '../core/materials/lookupMaterial'
 
 const init = () => ({})
 

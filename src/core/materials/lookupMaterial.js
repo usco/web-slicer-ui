@@ -1,4 +1,4 @@
-const _materials = require('../../assets/materials.json')
+const _materials = require('../../../assets/materials.json')
 import create from '@most/create'
 
 /**
