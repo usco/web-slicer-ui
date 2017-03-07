@@ -76,7 +76,7 @@ function setup (regl, container, defaults, extState$) {
 
   extState$ = extState$
     .map(function (entities) {
-      return entities.map(function (entity) {
+      return entities.entities.map(function (entity) {
         let {visuals} = entity
         if (!visuals.initialized) {
           const draw = visuals.drawFn(regl) // one command per mesh, but is faster
@@ -130,7 +130,7 @@ export default function GLComponent (sources) {
   let regl
   let container
   let extState$ = imitateXstream(state$)
-      .map(state => state.entities)
+      .map(state => state.buildplate)
       .skipRepeats()
   const view = () => {
     return h('canvas', {
