@@ -79,7 +79,7 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
   // console.log(activePrinter, state.activePrinter)
   const prevStepUi = currentStep > 0 ? button('.PrevStep', 'Previous step') : ''
   const nextStepUi = (currentStep < steps.length - 1 && activePrinter && activePrinter.infos) ? button('.NextStep', 'Next step') : ''
-  const startPrintUi = currentStep === steps.length - 1 ? button('.StartPrint', {attrs: {disabled: state.entities.length === 0 }}, 'Start Print') : ''
+  const startPrintUi = currentStep === steps.length - 1 ? button('.StartPrint', {attrs: {disabled: state.buildplate.entities.length === 0 }}, 'Start Print') : ''
 
   // <h1>{t('app_name')}</h1>
   return section('#wrapper', [
@@ -99,40 +99,26 @@ function App (sources) {
 
   const _printerIntents = printerIntents(sources)
   const _entityIntents = entityIntents(sources)//
-  //console.log('_entityIntents', _entityIntents$)
-  _entityIntents.setActiveTool$.forEach(x => console.log('foo', x))
-
-  // this is from MonitorPrint
-  const startpause$ = _domEvent('.startpause', 'click').scan((state, newValue) => !state, false)// FIXME: it is SCAN with most.js
+  // console.log('_entityIntents', _entityIntents$)
 
   const actions$ = {
     PrevStep$: fromMost(PrevStep$),
-    NextStep$: merge(fromMost(NextStep$), fromMost(_printerIntents.SetActivePrinterInfos$.delay(1000))), // once we have the printerInfos , move to next step
-    StartPrint$: fromMost(_printerIntents.StartPrint$),
-
-    ClaimPrinter$: fromMost(_printerIntents.ClaimPrinter$),
-    UnClaimPrinter$: fromMost(_printerIntents.UnClaimPrinter$),
-    SetPrinters$: fromMost(_printerIntents.SetPrinters$),
-    SetActivePrinterInfos$: fromMost(_printerIntents.SetActivePrinterInfos$),
-    SetActivePrinterSystem$: fromMost(_printerIntents.SetActivePrinterSystem$),
-    SetCameraImage$: fromMost(_printerIntents.SetCameraImage$),
-
-    SelectPrinter$: fromMost(_printerIntents.SelectPrinter$),
-
-    // print setting actions
-    SetQualityPreset$: fromMost(_printerIntents.SetQualityPreset$),
-    ToggleBrim$: fromMost(_printerIntents.ToggleBrim$),
-    ToggleSupport$: fromMost(_printerIntents.ToggleSupport$),
-
-    // monitorPrint actions
-    //startpause$,
-    abort$: fromMost(_printerIntents.AbortPrint$),
-
-    // buildplate, 3d models
-    addEntities$: fromMost(_entityIntents.addEntities$)
+    NextStep$: merge(fromMost(NextStep$), fromMost(_printerIntents.SetActivePrinterInfos$.delay(1000))) // once we have the printerInfos , move to next step
   }
 
-  const {state$, reducer$} = makeStateAndReducers$(actions$, {...actions, ...printSettingsActions, ...monitorPrintActions}, sources)
+  const printActions$ = Object.keys(_printerIntents)
+    .reduce((acc, key) => {
+      acc[key] = fromMost(_printerIntents[key])
+      return acc
+    }, {})
+  const entityActions$ = Object.keys(_entityIntents)
+    .reduce((acc, key) => {
+      acc[key] = fromMost(_entityIntents[key])
+      return acc
+    }, {})
+  const allActions$ = {...actions$, ...printActions$, ...entityActions$}
+
+  const {state$, reducer$} = makeStateAndReducers$(allActions$, {...actions, ...printSettingsActions, ...monitorPrintActions}, sources)
 
   // sub components
   const printSettings = PrintSettings(sources)
