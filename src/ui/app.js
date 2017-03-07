@@ -19,8 +19,6 @@ import * as R from 'ramda'
 import {actions as printSettingsActions} from './printSettings'
 import {actions as monitorPrintActions} from './monitorPrint'
 
-import {dataSources} from '../io/dataSources'
-
 import * as entityActions from '../core/entities/reducers'
 import * as printerActions from '../core/printers/reducers'
 
@@ -99,43 +97,39 @@ function App (sources) {
   const PrevStep$ = _domEvent('.PrevStep', 'click')
   const NextStep$ = _domEvent('.NextStep', 'click')
 
-  const printerIntents$ = printerIntents(sources)
+  const _printerIntents = printerIntents(sources)
   const _entityIntents = entityIntents(sources)//
   //console.log('_entityIntents', _entityIntents$)
   _entityIntents.setActiveTool$.forEach(x => console.log('foo', x))
-
-  // FIXME this should go elsewhere
-  const addEntities$ = dataSources(sources)
-    .tap(x => console.log('adding entities', x))
 
   // this is from MonitorPrint
   const startpause$ = _domEvent('.startpause', 'click').scan((state, newValue) => !state, false)// FIXME: it is SCAN with most.js
 
   const actions$ = {
-    PrevStep$:fromMost(PrevStep$),
-    NextStep$: merge(fromMost(NextStep$), fromMost(printerIntents$.SetActivePrinterInfos$.delay(1000))), // once we have the printerInfos , move to next step
-    StartPrint$: fromMost(printerIntents$.StartPrint$),
+    PrevStep$: fromMost(PrevStep$),
+    NextStep$: merge(fromMost(NextStep$), fromMost(_printerIntents.SetActivePrinterInfos$.delay(1000))), // once we have the printerInfos , move to next step
+    StartPrint$: fromMost(_printerIntents.StartPrint$),
 
-    ClaimPrinter$: fromMost(printerIntents$.ClaimPrinter$),
-    UnClaimPrinter$: fromMost(printerIntents$.UnClaimPrinter$),
-    SetPrinters$: fromMost(printerIntents$.SetPrinters$),
-    SetActivePrinterInfos$: fromMost(printerIntents$.SetActivePrinterInfos$),
-    SetActivePrinterSystem$: fromMost(printerIntents$.SetActivePrinterSystem$),
-    SetCameraImage$: fromMost(printerIntents$.SetCameraImage$),
+    ClaimPrinter$: fromMost(_printerIntents.ClaimPrinter$),
+    UnClaimPrinter$: fromMost(_printerIntents.UnClaimPrinter$),
+    SetPrinters$: fromMost(_printerIntents.SetPrinters$),
+    SetActivePrinterInfos$: fromMost(_printerIntents.SetActivePrinterInfos$),
+    SetActivePrinterSystem$: fromMost(_printerIntents.SetActivePrinterSystem$),
+    SetCameraImage$: fromMost(_printerIntents.SetCameraImage$),
 
-    SelectPrinter$: fromMost(printerIntents$.SelectPrinter$),
+    SelectPrinter$: fromMost(_printerIntents.SelectPrinter$),
 
     // print setting actions
-    SetQualityPreset$: fromMost(printerIntents$.SetQualityPreset$),
-    ToggleBrim$: fromMost(printerIntents$.ToggleBrim$),
-    ToggleSupport$: fromMost(printerIntents$.ToggleSupport$),
+    SetQualityPreset$: fromMost(_printerIntents.SetQualityPreset$),
+    ToggleBrim$: fromMost(_printerIntents.ToggleBrim$),
+    ToggleSupport$: fromMost(_printerIntents.ToggleSupport$),
 
     // monitorPrint actions
     //startpause$,
-    abort$: fromMost(printerIntents$.AbortPrint$),
+    abort$: fromMost(_printerIntents.AbortPrint$),
 
     // buildplate, 3d models
-    addEntities$: fromMost(addEntities$)
+    addEntities$: fromMost(_entityIntents.addEntities$)
   }
 
   const {state$, reducer$} = makeStateAndReducers$(actions$, {...actions, ...printSettingsActions, ...monitorPrintActions}, sources)
