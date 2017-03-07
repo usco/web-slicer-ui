@@ -35,23 +35,24 @@ function main (sources) {
     ],
     settings: {
       printersPollRate: 10000, // how often to update the camera
-      cameraPollRate: 30000, // how often to update the camera
-
-      transforms: {
-        snapRotation: false,
+      cameraPollRate: 5000 // how often to update the camera
+    },
+    buildplate: {
+      entities: [],
+      activeTool: -1,
+      settings: {
         snapTranslation: false,
+        snapRotation: false,
         snapScaling: false,
         uniformScaling: false
       }
     },
-    // should this be called  buildplate ?
-    entities: [],
 
     // ui related
     steps: [{name: 'Printer Setup'}, {name: 'Material Setup'}, {name: 'Monitor Print'}, {name: 'Print Settings'}],
     currentStep: 0,
     activePrinterId: undefined,
-    activeTool: -1,
+
     selections: {
       instIds: []
     },
