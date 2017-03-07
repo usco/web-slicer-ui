@@ -5,7 +5,7 @@ import convert from 'stream-conversions'
 const {create} = require('@most/create')
 
 export function domEvent (sources, selector, event) {
-  return sources.DOM.select(selector).events(event)
+  return imitateXstream(sources.DOM.select(selector).events(event))
 }
 
 export function makeStateAndReducers$ (actions$, actionFns, sources) {
