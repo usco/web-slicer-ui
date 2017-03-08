@@ -90,7 +90,7 @@ export default function intents (sources) {
     .map(formatImageData.bind(null, 'blob', 'img'))
 
   const printStarted$ = sample(state => state, baseActions.StartPrint$, state$.skipRepeats())
-    /*.flatMap(function (state) {
+    .flatMap(function (state) {
       // console.log('state', state)
       console.log('start print')
       const activePrinterInfos = R.prop('infos', R.find(R.propEq('id', state.activePrinterId), state.printers))
@@ -100,10 +100,9 @@ export default function intents (sources) {
       const file = new Blob([data], {type: 'application/sla'})
       console.log('material_guid', materials[0])
       return uploadAndStartPrint(state.activePrinterId, {material_guid: materials[0]}, file)
-    })*/
-    // .forEach(x => console.log('print???', x))
+    })
 
-  const StartPausePrint$ = baseActions.StartPausePrint$.scan((state, newValue) => !state, false)
+  const PauseResumePrint$ = baseActions.PauseResumePrint$.scan((state, newValue) => !state, false)
 
   const printAborted$ = sample(state => state, baseActions.AbortPrint$, state$.skipRepeats())
       .flatMap(state => abortPrint(state.activePrinterId))
@@ -116,7 +115,7 @@ export default function intents (sources) {
     ClaimPrinter$,
     UnClaimPrinter$,
 
-    StartPausePrint$,
+    PauseResumePrint$,
 
     printStarted$,
     printAborted$

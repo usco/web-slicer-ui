@@ -14,7 +14,7 @@ export default function intent (sources, params) {
   const StartPrint$ = _domEvent('.StartPrint', 'click')// TODO add out of bound checks
 
   // this is from MonitorPrint
-  const StartPausePrint$ = _domEvent('.startpause', 'click')
+  const PauseResumePrint$ = _domEvent('.pauseResume', 'click')
 
   const AbortPrint$ = _domEvent('.abort', 'click')
 
@@ -31,7 +31,7 @@ export default function intent (sources, params) {
     UnClaimPrinter$,
 
     StartPrint$,
-    StartPausePrint$,
+    PauseResumePrint$,
     AbortPrint$,
 
     SetQualityPreset$,
