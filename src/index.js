@@ -39,12 +39,15 @@ function main (sources) {
     },
     buildplate: {
       entities: [],
-      activeTool: -1,
       settings: {
         snapTranslation: false,
         snapRotation: false,
         snapScaling: false,
         uniformScaling: false
+      },
+      activeTool: -1,
+      selections: {
+        instIds: []
       }
     },
 
@@ -53,9 +56,6 @@ function main (sources) {
     currentStep: 0,
     activePrinterId: undefined,
 
-    selections: {
-      instIds: []
-    },
     image: undefined,
     t: x => ''// stand in
   })
