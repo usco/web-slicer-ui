@@ -14,6 +14,7 @@ export const actions = {
 const view = function (state) {
   console.log('foo', state.print)
   return section('.MonitorPrint', [
+    div('.printStatus', 'STATUS:' + state.printStatus),
     div('', [
       button('.startpause', state.print.paused ? 'play' : 'pause'),
       button('.abort', 'abort')
@@ -31,8 +32,8 @@ const view = function (state) {
 
 function MonitorPrint (sources) {
   const _domEvent = domEvent.bind(null, sources)
-  //const startpause$ = _domEvent('.startpause', 'click').fold((state, newValue) => !state, false)// FIXME: it is SCAN with most.js
-  //const abort$ = _domEvent('.abort', 'click')
+  // const startpause$ = _domEvent('.startpause', 'click').fold((state, newValue) => !state, false)// FIXME: it is SCAN with most.js
+  // const abort$ = _domEvent('.abort', 'click')
 
   const actions$ = {
     // startpause$, abort$

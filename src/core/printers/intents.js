@@ -1,8 +1,7 @@
 import {mergeActionsByName} from '../../utils/most/various'
 
 import actionsFromDOM from './actions/fromDom'
-import * as most from 'most'
-import {constant, periodic, of, merge, combineArray} from 'most'
+import {constant, periodic, of, merge, combineArray, sample} from 'most'
 import * as R from 'ramda'
 import {domEvent, fromMost, toMost, makeStateAndReducers$, makeDefaultReducer, mergeReducers, imitateXstream} from '../../utils/cycle'
 
@@ -90,14 +89,9 @@ export default function intents (sources) {
     .flatMap(printerCamera)
     .map(formatImageData.bind(null, 'blob', 'img'))
 
-  const StartPrint$ = baseActions.StartPrint$
-    .combine((_, state) => state, state$
-    // state$
-    // .map(state => ({entities: state.entities, activePrinterId: state.activePrinterId}))
-    ).skipRepeats()
-    .take(1)
-    .flatMap(function (state) {
-      //console.log('state', state)
+  const printStarted$ = sample(state => state, baseActions.StartPrint$, state$.skipRepeats())
+    /*.flatMap(function (state) {
+      // console.log('state', state)
       console.log('start print')
       const activePrinterInfos = R.prop('infos', R.find(R.propEq('id', state.activePrinterId), state.printers))
       const {materials} = extrudersHotendsAndMaterials(activePrinterInfos)
@@ -106,18 +100,13 @@ export default function intents (sources) {
       const file = new Blob([data], {type: 'application/sla'})
       console.log('material_guid', materials[0])
       return uploadAndStartPrint(state.activePrinterId, {material_guid: materials[0]}, file)
-    })
-    .forEach(x => console.log('print???', x))
-
+    })*/
+    // .forEach(x => console.log('print???', x))
 
   const StartPausePrint$ = baseActions.StartPausePrint$.scan((state, newValue) => !state, false)
 
-  const AbortPrint$ = baseActions.AbortPrint$
-      .combine((_, state) => state, state$)
-      .map(function (state) {
-        abortPrint(state.activePrinterId)
-      })
-      .forEach(x => x)
+  const printAborted$ = sample(state => state, baseActions.AbortPrint$, state$.skipRepeats())
+      .flatMap(state => abortPrint(state.activePrinterId))
 
   const refinedActions = {
     SetPrinters$,
@@ -127,14 +116,14 @@ export default function intents (sources) {
     ClaimPrinter$,
     UnClaimPrinter$,
 
-    //StartPrint$,
-    //StartPausePrint$,
-    //AbortPrint$
+    StartPausePrint$,
+
+    printStarted$,
+    printAborted$
   }
 
   return {...baseActions, ...refinedActions}
 }
-
 
 /* most.merge(
   imitateXstream(_domEvent('.RefreshPrintersList', 'click')),

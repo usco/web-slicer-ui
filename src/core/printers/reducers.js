@@ -1,7 +1,5 @@
 import * as R from 'ramda'
 
-export const StartPrint = (state, input) => ({ ...state, printStatus: 'startRequested' })
-
 export const ClaimPrinter = (state, input) => {
   console.log('ClaimPrinter', input)
   const index = R.findIndex(R.propEq('id', state.activePrinterId))(state.printers)
@@ -78,12 +76,14 @@ export const StartPausePrint = (state, input) => {
   state = { ...state, print: {...state.print, paused: input} }
   return state
 }
-export const AbortPrint = (state, input) => {
-  console.log('AbortPrint')
-  return state
-}
+
+export const StartPrint = (state, input) => ({ ...state, printStatus: 'print requested ...' })
+export const AbortPrint = (state, input) => ({ ...state, printStatus: 'print abort requested ...' })
 
 export const RefreshPrintersList = (state, input) => state
+
+export const printStarted = (state, input) => ({ ...state, printStatus: 'print running' })
+export const printAborted = (state, input) => ({ ...state, printStatus: 'print aborted' })
 
 /*const printerActios = {
   SetPrinters,
