@@ -5,7 +5,7 @@
  * @param  {String} transformMat4 the 4x4 transformation matrix
  * @return {Object} the modified geometry with updated positions
  */
-export function applyMat4ToGeometry (geometry, transformMat4) {
+export default function applyMat4ToGeometry (geometry, transformMat4) {
   const vec3 = require('gl-vec3')
 
   // matrix

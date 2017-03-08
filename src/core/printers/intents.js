@@ -2,7 +2,7 @@ import {mergeActionsByName} from '../../utils/most/various'
 
 import actionsFromDOM from './actions/fromDom'
 import * as most from 'most'
-import {constant, periodic} from 'most'
+import {constant, periodic, of, merge, combineArray} from 'most'
 import * as R from 'ramda'
 import {domEvent, fromMost, toMost, makeStateAndReducers$, makeDefaultReducer, mergeReducers, imitateXstream} from '../../utils/cycle'
 
@@ -20,26 +20,26 @@ export default function intents (sources) {
   const baseActions = mergeActionsByName(actionsSources)
   const state$ = imitateXstream(sources.onion.state$).skipRepeats()
 
-  const SetPrinters$ = most.merge(
+  const SetPrinters$ = merge(
     baseActions.RefreshPrintersList$,
-    most.of(null)
+    of(null)
   )
   .combine((_, state) => ({state}), state$.map(state => state.settings.printersPollRate).skipRepeats())
   .map(function (pollRate) { // refresh printers list every 30 seconds
-    return most.constant(null, most.periodic(pollRate))
+    return constant(null, periodic(pollRate))
   })
   .switch()
   .flatMap(function (_) {
     const allPrinters$ = printers().map(x => x.response)
-      .flatMapError(x => most.of(undefined))// TODO error handling
+      .flatMapError(x => of(undefined))// TODO error handling
       .filter(x => x !== undefined)
       .map(printers => printers.map(printer => ({...printer, claimed: undefined})))
     const claimedPrinters$ = claimedPrinters().map(x => x.response)
-      .flatMapError(x => most.of(undefined))// TODO error handling
+      .flatMapError(x => of(undefined))// TODO error handling
       .filter(x => x !== undefined)
       .map(printers => printers.map(printer => ({...printer, claimed: true})))
 
-    return most.combineArray(function (claimedPrinters, allPrinters) {
+    return combineArray(function (claimedPrinters, allPrinters) {
       let printers = claimedPrinters
       function addItem (item) {
         const found = R.find(x => x.id === item.id && x.name === item.name)(printers)// R.propEq('id', item.id)
@@ -97,17 +97,20 @@ export default function intents (sources) {
     ).skipRepeats()
     .take(1)
     .flatMap(function (state) {
-      console.log('state', state)
-
+      //console.log('state', state)
+      console.log('start print')
       const activePrinterInfos = R.prop('infos', R.find(R.propEq('id', state.activePrinterId), state.printers))
       const {materials} = extrudersHotendsAndMaterials(activePrinterInfos)
 
-      const data = formatDataForPrint(state.entities)
+      const data = formatDataForPrint(state.buildplate.entities)
       const file = new Blob([data], {type: 'application/sla'})
       console.log('material_guid', materials[0])
       return uploadAndStartPrint(state.activePrinterId, {material_guid: materials[0]}, file)
     })
     .forEach(x => console.log('print???', x))
+
+
+  const StartPausePrint$ = baseActions.StartPausePrint$.scan((state, newValue) => !state, false)
 
   const AbortPrint$ = baseActions.AbortPrint$
       .combine((_, state) => state, state$)
@@ -123,7 +126,9 @@ export default function intents (sources) {
     SetCameraImage$,
     ClaimPrinter$,
     UnClaimPrinter$,
+
     //StartPrint$,
+    //StartPausePrint$,
     //AbortPrint$
   }
 
