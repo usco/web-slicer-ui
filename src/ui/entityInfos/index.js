@@ -1,5 +1,5 @@
 import {section, div, button, img} from '@cycle/dom'
-import {domEvent, makeStateAndReducers$} from '../../utils/cycle'
+import {domEvent, makeStateAndReducers$, imitateXstream, fromMost} from '../../utils/cycle'
 import {renderPositionUi} from './position'
 import {renderRotationUi} from './rotation'
 import {renderScaleUi} from './scale'
@@ -15,30 +15,22 @@ export const actions = {
 
 const view = function (state) {
   console.log('EntityInfos', state)
-  return div('EntityInfos',[
+  return div('EntityInfos', [
     renderPositionUi(state),
     renderRotationUi(state),
     renderScaleUi(state)
   ])
 }
-/* section('.MonitorPrint', [
-  div('', [
-    button('.startpause', state.paused ? 'play' : 'pause'),
-    button('.abort', 'abort')
-  ]),
-  img('.printerCameraFrame', {props: {src: state.image ? state.image : ''}})
-]) */
 
 function EntityInfos (sources) {
   const _domEvent = domEvent.bind(null, sources)
 
   const actions$ = {
-    // startpause$, abort$
   }
   const {state$, reducer$} = makeStateAndReducers$(actions$, actions, sources)
 
   return {
-    DOM: state$.map(view),
+    DOM: fromMost(imitateXstream(state$).skipRepeats().map(view)),
     onion: reducer$
   }
 }

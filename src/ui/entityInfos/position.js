@@ -17,13 +17,13 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 </svg>`
 
 export function renderPositionUi (state) {
-  const {settings, activeTool} = state.buildplate
+  const {settings, activeTool, selections} = state.buildplate
   const toggled = activeTool === 'translate'
 
   const transformStep = 0.1
   const precision = 2
 
-  const data = state.selections.instIds.reduce(function (acc, id) {
+  const data = selections.instIds.reduce(function (acc, id) {
     acc['transforms'].push(state.transforms[id])
     acc['meta'].push(state.meta[id])
     acc['ids'].push(id)
@@ -48,7 +48,7 @@ export function renderPositionUi (state) {
     ),
     div('.optionsGroup', [
       label('.menuContent', [
-        checkbox({id: 'snapTranslation', className: 'snapTranslation', checked: state.settings.snapRotation}),
+        checkbox({id: 'snapTranslation', className: 'snapTranslation', checked: settings.snapRotation}),
         'snap translation'
       ])
     ])

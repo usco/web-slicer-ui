@@ -20,7 +20,7 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 </svg>`
 
 export function renderScaleUi (state) {
-  const {settings, activeTool} = state.buildplate
+  const {settings, activeTool, selections} = state.buildplate
   const toggled = activeTool === 'scale'
   console.log('foo scale', settings, activeTool)
 
@@ -29,7 +29,7 @@ export function renderScaleUi (state) {
   const precision = 2
   const min = 0.01
 
-  const data = state.selections.instIds.reduce(function (acc, id) {
+  const data = selections.instIds.reduce(function (acc, id) {
     acc['transforms'].push(state.transforms[id])
     acc['meta'].push(state.meta[id])
     acc['bounds'].push(state.bounds[id])
@@ -52,7 +52,7 @@ export function renderScaleUi (state) {
         disabled: false, extraKlasses: ['absScaling'] })    ),
     div('.optionsGroup', [
       label('.menuContent', [
-        checkbox({id: 'snapScaling', className: 'snapScaling', checked: state.settings.snapScaling}),
+        checkbox({id: 'snapScaling', className: 'snapScaling', checked: settings.snapScaling}),
         'snap scaling'
       ])
     ]),

@@ -18,14 +18,14 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 </svg>`
 
 export function renderRotationUi (state) {
-  const {settings, activeTool} = state.buildplate
+  const {settings, activeTool, selections} = state.buildplate
   const toggled = activeTool === 'rotate'
 
   const snapDefaults = 10 // snap rotation snaps to tens of degrees
   const transformStep = settings.snapRotation ? snapDefaults : 0.5
   const precision = 2
 
-  const data = state.selections.instIds.reduce(function (acc, id) {
+  const data = selections.instIds.reduce(function (acc, id) {
     acc['transforms'].push(state.transforms[id])
     acc['meta'].push(state.meta[id])
     return acc
@@ -49,7 +49,7 @@ export function renderRotationUi (state) {
     ),
     div('.optionsGroup', [
       label('.menuContent', [
-        checkbox({id: 'snapRotation', className: 'snapRotation', checked: state.settings.snapRotation}),
+        checkbox({id: 'snapRotation', className: 'snapRotation', checked: settings.snapRotation}),
         'snap translation'
       ])
     ])
