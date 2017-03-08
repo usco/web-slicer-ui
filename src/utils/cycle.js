@@ -15,6 +15,9 @@ export function makeStateAndReducers$ (actions$, actionFns, sources) {
   const elements = Object.keys(actions$).map(function (actionName$) {
     const name = actionName$.replace('$', '')
     const actFn = actionFns[name]
+    if (!actFn) {
+      throw new Error(`No reducer function called '${name}' found`)
+    }
     const act$ = actions$[actionName$]
       .map(action => state => actFn(state, action))
     return act$
