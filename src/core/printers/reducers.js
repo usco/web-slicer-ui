@@ -83,6 +83,8 @@ export const AbortPrint = (state, input) => {
   return state
 }
 
+export const RefreshPrintersList = (state, input) => state
+
 /*const printerActios = {
   SetPrinters,
   SelectPrinter,
