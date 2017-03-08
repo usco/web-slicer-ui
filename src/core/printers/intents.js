@@ -68,6 +68,10 @@ export default function intents (sources) {
     .map(x => x.response)
     .multicast()
 
+  /*const printerDataRetrived = combineArray(function(infos, system){
+
+  }, [printersStatus$, ])*/
+
   const ClaimPrinter$ = baseActions.ClaimPrinter$
     .flatMap(claimPrinter)
     .map(!R.has('error'))

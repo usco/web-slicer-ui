@@ -70,6 +70,8 @@ export const SetCameraImage = (state, input) => { // FIXME: purely UI , does not
   return state
 }
 
+export const RefreshPrintersList = (state, input) => ({ ...state, printersStatus: 'fetching printers, please wait ...' })
+
 export const PauseResumePrint = (state, input) => {
   console.log('PauseResumePrint')
   // state.status === 'paused' ? 'running' : 'paused'
@@ -79,9 +81,6 @@ export const PauseResumePrint = (state, input) => {
 
 export const StartPrint = (state, input) => ({ ...state, printStatus: 'print requested ...' })
 export const AbortPrint = (state, input) => ({ ...state, printStatus: 'print abort requested ...' })
-
-export const RefreshPrintersList = (state, input) => state
-
 export const printStarted = (state, input) => ({ ...state, printStatus: 'print running' })
 export const printAborted = (state, input) => ({ ...state, printStatus: 'print aborted' })
 

@@ -1,4 +1,4 @@
-import {domEvent, imitateXstream} from '../../../utils/cycle'
+import {domEvent} from '../../../utils/cycle'
 
 export default function intent (sources, params) {
   const _domEvent = domEvent.bind(null, sources)

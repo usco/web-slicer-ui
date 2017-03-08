@@ -57,14 +57,19 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
     .map(function (printer) {
       const isSelected = state.activePrinterId === printer.id
       const isClaimed = printer.claimed
+      const printerText = isSelected ? `${printer.name} ${state.printerStatus}` : printer.name
+
       const classes = classNames({'.selected': isSelected, '.printerL': true})
+
+      const claimButtons = isClaimed // buttons to claim / unclaim printer
+        ? button('.unClaim .claimed', {attrs: {'data-id': printer.id}}, 'unClaim')
+        : button('.claim', {attrs: {'data-id': printer.id}}, 'claim')
+
       return li(classes, {attrs: {'data-id': printer.id}}, [
-        printer.name, isClaimed
-          ? button('.unClaim .claimed', {attrs: {'data-id': printer.id}}, 'unClaim')
-          : button('.claim', {attrs: {'data-id': printer.id}}, 'claim')
+        printerText, isSelected ? '' : claimButtons
       ])
     })
-  )
+  )// printerStatus
   const printerSetup = section('', [
     state.printers.length > 0 ? div('Select printer', [printers]) : span('please wait, fetching printers ...')
   ])
