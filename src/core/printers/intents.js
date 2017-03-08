@@ -2,6 +2,7 @@ import {mergeActionsByName} from '../../utils/most/various'
 
 import actionsFromDOM from './actions/fromDom'
 import * as most from 'most'
+import {constant, periodic} from 'most'
 import * as R from 'ramda'
 import {domEvent, fromMost, toMost, makeStateAndReducers$, makeDefaultReducer, mergeReducers, imitateXstream} from '../../utils/cycle'
 
@@ -17,12 +18,13 @@ export default function intents (sources) {
     actionsFromDOM(sources)
   ]
   const baseActions = mergeActionsByName(actionsSources)
+  const state$ = imitateXstream(sources.onion.state$).skipRepeats()
 
   const SetPrinters$ = most.merge(
     baseActions.RefreshPrintersList$,
     most.of(null)
   )
-  .combine((_, state) => ({state}), imitateXstream(sources.onion.state$).map(state => state.settings.printersPollRate).skipRepeats())
+  .combine((_, state) => ({state}), state$.map(state => state.settings.printersPollRate).skipRepeats())
   .map(function (pollRate) { // refresh printers list every 30 seconds
     return most.constant(null, most.periodic(pollRate))
   })
@@ -75,18 +77,22 @@ export default function intents (sources) {
     .flatMap(unclaimPrinter)
     .map(R.has('error'))
 
+  // camera feed
+  const cameraPollRate$ = state$.map(state => state.settings.cameraPollRate).skipRepeats()
+
   const SetCameraImage$ = baseActions.SelectPrinter$
-    .combine((id, state) => ({state, id}), imitateXstream(sources.onion.state$))
-    .flatMap(function ({id, state}) {
-      return most.constant(id, most.periodic(state.settings.cameraPollRate))
+    .combine((id, cameraPollRate) => ({cameraPollRate, id}), cameraPollRate$)
+    .map(function ({id, cameraPollRate}) {
+      return constant(id, periodic(cameraPollRate))
         .until(baseActions.SelectPrinter$)// get images for the current printer id until we select another
     })
+    .switch()
     .flatMap(printerCamera)
     .map(formatImageData.bind(null, 'blob', 'img'))
 
   const StartPrint$ = baseActions.StartPrint$
-    .combine((_, state) => state, imitateXstream(sources.onion.state$)
-    // imitateXstream(sources.onion.state$)
+    .combine((_, state) => state, state$
+    // state$
     // .map(state => ({entities: state.entities, activePrinterId: state.activePrinterId}))
     ).skipRepeats()
     .take(1)
@@ -104,7 +110,7 @@ export default function intents (sources) {
     .forEach(x => console.log('print???', x))
 
   const AbortPrint$ = baseActions.AbortPrint$
-      .combine((_, state) => state, imitateXstream(sources.onion.state$))
+      .combine((_, state) => state, state$)
       .map(function (state) {
         abortPrint(state.activePrinterId)
       })
@@ -129,7 +135,7 @@ export default function intents (sources) {
   imitateXstream(_domEvent('.RefreshPrintersList', 'click')),
   most.of(null)
 )
-.combine((_, state) => ({state}), imitateXstream(sources.onion.state$).map(state => state. settings).skipRepeats())
+.combine((_, state) => ({state}), state$.map(state => state. settings).skipRepeats())
 .flatMap(function ({state}) { // refresh printers list every 30 seconds
   console.log('state changed', state)
   return most.constant(null, most.periodic(state.printersPollRate))
