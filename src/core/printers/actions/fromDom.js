@@ -14,7 +14,7 @@ export default function intent (sources, params) {
   const StartPrint$ = _domEvent('.StartPrint', 'click')// TODO add out of bound checks
 
   // this is from MonitorPrint
-  const StartPausePrint$ = _domEvent('.startpause', 'click').scan((state, newValue) => !state, false)// FIXME: it is SCAN with most.js
+  const StartPausePrint$ = _domEvent('.startpause', 'click')
 
   const AbortPrint$ = _domEvent('.abort', 'click')
 
@@ -29,7 +29,9 @@ export default function intent (sources, params) {
     SelectPrinter$,
     ClaimPrinter$,
     UnClaimPrinter$,
+
     StartPrint$,
+    StartPausePrint$,
     AbortPrint$,
 
     SetQualityPreset$,
