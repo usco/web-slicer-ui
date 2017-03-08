@@ -30,7 +30,7 @@ function EntityInfos (sources) {
   const {state$, reducer$} = makeStateAndReducers$(actions$, actions, sources)
 
   return {
-    DOM: fromMost(imitateXstream(state$).skipRepeats().map(view)),
+    DOM: fromMost(imitateXstream(state$).map(state => state.buildplate).skipRepeats().map(view)),
     onion: reducer$
   }
 }

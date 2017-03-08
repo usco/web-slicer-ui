@@ -18,7 +18,7 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 </svg>`
 
 export function renderRotationUi (state) {
-  const {settings, activeTool, selections} = state.buildplate
+  const {settings, activeTool, selections} = state
   const toggled = activeTool === 'rotate'
 
   const snapDefaults = 10 // snap rotation snaps to tens of degrees

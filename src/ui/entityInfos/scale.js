@@ -20,7 +20,7 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 </svg>`
 
 export function renderScaleUi (state) {
-  const {settings, activeTool, selections} = state.buildplate
+  const {settings, activeTool, selections} = state
   const toggled = activeTool === 'scale'
   console.log('foo scale', settings, activeTool)
 
