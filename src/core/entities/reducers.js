@@ -30,3 +30,8 @@ export function toggleUniformScaling (state, uniformScaling) {
   console.log('uniformScaling', uniformScaling)
   return {...state, entities: {...state.buildplate, settings: {...state.buildplate.settings, uniformScaling}}}
 }
+
+export function selectEntities (state, selections) {
+  console.log('selectEntities', selections)
+  return {...state, entities: {...state.buildplate, selections: {...state.buildplate.selections, instIds: selections}}}
+}
