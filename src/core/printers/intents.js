@@ -3,10 +3,10 @@ import {mergeActionsByName} from '../../utils/most/various'
 import actionsFromDOM from './actions/fromDom'
 import {constant, periodic, of, merge, combineArray, sample} from 'most'
 import * as R from 'ramda'
-import {domEvent, fromMost, toMost, makeStateAndReducers$, makeDefaultReducer, mergeReducers, imitateXstream} from '../../utils/cycle'
+import {imitateXstream} from '../../utils/cycle'
 
 import {printers, claimedPrinters, claimPrinter, unclaimPrinter,
-   printerInfos, printerCamera, printerSystem, uploadAndStartPrint, abortPrint} from '../umc'
+   printerInfos, printerCamera, printerSystem, printerStatus, uploadAndStartPrint, abortPrint} from '../umc-api'
 import {formatImageData} from '../../utils/image'
 
 import {formatDataForPrint} from './formatDataForPrint'
@@ -68,9 +68,9 @@ export default function intents (sources) {
     .map(x => x.response)
     .multicast()
 
-  /*const printerDataRetrived = combineArray(function(infos, system){
+  /* const printerDataRetrived = combineArray(function(infos, system){
 
-  }, [printersStatus$, ])*/
+  }, [printersStatus$, ]) */
 
   const ClaimPrinter$ = baseActions.ClaimPrinter$
     .flatMap(claimPrinter)
@@ -84,6 +84,7 @@ export default function intents (sources) {
   const cameraPollRate$ = state$.map(state => state.settings.cameraPollRate).skipRepeats()
 
   const SetCameraImage$ = baseActions.SelectPrinter$
+    .delay(3000)
     .combine((id, cameraPollRate) => ({cameraPollRate, id}), cameraPollRate$)
     .map(function ({id, cameraPollRate}) {
       return constant(id, periodic(cameraPollRate))
@@ -93,17 +94,62 @@ export default function intents (sources) {
     .flatMap(printerCamera)
     .map(formatImageData.bind(null, 'blob', 'img'))
 
+  // for now uses same polling as camera
+  const PollStatus$ = baseActions.SelectPrinter$
+    .delay(3000)
+    .combine((id, cameraPollRate) => ({cameraPollRate, id}), cameraPollRate$)
+    .map(function ({id, cameraPollRate}) {
+      return constant(id, periodic(cameraPollRate))
+        .until(baseActions.SelectPrinter$)// get images for the current printer id until we select another
+    })
+    .switch()
+    .flatMap(printerStatus)
+    .map(x => x.response)
+    .map(function (response) {
+      if (response.job) {
+        if (response.job.state === 'wait_cleanup') {
+          return 'waiting for cleanup, please remove the print from the buildplate'
+        }
+        return `Printing : ${response.job.progress} % Total time : ${response.job.time_total}`
+      }
+      return response.status
+
+      return {message: response.status, state: 'wait_cleanup'}
+    })
+    .tap(x => console.log('printer status', x))
+
+  const retry = (n, stream) => stream.recoverWith(e => n === 0 ? most.throwError(e) : retry(n - 1, stream))
+  //.thru(retry.bind(null,1))
+
   const printStarted$ = sample(state => state, baseActions.StartPrint$, state$.skipRepeats())
     .flatMap(function (state) {
-      // console.log('state', state)
       console.log('start print')
       const activePrinterInfos = R.prop('infos', R.find(R.propEq('id', state.activePrinterId), state.printers))
       const {materials} = extrudersHotendsAndMaterials(activePrinterInfos)
 
       const data = formatDataForPrint(state.buildplate.entities)
       const file = new Blob([data], {type: 'application/sla'})
-      console.log('material_guid', materials[0])
-      return uploadAndStartPrint(state.activePrinterId, {material_guid: materials[0]}, file)
+
+      const printParams = {
+        filename: 'test.stl',
+        slicing_quality: 'draft', // draft|fast|normal|high
+        slicing_adhesion: false,
+        slicing_support_extruder: -1, // -1,1,2
+        machine_type: 'ultimaker3',
+        material_guid: materials[0],
+        mesh_translations: true,
+
+        mesh_rotation_matrix: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+        mesh_position_x: 0,
+        mesh_position_y: 0,
+        mesh_position_z: 0
+      }
+
+      return uploadAndStartPrint(state.activePrinterId, printParams, file)
+        .map(response => ({success: true, message: 'print started'}))
+        .flatMapError(function (error) {
+          return of({success: false, message: error.message})
+        })
     })
 
   const PauseResumePrint$ = baseActions.PauseResumePrint$.scan((state, newValue) => !state, false)
@@ -116,6 +162,7 @@ export default function intents (sources) {
     SetActivePrinterInfos$,
     SetActivePrinterSystem$,
     SetCameraImage$,
+    PollStatus$,
     ClaimPrinter$,
     UnClaimPrinter$,
 
@@ -149,4 +196,5 @@ sources.window.modelUri$
   return just(null)
 })
 .filter(x => x !== null)
-.multicast() */
+.multicast()
+*/
