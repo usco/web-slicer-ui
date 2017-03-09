@@ -3,7 +3,7 @@ import {div, span, label} from '@cycle/dom'
 import Menu from '../widgets/Menu'
 import checkbox from '../widgets/Checkbox'
 import {transformInputs} from './helpers'
-import {pluck} from 'ramda'
+import {pluck, find, filter} from 'ramda'
 
 const icon = `<svg viewBox="0 0 29 29" preserveAspectRatio="xMidYMid meet" class='icon'
 version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -17,27 +17,20 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 </svg>`
 
 export function renderPositionUi (state) {
-  const {settings, activeTool, selections} = state
+  const {settings, activeTool, selections, entities} = state
   const toggled = activeTool === 'translate'
 
   const transformStep = 0.1
   const precision = 2
 
-  const data = selections.instIds.reduce(function (acc, id) {
-    acc['transforms'].push(state.transforms[id])
-    acc['meta'].push(state.meta[id])
-    acc['ids'].push(id)
-    return acc
-  }, {transforms: [], meta: [], settings, ids: []})
+  // match entities by id from the selections list
+  const idMatch = entity => selections.instIds.indexOf(entity.meta.id) > -1
+  const transforms = pluck('transforms')(filter(idMatch, entities))
 
-  let { transforms, ids } = data
-  if (transforms.length > 0) transforms = transforms[0]
-
-  // compute the average position
-  const avg = pluck('pos')(data.transforms)
+  // compute the average position, since we are dealing with 0...n entities
+  const avg = pluck('pos')(transforms)
     .reduce(function (acc, cur) {
-      if (!acc) return cur
-      return [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]].map(x => x * 0.5)
+      return !acc ? cur : [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]].map(x => x * 0.5)
     }, undefined)
 
   const values = avg || [0, 0, 0]
@@ -55,8 +48,4 @@ export function renderPositionUi (state) {
   ])
 
   return Menu({toggled, icon, klass: 'toTranslateMode', tooltip: 'move', tooltipPos: 'bottom', content: subTools})
-}
-
-export function view (state$) {
-  return state$.map(renderPositionUi)
 }
