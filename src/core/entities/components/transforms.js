@@ -1,8 +1,10 @@
 import { pluck, head, assocPath } from 'ramda'
 
-import { createComponents, removeComponents, duplicateComponents, makeActionsFromApiFns } from './common'
-import { makeModel, mergeData } from '../../../utils/modelUtils'
+//import { createComponents, removeComponents, duplicateComponents, makeActionsFromApiFns } from './common'
+//import { makeModel, mergeData } from '../../../utils/modelUtils'
 // //Transforms//////
+
+const mergeData = Object.assign
 
 /* applies snapping for both rotation and scaling
 maps the rotationtransformValues from to degrees and back*/
@@ -104,14 +106,15 @@ export function updateComponents (transformDefaults, state, inputs) {
   }, state)
 }
 
+export const transformDefaults = {
+  pos: [ 0, 0, 0 ],
+  rot: [ 0, 0, 0 ],
+  sca: [ 1, 1, 1 ]
+}
+
+/*
 export function makeTransformsSystem (actions) {
   const defaults = {}
-
-  const transformDefaults = {
-    pos: [ 0, 0, 0 ],
-    rot: [ 0, 0, 0 ],
-    sca: [ 1, 1, 1 ]
-  }
 
   const updateFns = {
     resetScaling: resetScaling.bind(null, transformDefaults),
@@ -129,4 +132,4 @@ export function makeTransformsSystem (actions) {
     transforms$,
     transformActions: actions
   }
-}
+}*/

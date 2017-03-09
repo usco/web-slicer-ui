@@ -1,4 +1,4 @@
-//import {keycodes, isValidElementEvent} from '../../../interactions/keyboard'
+// import {keycodes, isValidElementEvent} from '../../../interactions/keyboard'
 import {merge, fromEvent} from 'most'
 import {domEvent} from '../../../utils/cycle'
 
@@ -27,11 +27,49 @@ export default function intent (sources, params) {
     _domEvent('#viewer', 'click').constant(undefined)// to disable active tool by clicking 'outside'
   )
 
+  const changeTransforms$ = merge(
+    _domEvent('.transformsInput', 'change'),
+    _domEvent('.transformsInput', 'blur'),
+    _domEvent('.transformsInput', 'input'),
+
+    // special one for scaling
+    _domEvent('.transformsInputPercent', 'change'),
+    _domEvent('.transformsInputPercent', 'blur'),
+    _domEvent('.transformsInputPercent', 'input')
+  )
+  .map(function (e) {
+    let val = parseFloat(e.target.value)
+    const attributes = e.target.dataset
+    // console.log('attributes', attributes)
+    let dtrans = attributes.transform
+    let [trans, idx, extra] = dtrans.split('_')
+    if (trans === 'rot') { // convert rotated values back from degrees to radians
+      // val = toRadian(val)
+    }
+
+    if (trans === 'sca') {
+      if (extra === 'percent') {
+        val = val / 100
+        // console.log('scale',val, extra)
+      } else {
+        return undefined
+      }
+    }
+    return {val, trans, idx: parseInt(idx, 10)}
+  })
+  // .filter(exists)
+  // .filter(data => isNumber(data.val))
+  .skipRepeats()
+  // .multicast()
+  .tap(e => console.log('foooobarr', e))
+
   return {
     setActiveTool$,
     toggleSnapScaling$,
     toggleUniformScaling$,
     toggleSnapRotation$,
-    toggleSnapTranslation$
+    toggleSnapTranslation$,
+
+    changeTransforms$
   }
 }
