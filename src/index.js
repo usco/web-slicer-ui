@@ -33,10 +33,10 @@ function main (sources) {
     printers: [
       /* {id: 'dsqdq', name: 'fba', infos: {type: 'ultimaker3'}} */
     ],
-    settings: {
-      printersPollRate: 10000, // how often to update the camera
-      cameraPollRate: 5000 // how often to update the camera
-    },
+    printersStatus: undefined,
+    activePrinterId: undefined,
+    printerStatus: 'fetching printer data , please wait...',
+
     buildplate: {
       entities: [],
       settings: {
@@ -51,10 +51,14 @@ function main (sources) {
       }
     },
 
+    settings: {
+      printersPollRate: 10000, // how often to update the camera
+      cameraPollRate: 10000 // how often to update the camera
+    },
+
     // ui related
     steps: [{name: 'Printer Setup'}, {name: 'Material Setup'}, {name: 'Monitor Print'}, {name: 'Print Settings'}],
     currentStep: 0,
-    activePrinterId: undefined,
 
     image: undefined,
     t: x => ''// stand in
