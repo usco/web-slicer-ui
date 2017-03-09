@@ -26,7 +26,7 @@ const view = (state) => {
     hotends: []
   }
 
-  //console.log('here', state.printers, state.activePrinterId)
+  // console.log('here', state.printers, state.activePrinterId)
   // FIXME: temporary hack, look into sanctuary lib or other way of dealing with empty data
   if (state.printers && state.activePrinterId) {
     const activePrinterInfos = R.prop('infos', R.find(R.propEq('id', state.activePrinterId), state.printers))

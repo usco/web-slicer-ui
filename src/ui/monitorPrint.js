@@ -12,7 +12,6 @@ export const actions = {
 }
 
 const view = function (state) {
-  console.log('foo', state.print)
   return section('.MonitorPrint', [
     div('.printStatus', 'STATUS:' + state.printStatus),
     div('', [

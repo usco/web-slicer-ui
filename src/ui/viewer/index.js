@@ -80,7 +80,7 @@ function setup (regl, container, defaults, extState$) {
         let {visuals} = entity
         if (!visuals.initialized) {
           const draw = visuals.drawFn(regl) // one command per mesh, but is faster
-          console.log('draw')
+          //console.log('draw')
           visuals = {...visuals, draw, initialized: true}
         }
         return {...entity, visuals}
