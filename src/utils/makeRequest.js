@@ -1,6 +1,6 @@
 const {create} = require('@most/create')
 const request = require('request')
-const {fromPromise, of} = require('most')
+const {fromPromise, of, throwError} = require('most')
 
 module.exports = function makeRequest (uri, options) {
   const optionsDefaults = {
@@ -12,10 +12,13 @@ module.exports = function makeRequest (uri, options) {
 
   return fromPromise(fetch(uri, options))
     .flatMap(function (response) {
+      if (!response.ok) { // for 5XX errors etc
+        return fromPromise(response.json())
+          .flatMap(r => throwError({message: r.error}))
+      }
       if (options.parse || options.json) {
         return fromPromise(response.json())
-      }
-      else{
+      } else {
         return fromPromise(response.blob())
       }
       return of(response)
