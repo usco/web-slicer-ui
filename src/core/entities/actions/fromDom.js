@@ -60,7 +60,7 @@ export default function intent (sources, params) {
   // .filter(exists)
   // .filter(data => isNumber(data.val))
   .skipRepeats()
-  // .multicast()
+  .multicast()
   .tap(e => console.log('foooobarr', e))
 
   return {

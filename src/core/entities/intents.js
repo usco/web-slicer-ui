@@ -5,7 +5,7 @@ import actionsFromDOM from './actions/fromDom'
 import {dataSources} from '../../io/dataSources'
 
 import {sample} from 'most'
-import {pluck} from 'ramda'
+import {pluck, filter} from 'ramda'
 import {reduceToAverage, spreadToAll} from '../../utils/various'
 import {imitateXstream} from '../../utils/cycle'
 
@@ -30,7 +30,6 @@ export default function intents (sources) {
       return current === newValue ? undefined : newValue
     })
 
-
   function withLatestFrom(fn, otherStreams, stream$){
     console.log(stream$, fn, otherStreams)
     return sample(fn, stream$, ...otherStreams)
@@ -39,7 +38,10 @@ export default function intents (sources) {
   const state$ = imitateXstream(sources.onion.state$).skipRepeats()
   const entitiesAndSelections$ = state$.map(state => ({selections: state.buildplate.selections.instIds, entities: state.buildplate.entities, settings: state.buildplate.settings}))
   const changeTransforms$ = sample(function (changed, {entities, selections, settings}) {
-    let avg = pluck(changed.trans)(pluck('transforms')(entities))
+    const idMatch = entity => selections.indexOf(entity.meta.id) > -1
+    const transforms = pluck('transforms')(filter(idMatch, entities))
+
+    let avg = pluck(changed.trans)(transforms)//(pluck('transforms')(entities)
       .reduce(reduceToAverage, undefined)
     avg[changed.idx] = changed.val
 
@@ -50,8 +52,8 @@ export default function intents (sources) {
     .map(spreadToAll(['value', 'trans', 'settings']))
     .map(toArray)// we always expect arrays of data
     .skipRepeats()
+    .multicast()
     //.tap(e => console.log('changeTransforms', e))
-
 
   const refinedActions = {addEntities$, selectEntities$, setActiveTool$, changeTransforms$}
 
