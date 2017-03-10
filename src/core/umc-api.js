@@ -23,7 +23,6 @@ export function printerSystem (id) {
 
 export function printerStatus (id) {
   return queryEndpoint(`/printers/${id}/status`)
-    .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
 }
 
 export function printerVariant (id) {
@@ -43,7 +42,6 @@ export function unclaimPrinter (id) {
 
 export function printerCamera (id) {
   return queryEndpoint(`/printers/${id}/camera`, { encoding: null, parse: false, json: false })//, {'Content-Type': 'image/jpeg'}
-    .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
 }
 
 export function uploadAndStartPrint (id, params, file) {
