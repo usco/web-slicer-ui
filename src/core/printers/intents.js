@@ -68,10 +68,6 @@ export default function intents (sources) {
     .map(x => x.response)
     .multicast()
 
-  /* const printerDataRetrived = combineArray(function(infos, system){
-
-  }, [printersStatus$, ]) */
-
   const ClaimPrinter$ = baseActions.ClaimPrinter$
     .flatMap(claimPrinter)
     .map(!R.has('error'))
@@ -92,10 +88,12 @@ export default function intents (sources) {
     })
     .switch()
     .flatMap(printerCamera)
+    .flatMapError(error => of(undefined))
+    .filter(x => x !== undefined)
     .map(formatImageData.bind(null, 'blob', 'img'))
 
   // for now uses same polling as camera
-  const PollStatus$ = baseActions.SelectPrinter$
+  const SetPrinterStatus$ = baseActions.SelectPrinter$
     .delay(3000)
     .combine((id, cameraPollRate) => ({cameraPollRate, id}), cameraPollRate$)
     .map(function ({id, cameraPollRate}) {
@@ -104,22 +102,27 @@ export default function intents (sources) {
     })
     .switch()
     .flatMap(printerStatus)
+    .flatMapError(error => of(undefined))
+    .filter(x => x !== undefined)
     .map(x => x.response)
     .map(function (response) {
-      if (response.job) {
-        if (response.job.state === 'wait_cleanup') {
-          return 'waiting for cleanup, please remove the print from the buildplate'
-        }
-        return `Printing : ${response.job.progress} % Total time : ${response.job.time_total}`
-      }
-      return response.status
+      const state = R.pathOr(response.status, ['job', 'state'])(response)
+      const progress = R.pathOr(0, ['job', 'progress'])(response)
+      const totalTime = R.pathOr(0, ['job', 'time_total'])(response)
 
-      return {message: response.status, state: 'wait_cleanup'}
+      const messages = {
+        undefined: response.status,
+        'idle': `printer available & ready!`,
+        'wait_cleanup': `waiting for cleanup, please remove the print from the buildplate`,
+        'pre_print': 'preparing print',
+        'printing': `Printing : ${progress * 100} % Total time : ${totalTime}`
+      }
+
+      const message = messages[state]
+
+      return {message, state}
     })
     .tap(x => console.log('printer status', x))
-
-  const retry = (n, stream) => stream.recoverWith(e => n === 0 ? most.throwError(e) : retry(n - 1, stream))
-  //.thru(retry.bind(null,1))
 
   const printStarted$ = sample(state => state, baseActions.StartPrint$, state$.skipRepeats())
     .flatMap(function (state) {
@@ -129,6 +132,15 @@ export default function intents (sources) {
 
       const data = formatDataForPrint(state.buildplate.entities)
       const file = new Blob([data], {type: 'application/sla'})
+
+      function download (name) {
+        var a = document.getElementById('a')
+        a.href = URL.createObjectURL(file)
+        a.download = name
+        a.click()
+      }
+      console.log('data for print', data, file)
+      download('foo.stl')
 
       const printParams = {
         filename: 'test.stl',
@@ -150,6 +162,7 @@ export default function intents (sources) {
         .flatMapError(function (error) {
           return of({success: false, message: error.message})
         })
+      //return of({success: true, message: 'fake'})
     })
 
   const PauseResumePrint$ = baseActions.PauseResumePrint$.scan((state, newValue) => !state, false)
@@ -162,7 +175,7 @@ export default function intents (sources) {
     SetActivePrinterInfos$,
     SetActivePrinterSystem$,
     SetCameraImage$,
-    PollStatus$,
+    SetPrinterStatus$,
     ClaimPrinter$,
     UnClaimPrinter$,
 
