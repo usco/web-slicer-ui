@@ -19,5 +19,5 @@ export default function applyMat4ToGeometry (geometry, transformMat4) {
     transformedPositions[i + 1] = newPos[1]
     transformedPositions[i + 2] = newPos[2]
   }
-  return {...geometry, positions}
+  return {...geometry, positions: transformedPositions}
 }
