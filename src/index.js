@@ -31,11 +31,11 @@ function main (sources) {
       paused: false
     },
     printers: [
-      /* {id: 'dsqdq', name: 'fba', infos: {type: 'ultimaker3'}} */
+      /* {id: '080987D', name: 'my printer', infos: {type: 'ultimaker3'}} */
     ],
-    printersStatus: undefined,
+    printersStatus: undefined, // for printers list
+    printerStatus: {message: 'fetching printer data , please wait...', state: undefined}, // for individual printers
     activePrinterId: undefined,
-    printerStatus: 'fetching printer data , please wait...',
 
     buildplate: {
       entities: [],
@@ -59,8 +59,8 @@ function main (sources) {
     // ui related
     steps: [{name: 'Printer Setup'}, {name: 'Material Setup'}, {name: 'Monitor Print'}, {name: 'Print Settings'}],
     currentStep: 0,
-
     image: undefined,
+
     t: x => ''// stand in
   })
 

@@ -57,7 +57,7 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
     .map(function (printer) {
       const isSelected = state.activePrinterId === printer.id
       const isClaimed = printer.claimed
-      const printerText = isSelected ? `${printer.name} ${state.printerStatus}` : printer.name
+      const printerText = isSelected ? `${printer.name} ${state.printerStatus.message}` : printer.name
 
       const classes = classNames({'.selected': isSelected, '.printerL': true})
 
