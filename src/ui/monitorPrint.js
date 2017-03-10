@@ -13,7 +13,7 @@ export const actions = {
 
 const view = function (state) {
   return section('.MonitorPrint', [
-    div('.printStatus', 'STATUS:' + state.printStatus),
+    div('.printStatus', 'STATUS:' + state.printerStatus.message),
     div('', [
       button('.pauseResume', state.print.paused ? 'play' : 'pause'),
       button('.abort', 'abort')

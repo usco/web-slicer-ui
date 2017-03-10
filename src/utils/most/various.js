@@ -17,3 +17,6 @@ export function mergeActionsByName (actionSources, validActions = []) {
     return result
   }, {})
 }
+
+const retry = (n, stream) => stream.recoverWith(e => n === 0 ? most.throwError(e) : retry(n - 1, stream))
+// .thru(retry.bind(null,1))

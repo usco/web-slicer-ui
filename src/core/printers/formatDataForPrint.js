@@ -27,7 +27,6 @@ export function generateCloudSlicerOptions (data, modelFile, materials) {
 * - transforms already has a transformation matrix pre computed
 **/
 export function formatDataForPrint (entities) {
-  console.log('formatDataForPrint')
   const serializeSTL = require('serialize-stl')
   const geometry = combineGeometries(entities)
   const result = serializeSTL(geometry.cells, geometry.positions)
