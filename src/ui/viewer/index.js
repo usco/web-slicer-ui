@@ -28,7 +28,6 @@ const machinePresets = {
     'machine_depth': 215,
     'machine_height': 230,
     'printable_area': [200, 200]
-
   }
 
 }
@@ -104,7 +103,7 @@ export default function GLComponent (sources) {
     color: [1, 0, 0, 1],
     v1: 0,
     camera: {
-      position: [150, 250, 200],
+      position: [-250, 200, 240],
       target: [0, 0, 0],
       fov: Math.PI / 4,
       aspect: 1,
