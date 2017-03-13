@@ -42,7 +42,7 @@ export function combineDataSources (parsers, modelUri$, modelFiles$) {
       if (!modelData.hasOwnProperty('_finished')) {
         // for stl & co
         const data = {
-          transforms: {pos: [0, 0, 0], rot: [0, 0, 0], sca: [1, 1, 1], parent: undefined}, // rot: [0, 0, Math.PI] // [0.2, 1.125, 1.125]},
+          transforms: {pos: [0, 0, 0], rot: [0, 0, Math.PI / 2], sca: [1, 1, 1], parent: undefined},//force orientation to match that in Cura
           geometry: modelData,
           visuals: {
             type: 'mesh',
