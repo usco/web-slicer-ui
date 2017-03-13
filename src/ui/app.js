@@ -139,7 +139,8 @@ function App (sources) {
 
   return {
     DOM: vdom$,
-    onion: _reducer$
+    onion: _reducer$,
+    events: viewer.events
   }
 }
 
