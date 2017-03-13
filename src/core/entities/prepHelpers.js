@@ -5,7 +5,7 @@ import { doNormalsNeedComputing } from '@usco/geometry-utils'
 
 // inject bounding box(& co) data
 export function injectBounds (entity) {
-  const bounds = computeBounds(entity)
+  const bounds = computeBounds({geometry: entity.geometry})
   const result = Object.assign({}, entity, {bounds})
   // console.log('data with bounds', result)
   return result
@@ -13,11 +13,11 @@ export function injectBounds (entity) {
 
 // inject object transformation matrix : costly : only do it when changes happened to objects
 export function injectTMatrix (entity, force = true) {
-  /*if (!force || (entity.hasOwnProperty('transforms') && entity.transforms.hasOwnProperty('matrix'))) {
+  /* if (!force || (entity.hasOwnProperty('transforms') && entity.transforms.hasOwnProperty('matrix'))) {
     return entity
-  }*/
+  } */
   const modelMat = computeTMatrixFromTransforms(entity.transforms)
-  const transforms = Object.assign({}, entity.transforms, {matrix: modelMat})
+  const transforms = Object.assign({}, entity.transforms, {matrix: modelMat, matrixWorld: modelMat})
   const result = Object.assign({}, entity, {transforms})
   // console.log('result', result)
   return result

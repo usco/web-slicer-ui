@@ -4,6 +4,8 @@ import { offsetTransformsByBounds } from '@usco/transform-utils'
 import { injectNormals, injectTMatrix, injectBounds } from './prepHelpers'
 import { drawStaticMesh2 as drawStaticMesh } from '@usco/render-utils'
 import {generateUUID} from '../../utils/utils'
+
+import meshReindex from 'mesh-reindex'
 /* Pipeline:
   - data => process (normals computation, color format conversion) => (drawCall generation) => drawCall
   - every object with a fundamentall different 'look' (beyond what can be done with shader parameters) => different (VS) & PS
@@ -15,7 +17,9 @@ export default function entityPrep (rawModelData$) {
     .filter(entity => entity.hasOwnProperty('geometry'))
     .map(injectNormals)
     .map(injectBounds)
-    .map(function (data) {
+    /*.map(function (data) {
+      const foo = meshReindex(data.geometry.positions)
+      console.log('meshReindex', foo, data.geometry)
       const geometry = centerGeometry(data.geometry, data.bounds, data.transforms)
       return Object.assign({}, data, {geometry})
     })
@@ -23,7 +27,7 @@ export default function entityPrep (rawModelData$) {
       let transforms = Object.assign({}, data.transforms, offsetTransformsByBounds(data.transforms, data.bounds))
       const entity = Object.assign({}, data, {transforms})
       return entity
-    })
+    })*/
 
   const entitiesWithoutGeometry$ = rawModelData$
     .filter(entity => !entity.hasOwnProperty('geometry'))
@@ -32,7 +36,7 @@ export default function entityPrep (rawModelData$) {
     .merge(entitiesWithGeometry$)
     .map(injectTMatrix)
     .map(data => { // inject UUID : FIXME not sure if this belongs here
-      const entity = {...data, meta: {...data.meta, id: generateUUID() }}
+      const entity = {...data, meta: {...data.meta, id: generateUUID()}}
       return entity
     })
     .map(function (data) {

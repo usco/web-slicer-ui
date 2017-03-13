@@ -43,25 +43,26 @@ export default function intent (sources, params) {
     // console.log('attributes', attributes)
     let dtrans = attributes.transform
     let [trans, idx, extra] = dtrans.split('_')
-    if (trans === 'rot') { // convert rotated values back from degrees to radians
-      // val = toRadian(val)
-    }
-
-    if (trans === 'sca') {
-      if (extra === 'percent') {
-        val = val / 100
-        // console.log('scale',val, extra)
-      } else {
-        return undefined
-      }
-    }
-    return {val, trans, idx: parseInt(idx, 10)}
+    return {val, trans, extra, idx: parseInt(idx, 10)}
   })
   // .filter(exists)
   // .filter(data => isNumber(data.val))
   .skipRepeats()
   .multicast()
   .tap(e => console.log('foooobarr', e))
+
+  const changePosition$ = changeTransforms$
+    .filter(c => c.trans === 'pos')
+
+  const changeRotation$ = changeTransforms$
+    .filter(c => c.trans === 'rot')
+    .map(change => ({...change, val: toRadian(change.val)}))// convert rotated values back from degrees to radians
+
+  const changeScale$ = changeTransforms$
+    .filter(c => c.trans === 'sca')
+    .map(change => {
+      return {...change, val: change.extra === 'percent' ? change.val / 100 : change.val}
+    })
 
   return {
     setActiveTool$,
@@ -70,6 +71,9 @@ export default function intent (sources, params) {
     toggleSnapRotation$,
     toggleSnapTranslation$,
 
-    changeTransforms$
+    changeTransforms$,
+    /*changePosition$,
+    changeRotation$,
+    changeScale$*/
   }
 }

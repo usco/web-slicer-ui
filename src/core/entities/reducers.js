@@ -10,7 +10,7 @@ export function clearEntities (state, inputs) {
 }
 
 export function setActiveTool (state, activeTool) {
-  console.log('setActiveTool', activeTool)
+  // console.log('setActiveTool', activeTool)
   return {...state, buildplate: {...state.buildplate, activeTool}}
 }
 
@@ -46,15 +46,15 @@ export function changeTransforms (state, transforms) {
     value[cur.idx] = cur.val
     return value
   }, [0, 0, 0]) */
-  //let value = [0, 0, 0]
-  //value[transforms.idx] = transforms.val
-  console.log('transforms',transforms)
+  // let value = [0, 0, 0]
+  // value[transforms.idx] = transforms.val
+  console.log('transforms', transforms)
 
   // updateComponents(transformDefaults, state, transforms)
 
   const selections = []// R.findIndex(R.propEq('id', state.activePrinterId))(state.buildplate)
 
-  console.log('entities', state.buildplate.entities.map(x=>x.meta.id))
+  console.log('entities', state.buildplate.entities.map(x => x.meta.id))
   /* if (index !== -1) {
     const activePrinter = state.printers[index]
     const printers = R.update(index, {...activePrinter, infos: input}, state.printers)
@@ -76,7 +76,7 @@ export function changeTransforms (state, transforms) {
   })
   .map(entity => injectTMatrix(entity, false))
 
-  //console.log('entities after', ''+entities.map(x=>x.transforms.pos))
+  // console.log('entities after', ''+entities.map(x=>x.transforms.pos))
 
   return {...state, buildplate: {...state.buildplate, entities}}
 }
