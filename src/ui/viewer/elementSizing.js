@@ -11,7 +11,7 @@ export function elementSize (element, throttle = 25) {
     return {width, height, aspect: width / height, bRect}
   }
 
-  return fromEvent('resize', window)//only window fires resize events...
+  return fromEvent('resize', window)// only window fires resize events...
     .throttle(throttle /* ms */)
     .map(extractSize)
     .startWith(extractSize())

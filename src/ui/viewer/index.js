@@ -1,17 +1,17 @@
 import reglM from 'regl'
-import {domEvent, makeStateAndReducers$, makeDefaultReducer, imitateXstream} from '../../utils/cycle'
+import {makeStateAndReducers$, makeDefaultReducer, imitateXstream} from '../../utils/cycle'
 import { h } from '@cycle/dom'
 
-import controlsStream from './controls/controlsStream'
-import limitFlow from '../../utils/most/limitFlow'
-import { baseInteractionsFromEvents as interactionsFromEvents, pointerGestures } from 'most-gestures'
-
 import { combine, merge, just, mergeArray, combineArray, from, fromEvent, never } from 'most'
+import { baseInteractionsFromEvents as interactionsFromEvents, pointerGestures } from 'most-gestures'
 import { params as cameraDefaults } from '@usco/orbit-controls'
+import { formatRawMachineData } from '@usco/printing-utils'
+
+import limitFlow from '../../utils/most/limitFlow'
 import { elementSize } from './elementSizing'
 
-// import drawEnclosure from './rendering/drawEnclosure'
-import { formatRawMachineData } from '@usco/printing-utils'
+import controlsStream from './controls/controlsStream'
+import picksStream from '../../utils/picking/picksStream'
 
 // TODO deal with this correctly
 const machinePresets = {
@@ -22,7 +22,7 @@ const machinePresets = {
     'machine_height': 300,
     'printable_area': [200, 200]
   },
-  'ultimaker3':{
+  'ultimaker3': {
     'name': 'ultimaker3',
     'machine_width': 215,
     'machine_depth': 215,
@@ -56,13 +56,11 @@ function setup (regl, container, defaults, extState$) {
   const focuses$ = never()
   const entityFocuses$ = never()
 
-  const camState$ = controlsStream({gestures}, {settings: cameraDefaults, camera: defaults.camera}, focuses$, entityFocuses$, projection$)
-
   let machine = {params: formatRawMachineData(machinePresets['ultimaker3'])}
 
   const drawEnclosure = require('./rendering/drawEnclosure')(regl, machine.params)
 
-  function makeVisualState (extState$) {
+  function makeVisualState (extState$, camState$) {
     return combineArray(
       function (camera, entities) {
         const view = camera.view
@@ -73,19 +71,30 @@ function setup (regl, container, defaults, extState$) {
       }, [camState$, extState$])
   }
 
+  const entities$ = extState$.map(buildplate => buildplate.entities)
+
   extState$ = extState$
-    .map(function (entities) {
-      return entities.entities.map(function (entity) {
+    .map(function (buildplate) {
+      return buildplate.entities.map(function (entity) {
         let {visuals} = entity
         if (!visuals.initialized) {
           const draw = visuals.drawFn(regl) // one command per mesh, but is faster
-          //console.log('draw')
+          // console.log('draw')
           visuals = {...visuals, draw, initialized: true}
         }
         return {...entity, visuals}
       })
     })
-  const visualState$ = makeVisualState(extState$).multicast()
+
+  const camera$ = controlsStream({gestures}, {settings: cameraDefaults, camera: defaults.camera}, focuses$, entityFocuses$, projection$)
+
+  //gestures.taps
+  const picks$ = picksStream(fromEvent('click', container), projection$, camera$, entities$)
+    .forEach(x => console.log('picking', x))
+
+  console.log('container',container)
+
+  const visualState$ = makeVisualState(extState$, camera$).multicast()
 
   visualState$
     .thru(limitFlow(33))
@@ -100,8 +109,6 @@ function setup (regl, container, defaults, extState$) {
 
 export default function GLComponent (sources) {
   const defaults = {
-    color: [1, 0, 0, 1],
-    v1: 0,
     camera: {
       position: [-250, 200, 240],
       target: [0, 0, 0],
@@ -131,16 +138,13 @@ export default function GLComponent (sources) {
   let extState$ = imitateXstream(state$)
       .map(state => state.buildplate)
       .skipRepeats()
+
   const view = () => {
     return h('canvas', {
       props: {width: 540 * 2, height: 400 * 2},
       hook: {insert: vnode => { regl = initRegl(vnode.elm); container = vnode.elm; setup(regl, container, defaults, extState$) }}
     })
   }
-
-    // .forEach(x=>console.log('state passed to viewer',x))
-  /*
-  */
 
   return {
     DOM: state$.take(1).map(view),
