@@ -2,6 +2,9 @@ import reglM from 'regl'
 import {makeStateAndReducers$, makeDefaultReducer, imitateXstream} from '../../utils/cycle'
 import { h } from '@cycle/dom'
 
+import xs from 'xstream'// temporary
+import delay from 'xstream/extra/delay'
+
 import { combine, merge, just, mergeArray, combineArray, from, fromEvent, never } from 'most'
 import { baseInteractionsFromEvents as interactionsFromEvents, pointerGestures } from 'most-gestures'
 import { params as cameraDefaults } from '@usco/orbit-controls'
@@ -60,41 +63,35 @@ function setup (regl, container, defaults, extState$) {
 
   const drawEnclosure = require('./rendering/drawEnclosure')(regl, machine.params)
 
-  function makeVisualState (extState$, camState$) {
+  function makeVisualState (entities$, camState$) {
     return combineArray(
       function (camera, entities) {
         const view = camera.view
 
         machine = {...machine, draw: drawEnclosure}
         // entities.forEach(x => console.log('entity', x))
-        return {entities, machine, view, camera, background: defaults.background.color, outOfBoundsColor: defaults.outOfBoundsColor}
-      }, [camState$, extState$])
+        return {entities, machine, view, camera, settings: defaults}
+      }, [camState$, entities$])
   }
 
-  const entities$ = extState$.map(buildplate => buildplate.entities)
-
-  extState$ = extState$
+  const entities$ = extState$
     .map(function (buildplate) {
       return buildplate.entities.map(function (entity) {
         let {visuals} = entity
         if (!visuals.initialized) {
           const draw = visuals.drawFn(regl) // one command per mesh, but is faster
-          // console.log('draw')
           visuals = {...visuals, draw, initialized: true}
         }
         return {...entity, visuals}
       })
     })
 
-  const camera$ = controlsStream({gestures}, {settings: cameraDefaults, camera: defaults.camera}, focuses$, entityFocuses$, projection$)
+  const camera$ = controlsStream({gestures}, {settings: {...cameraDefaults, ...defaults.camera}, camera: defaults.camera}, focuses$, entityFocuses$, projection$)
 
-  //gestures.taps
+  // gestures.taps
   const picks$ = picksStream(fromEvent('click', container), projection$, camera$, entities$)
-    .forEach(x => console.log('picking', x))
 
-  console.log('container',container)
-
-  const visualState$ = makeVisualState(extState$, camera$).multicast()
+  const visualState$ = makeVisualState(entities$, camera$).multicast()
 
   visualState$
     .thru(limitFlow(33))
@@ -105,12 +102,16 @@ function setup (regl, container, defaults, extState$) {
       return just(null)
     })
     .forEach(x => x)
+
+  return {
+    events: picks$.map(data => ({type: 'picks', data}))
+  }
 }
 
 export default function GLComponent (sources) {
   const defaults = {
     camera: {
-      position: [-250, 200, 240],
+      position: [250, 200, 240],
       target: [0, 0, 0],
       fov: Math.PI / 4,
       aspect: 1,
@@ -126,6 +127,7 @@ export default function GLComponent (sources) {
       scale: 1
     },
     outOfBoundsColor: [0.55, 0.55, 0.55, 0.8],
+    selectionColor: [0.7, 0, 0, 1],
     background: {
       color: [0.96, 0.96, 0.96, 0.3]
     }
@@ -139,15 +141,23 @@ export default function GLComponent (sources) {
       .map(state => state.buildplate)
       .skipRepeats()
 
+  const eventsPlaceHolder$ = xs.create()
+
   const view = () => {
     return h('canvas', {
       props: {width: 540 * 2, height: 400 * 2},
-      hook: {insert: vnode => { regl = initRegl(vnode.elm); container = vnode.elm; setup(regl, container, defaults, extState$) }}
+      hook: {insert: vnode => {
+        regl = initRegl(vnode.elm); container = vnode.elm
+        setup(regl, container, defaults, extState$).events.forEach(function (event) {
+          eventsPlaceHolder$.shamefullySendNext(event)
+        })
+      }}
     })
   }
 
   return {
     DOM: state$.take(1).map(view),
-    onion: reducer$
+    onion: reducer$,
+    events: eventsPlaceHolder$
   }
 }
