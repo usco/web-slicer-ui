@@ -1,4 +1,4 @@
-import {section, div, button, img} from '@cycle/dom'
+import {div} from '@cycle/dom'
 import {domEvent, makeStateAndReducers$, imitateXstream, fromMost} from '../../utils/cycle'
 import {renderPositionUi} from './position'
 import {renderRotationUi} from './rotation'
@@ -14,7 +14,6 @@ export const actions = {
 }
 
 const view = function (state) {
-  console.log('EntityInfos', state)
   return div('EntityInfos', [
     renderPositionUi(state),
     renderRotationUi(state),

@@ -4,7 +4,7 @@ import checkbox from '../widgets/Checkbox'
 import {transformInputs} from './helpers'
 
 import {toDegree} from '../../utils/formatters'
-import {pluck} from 'ramda'
+import {pluck, map, filter} from 'ramda'
 
 const icon = `<svg viewBox="0 0 25 24" preserveAspectRatio="xMidYMid meet" class='icon'
 version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -18,30 +18,24 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 </svg>`
 
 export function renderRotationUi (state) {
-  const {settings, activeTool, selections} = state
+  const {settings, activeTool, selections, entities} = state
   const toggled = activeTool === 'rotate'
 
   const snapDefaults = 10 // snap rotation snaps to tens of degrees
   const transformStep = settings.snapRotation ? snapDefaults : 0.5
   const precision = 2
 
-  const data = selections.instIds.reduce(function (acc, id) {
-    acc['transforms'].push(state.transforms[id])
-    acc['meta'].push(state.meta[id])
-    return acc
-  }, {transforms: [], meta: [], settings})
-
-  let { transforms } = data
-  if (transforms.length > 0) transforms = transforms[0]
+  // match entities by id from the selections list
+  const idMatch = entity => selections.instIds.indexOf(entity.meta.id) > -1
+  const transforms = pluck('transforms')(filter(idMatch, entities))
 
   // compute the average rotation
-  const avg = pluck('rot')(data.transforms)
+  const avg = pluck('pos')(transforms)
     .reduce(function (acc, cur) {
-      if (!acc) return cur
-      return [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]].map(x => x * 0.5)
+      return !acc ? cur : [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]].map(x => x * 0.5)
     }, undefined)
 
-  const values = (avg || [0, 0, 0]).map(toDegree)// convert to degrees
+  const values = map(toDegree, (avg || [0, 0, 0]))// convert to degrees
 
   const subTools = span('.rotationSubTools', [
     div('.transformsGroup',

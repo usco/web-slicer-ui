@@ -1,12 +1,10 @@
 import {div, span, label, a} from '@cycle/dom'
-
-import {html} from 'snabbdom-jsx'
 import Menu from '../widgets/Menu'
 import checkbox from '../widgets/Checkbox'
 import {transformInputs} from './helpers'
 
-import { absSizeFromBBox } from '../../utils/formatters'
-
+import {absSizeFromBBox} from '../../utils/formatters'
+import {pluck, filter} from 'ramda'
 
 const icon = `<svg viewBox="0 0 24 21" preserveAspectRatio="xMidYMid meet" class='icon'
 version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -20,7 +18,7 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 </svg>`
 
 export function renderScaleUi (state) {
-  const {settings, activeTool, selections} = state
+  const {settings, activeTool, selections, entities} = state
   const toggled = activeTool === 'scale'
   console.log('foo scale', settings, activeTool)
 
@@ -29,19 +27,10 @@ export function renderScaleUi (state) {
   const precision = 2
   const min = 0.01
 
-  const data = selections.instIds.reduce(function (acc, id) {
-    acc['transforms'].push(state.transforms[id])
-    acc['meta'].push(state.meta[id])
-    acc['bounds'].push(state.bounds[id])
-    return acc
-  }, {transforms: [], meta: [], bounds: [], settings}) // FIXME: should be based on bounds component, not meshes
-
-  let { transforms, bounds } = data
-  if (transforms.length > 0) transforms = transforms[0]
-
-  if(bounds.length > 0) {
-    bounds = bounds[0]
-  }
+  // match entities by id from the selections list
+  const idMatch = entity => selections.instIds.indexOf(entity.meta.id) > -1
+  const transforms = pluck('transforms')(filter(idMatch, entities))
+  const bounds = pluck('bounds')(filter(idMatch, entities))
 
   const valuePercents = (transforms.sca || [0, 0, 0]).map(x => x * 100)
   const values = bounds ? (bounds.size || [0, 0, 0]).map((x, index) => x * valuePercents[index] / 100) : [0, 0, 0]
@@ -49,20 +38,19 @@ export function renderScaleUi (state) {
   const subTools = span('.scalingSubTools .twoColumns', [
     div('.transformsGroup',
       transformInputs({fieldName: 'sca', unit: '', showPercents: true, step: transformStep, values, valuePercents, precision, min,
-        disabled: false, extraKlasses: ['absScaling'] })    ),
+        disabled: false, extraKlasses: ['absScaling'] })),
     div('.optionsGroup', [
       label('.menuContent', [
         checkbox({id: 'snapScaling', className: 'snapScaling', checked: settings.snapScaling}),
         'snap scaling'
       ])
     ]),
-    div('.defaultsGroup',[
+    div('.defaultsGroup', [
       label('.resetScaling', [
-        a('.textLink','Reset Scaling')
+        a('.textLink', 'Reset Scaling')
       ])
     ])
   ])
-
 
 /*
   <span className='scalingSubTools twoColumns'>
@@ -87,7 +75,7 @@ export function renderScaleUi (state) {
         <a className='textLink'>Reset Scaling</a>
       </label>
     </div>
-  </span>*/
+  </span> */
 
   return Menu({toggled, icon, klass: 'toScaleMode', tooltip: 'scale', tooltipPos: 'bottom', content: subTools})
 }
