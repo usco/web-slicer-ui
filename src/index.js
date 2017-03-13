@@ -13,8 +13,9 @@ import onionify from 'cycle-onionify'
 import windowApiDriver from './sideEffects/windowApiDriver'
 import addressBarDriver from './sideEffects/addressBarDriver'
 import appMetadataDriver from './sideEffects/appMetadataDriver'
+import eventsDriver from './sideEffects/eventsDriver'
 
-import App from './ui/App'
+import App from './ui/app'
 
 function main (sources) {
   // initial state
@@ -76,11 +77,11 @@ function main (sources) {
     setTranslationsReducer$,
     mergeReducers(init, [app])
   )
-
   // const vdom$ = app.DOM.map(app => app)
-
   return {
     DOM: app.DOM,
+    events: app.events,
+    //log: app.log,
     onion: reducer$
   }
 }
@@ -91,7 +92,9 @@ const drivers = {
   DOM: makeDOMDriver('#app'),
   window: windowApiDriver,
   addressBar: addressBarDriver,
-  metaData: appMetadataDriver
+  metaData: appMetadataDriver,
+  events: eventsDriver,
+  log: msg$ => { msg$.addListener({next: msg => console.log(msg)}) }
 }
 
 run(wrappedMain, drivers)
