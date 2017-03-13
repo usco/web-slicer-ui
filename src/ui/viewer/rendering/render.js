@@ -3,6 +3,9 @@ import makeWrapperScope from '@usco/render-utils/dist/wrapperScope'
 import { computeTMatrixFromTransforms as model } from '@usco/transform-utils'
 import { drawGrid as prepareDrawGrid } from '@usco/render-utils'
 
+import mat4 from 'gl-mat4'
+import drawBoundingBox from './drawBoundingBox'
+
 module.exports = function render (regl, params) {
   const wrapperScope = makeWrapperScope(regl)
   let tick = 0
@@ -21,7 +24,7 @@ module.exports = function render (regl, params) {
         color: background,
         depth: 1
       })
-      //fogColor is dominant
+      // fogColor is dominant
       drawInfiniGrid({view, camera, color: [0, 0, 0, 0], fogColor: background, model: infiniGridOffset})
 
       const outOfBoundsEntities = entities
@@ -42,11 +45,12 @@ module.exports = function render (regl, params) {
           const printableArea = undefined
 
           entity.visuals.draw({view, camera, color, model: entity.transforms.matrix, printableArea})
+
+          //helper to display the boundingBox
+          drawBoundingBox(regl, entity.bounds)({view, camera, model: mat4.identity([])})
         })
 
-
-
-    /*entities.map(function (entity) {
+    /* entities.map(function (entity) {
       const {pos} = entity.transforms
       const offset = pos[2]-entity.bounds.size[2]*0.5
       const model = _model({pos: [pos[0], pos[1], -0.1]})
@@ -55,7 +59,7 @@ module.exports = function render (regl, params) {
       const length = entity.bounds.size[1]+headSize[1]
 
       return makeDrawPrintheadShadow(regl, {width,length})({view, camera, model, color: [0.1, 0.1, 0.1, 0.15]})
-    })*/
+    }) */
     })
   }
 
