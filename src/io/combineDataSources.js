@@ -20,25 +20,29 @@ export function combineDataSources (parsers, modelUri$, modelFiles$) {
   const pickParser = (data) => parsers[data.ext]
 
   modelUri$ = modelUri$
-    .map(x => ({type: 'uri', data: x, ext: getExtension(x)}))
-    .flatMap(function (data) {
-      const parser = pickParser(data)
-      return xhrAsStream(parser(parserParams), data.data)
+    .map(x => ({type: 'uri', data: x, ext: getExtension(x), uri: x}))
+    .flatMap(function (dataSource) {
+      const parser = pickParser(dataSource)
+
+      return xhrAsStream(parser(parserParams), dataSource.data)
+        .map(modelData => ({dataSource, modelData}))
     })
 
   modelFiles$ = modelFiles$
-    .map(x => ({type: 'file', data: x, ext: getExtension(x.name)}))
-    .flatMap(function (data) {
-      const parser = pickParser(data)
-      return fileAsStream(parser(parserParams), data.data)
+    .map(x => ({type: 'file', data: x, ext: getExtension(x.name), uri: x.name}))
+    .flatMap(function (dataSource) {
+      const parser = pickParser(dataSource)
+      return fileAsStream(parser(parserParams), dataSource.data)
+        .map(modelData => ({dataSource, modelData}))
     })
 
   return mergeArray([modelUri$, modelFiles$])
-    .flatMap(function (modelData) {
+    .flatMap(function (data) {
+      const {modelData, dataSource} = data
       if (!modelData.hasOwnProperty('_finished')) {
         // for stl & co
         const data = {
-          transforms: {pos: [0, 0, 0.5], rot: [0, 0, Math.PI], sca: [1, 1, 1], parent: undefined}, // [0.2, 1.125, 1.125]},
+          transforms: {pos: [0, 0, 0], rot: [0, 0, 0], sca: [1, 1, 1], parent: undefined}, // rot: [0, 0, Math.PI] // [0.2, 1.125, 1.125]},
           geometry: modelData,
           visuals: {
             type: 'mesh',
@@ -47,7 +51,8 @@ export function combineDataSources (parsers, modelUri$, modelFiles$) {
           },
           meta: {
             id: 0,
-            origin: ''
+            origin: dataSource.uri,
+            pickable: true
           }}
 
         return just(data)
