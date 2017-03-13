@@ -1,17 +1,19 @@
 import {mergeActionsByName} from '../../utils/most/various'
 import {toArray} from '../../utils/utils'
 import actionsFromDOM from './actions/fromDom'
+import actionsFromEvents from './actions/fromEvents'
 
 import {dataSources} from '../../io/dataSources'
 
-import {sample} from 'most'
+import {sample, merge} from 'most'
 import {pluck, filter} from 'ramda'
 import {reduceToAverage, spreadToAll} from '../../utils/various'
 import {imitateXstream} from '../../utils/cycle'
 
 export default function intents (sources) {
   const actionsSources = [
-    actionsFromDOM(sources)
+    actionsFromDOM(sources),
+    actionsFromEvents(sources)
   ]
   const baseActions = mergeActionsByName(actionsSources)
 
@@ -20,8 +22,10 @@ export default function intents (sources) {
     .tap(x => console.log('adding entities', x))
 
   // every time a new entity gets added, select it
-  const selectEntities$ = addEntities$
-    .map(x => x.meta.id)
+  const selectEntities$ = merge(
+    addEntities$.map(x => x.meta.id),
+    baseActions.selectEntities$
+  )
     .map(toArray)
 
   // if we set the same tool twice, disable it (ie, toggle mode)
