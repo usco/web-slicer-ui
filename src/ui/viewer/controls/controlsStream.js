@@ -12,7 +12,6 @@ export default function controlsStream (interactions, cameraData, focuses$, enti
   const {gestures} = interactions
   const rate$ = rafStream() // heartBeat
 
-  console.log('camera', camera.near, 'settings', settings)
   /*let i = 0
   var newdiv = document.createElement("DIV")
   newdiv.style.zIndex = 99
@@ -26,17 +25,7 @@ export default function controlsStream (interactions, cameraData, focuses$, enti
   const drags$ = gestures.drags
     // .throttle(16) // FIXME: not sure, could be optimized some more
     .filter(x => x !== undefined)
-    .map(function (data) {
-      let delta = [data.delta.x, data.delta.y]
-      if (data.type === 'touch') {
-        // delta = delta.map(x => x / mobileReductor)
-      }
-      return delta
-    })
-    .map(function (delta) {
-      const angle = [-Math.PI * delta[0], -Math.PI * delta[1]]
-      return angle
-    })
+    .map(data => [-Math.PI * data.delta.x, -Math.PI * data.delta.y])
     .map(x => x.map(y => y * 0.1)) // empirical reduction factor
 
   const zooms$ = gestures.zooms
@@ -44,7 +33,6 @@ export default function controlsStream (interactions, cameraData, focuses$, enti
     .startWith(0)
     .filter(x => !isNaN(x))
     .map(x => x * 2.5)
-    //.throttle(10)
 
   // model/ state/ reducers
   function makeCameraModel () {
@@ -126,9 +114,4 @@ export default function controlsStream (interactions, cameraData, focuses$, enti
 
   return cameraState$
     .thru(limitFlow(33))
-  /*return rate$.sample(x => x,
-    cameraState$
-      .filter(x => x.changed)
-      .merge(cameraState$.take(1))
-  )*/
 }
