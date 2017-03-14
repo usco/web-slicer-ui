@@ -4,6 +4,8 @@ import {renderPositionUi} from './position'
 import {renderRotationUi} from './rotation'
 import {renderScaleUi} from './scale'
 
+require('./style.css')
+
 const init = (state) => {
   console.log('init entityInfos state', state)
   return state

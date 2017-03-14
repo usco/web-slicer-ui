@@ -3,7 +3,7 @@ import { html } from 'snabbdom-jsx'
 import Class from 'classnames'
 
 //import style from './style.css'
-//require('./menu.css')
+require('./style.css')
 
 function getToolTip (tooltip, toggleCondition) {
   if (!toggleCondition) {
