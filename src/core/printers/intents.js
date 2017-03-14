@@ -2,7 +2,7 @@ import {mergeActionsByName} from '../../utils/most/various'
 
 import actionsFromDOM from './actions/fromDom'
 import {constant, periodic, of, merge, combineArray, sample} from 'most'
-import * as R from 'ramda'
+import {pathOr, has, find, prop, propEq} from 'ramda'
 import {imitateXstream} from '../../utils/cycle'
 
 import {printers, claimedPrinters, claimPrinter, unclaimPrinter,
@@ -41,7 +41,7 @@ export default function intents (sources) {
     return combineArray(function (claimedPrinters, allPrinters) {
       let printers = claimedPrinters
       function addItem (item) {
-        const found = R.find(x => x.id === item.id && x.name === item.name)(printers)// R.propEq('id', item.id)
+        const found = find(x => x.id === item.id && x.name === item.name)(printers)// propEq('id', item.id)
         if (found) {
           if (found.claimed === undefined) {
             found.claimed = false
@@ -70,17 +70,17 @@ export default function intents (sources) {
 
   const ClaimPrinter$ = baseActions.ClaimPrinter$
     .flatMap(claimPrinter)
-    .map(!R.has('error'))
+    .map(!has('error'))
 
   const UnClaimPrinter$ = baseActions.UnClaimPrinter$
     .flatMap(unclaimPrinter)
-    .map(R.has('error'))
+    .map(has('error'))
 
   // camera feed
   const cameraPollRate$ = state$.map(state => state.settings.cameraPollRate).skipRepeats()
 
   const SetCameraImage$ = baseActions.SelectPrinter$
-    .delay(3000)
+    .delay(1000)
     .combine((id, cameraPollRate) => ({cameraPollRate, id}), cameraPollRate$)
     .map(function ({id, cameraPollRate}) {
       return constant(id, periodic(cameraPollRate))
@@ -94,7 +94,7 @@ export default function intents (sources) {
 
   // for now uses same polling as camera
   const SetPrinterStatus$ = baseActions.SelectPrinter$
-    .delay(3000)
+    .delay(1000)
     .combine((id, cameraPollRate) => ({cameraPollRate, id}), cameraPollRate$)
     .map(function ({id, cameraPollRate}) {
       return constant(id, periodic(cameraPollRate))
@@ -106,9 +106,10 @@ export default function intents (sources) {
     .filter(x => x !== undefined)
     .map(x => x.response)
     .map(function (response) {
-      const state = R.pathOr(response.status, ['job', 'state'])(response)
-      const progress = R.pathOr(0, ['job', 'progress'])(response)
-      const totalTime = R.pathOr(0, ['job', 'time_total'])(response)
+      const state = pathOr(response.status, ['job', 'state'])(response)
+      const job = pathOr({}, ['job'])(response)
+      const progress = pathOr(0, ['job', 'progress'])(response)
+      const totalTime = pathOr(0, ['job', 'time_total'])(response)
 
       const messages = {
         undefined: response.status,
@@ -120,14 +121,14 @@ export default function intents (sources) {
 
       const message = messages[state]
 
-      return {message, state}
+      return {message, state, job}
     })
     .tap(x => console.log('printer status', x))
 
   const printStarted$ = sample(state => state, baseActions.StartPrint$, state$.skipRepeats())
     .flatMap(function (state) {
       console.log('start print')
-      const activePrinterInfos = R.prop('infos', R.find(R.propEq('id', state.activePrinterId), state.printers))
+      const activePrinterInfos = prop('infos', find(propEq('id', state.activePrinterId), state.printers))
       const {materials} = extrudersHotendsAndMaterials(activePrinterInfos)
 
       const data = formatDataForPrint(state.buildplate.entities)
