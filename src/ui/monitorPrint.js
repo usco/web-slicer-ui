@@ -1,6 +1,6 @@
 import {find, propEq, lensPath, compose, view as rView} from 'ramda'
 import {section, div, button, img} from '@cycle/dom'
-import {renderProgressBar} from './widgets/ProgressBar'
+import renderProgressBar from './widgets/ProgressBar'
 
 import {domEvent, makeStateAndReducers$} from '../utils/cycle'
 import {hotends, bed, jobInfos, formatTime} from '../core/printers/utils'
@@ -33,10 +33,13 @@ const view = function (state) {
     ? null
     : div('.printProgress', [div('', `Time left:${formatTime(progressData.time_total - progressData.time_elapsed).hours}hrs`)])
 
+  console.log(progressData)
+
   return section('.MonitorPrint', [
     div('.printStatus', 'STATUS:' + state.printerStatus.message),
     statusUi,
     progressUi,
+    renderProgressBar({progress: progressData.progress * 100}),
     div('', [
       button('.pauseResume', state.print.paused ? 'play' : 'pause'),
       button('.abort', 'abort')
