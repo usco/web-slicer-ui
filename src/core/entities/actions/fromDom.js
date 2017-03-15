@@ -56,7 +56,6 @@ export default function intent (sources, params) {
   // .filter(data => isNumber(data.val))
   .skipRepeats()
   .multicast()
-  .tap(e => console.log('foooobarr', e))
 
   /* const changePosition$ = changeTransforms$
     .filter(c => c.trans === 'pos')
