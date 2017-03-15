@@ -6,7 +6,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "ava './src/utils/**/*.test.js' --require babel-register --verbose",
-    "build": "browserify src/index.js -o dist/index.js -t [babelify browserify minifyify]",
+    "build": "browserify src/index.js -o dist/index.js -t browserify-css  -t [babelify browserify minifyify]",
     "start-dev": "budo src/index.js:dist/index.js --port=8080 --live -- -t browserify-css -t babelify -t brfs ",
     "start-app": "electron main.js",
     "release-patch": "git checkout master; npm version patch && npm run build; git commit -a -m 'chore(dist): built dist/'; git push origin master --tags ",
