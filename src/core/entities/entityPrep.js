@@ -4,8 +4,10 @@ import { offsetTransformsByBounds } from '@usco/transform-utils'
 import { injectNormals, injectTMatrix, injectBounds } from './prepHelpers'
 import { drawStaticMesh2 as drawStaticMesh } from '@usco/render-utils'
 import {generateUUID} from '../../utils/utils'
-
+import applyMat4ToGeometry from '../../utils/geometry/applyMat4ToGeometry'
 import meshReindex from 'mesh-reindex'
+
+import mat4 from 'gl-mat4'
 /* Pipeline:
   - data => process (normals computation, color format conversion) => (drawCall generation) => drawCall
   - every object with a fundamentall different 'look' (beyond what can be done with shader parameters) => different (VS) & PS
@@ -17,17 +19,22 @@ export default function entityPrep (rawModelData$) {
     .filter(entity => entity.hasOwnProperty('geometry'))
     .map(injectNormals)
     .map(injectBounds)
-    /*.map(function (data) {
+    .map(function (data) {
       const foo = meshReindex(data.geometry.positions)
       console.log('meshReindex', foo, data.geometry)
       const geometry = centerGeometry(data.geometry, data.bounds, data.transforms)
       return Object.assign({}, data, {geometry})
     })
-    .map(function (data) {
+    .map(function (data) {//offset geometry to rest on 'top' of the x/y plane but NOT the transforms
+      const geometry = applyMat4ToGeometry(data.geometry, mat4.translate([], mat4.create(), [0, 0, data.bounds.size[2] * 0.5]))
+      return {...data, geometry}
+    })
+    .map(injectBounds)
+    /* .map(function (data) {
       let transforms = Object.assign({}, data.transforms, offsetTransformsByBounds(data.transforms, data.bounds))
       const entity = Object.assign({}, data, {transforms})
       return entity
-    })*/
+    }) */
 
   const entitiesWithoutGeometry$ = rawModelData$
     .filter(entity => !entity.hasOwnProperty('geometry'))
