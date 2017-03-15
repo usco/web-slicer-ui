@@ -28,9 +28,6 @@ export default function intersect (ray, entity, index) {
 
   const bounds = [min, max] // [entity.bounds.min, entity.bounds.max] // FIXME !!!! bounds are in local coordinates, not world coordinates !
 
-  //FIXME : haaaack
-  entity.meta.selected = false
-
   const hitAABB = intersectAABB([], ray.ro, ray.rd, bounds)
   if (hitAABB) {
     console.log('boundingBox hit', hitAABB)
@@ -41,7 +38,6 @@ export default function intersect (ray, entity, index) {
     const localRayRo = transformMat4(vec3.create(), ray.ro, invModelMat)
     const localRayRd = transformMat4(vec3.create(), ray.rd, invModelMat)
 
-
     //if we do not want to go any deeper into the object
     if(!entity.meta.pickLimit || (entity.meta.pickLimit && entity.meta.pickLimit === 'bounds'))
     {
@@ -50,7 +46,6 @@ export default function intersect (ray, entity, index) {
       // distance between intersect point and ray origin, in world space
       const distance = vec3.length(vec3.subtract(vec3.create(), hitPoint, ray.ro))
 
-      entity.meta.selected = true
       //setSelection(entity)
       return {intersect: {pos: hitPoint, distance}, entity}
     }
