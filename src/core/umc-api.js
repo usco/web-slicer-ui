@@ -13,7 +13,6 @@ export function claimedPrinters (id) {
 
 export function printerInfos (id) {
   return queryEndpoint(`/printers/${id}/info`)
-    .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
 }
 
 export function printerSystem (id) {
