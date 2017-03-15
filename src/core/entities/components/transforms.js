@@ -1,13 +1,13 @@
-import { pluck, head, assocPath } from 'ramda'
+import { pluck, head, assocPath, filter, find,findIndex, propEq, update } from 'ramda'
 
-//import { createComponents, removeComponents, duplicateComponents, makeActionsFromApiFns } from './common'
-//import { makeModel, mergeData } from '../../../utils/modelUtils'
+// import { createComponents, removeComponents, duplicateComponents, makeActionsFromApiFns } from './common'
+// import { makeModel, mergeData } from '../../../utils/modelUtils'
 // //Transforms//////
 
 const mergeData = Object.assign
 
 /* applies snapping for both rotation and scaling
-maps the rotationtransformValues from to degrees and back*/
+maps the rotationtransformValues from to degrees and back */
 function applySnapping (transformValues, stepSize, mapValue = undefined) {
   const numberToRoundTo = 1 / stepSize
   for (let i = 0; i < transformValues.length; i++) {
@@ -78,31 +78,37 @@ export function resetScaling (transformDefaults, state, inputs) {
 
 // update any transform component (pos, rot, scale) does NOT mutate the original state
 export function updateComponents (transformDefaults, state, inputs) {
-  const currentStateFlat = inputs.map((input) => state[input.id])
+  const idMatch = entity => find(propEq('id', entity.meta.id))(inputs)
+  const changedEntities = filter(idMatch, state)
+  const transforms = pluck('transforms')(changedEntities) // current transforms from state
 
   const transform = head(inputs)['trans'] // what transform do we want to update?
-  const currentAvg = pluck(transform)(currentStateFlat) // we compute the current average (multi selection)
+  const currentAvg = pluck(transform)(transforms) // we compute the current average of all inputs (multi selection)
     .reduce(function (acc, cur) {
       if (!acc) return cur
       return [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]].map(x => x * 0.5)
     }, undefined)
 
   return inputs.reduce(function (state, input) {
-    state = mergeData({}, state)
     let {id, value, trans, settings} = input
 
     // compute the diff between new average and old average
     const diff = [value[0] - currentAvg[0], value[1] - currentAvg[1], value[2] - currentAvg[2]]
 
+    // what transform component do we target ?
+    const targetComponent = find(entity => entity.meta.id === id)(changedEntities).transforms
     // generate actual transformation
     const transformation = diff.map(function (value, index) {
-        return state[id][trans][index] + value
-      }) || transformDefaults
+      return targetComponent[trans][index] + value
+    }) || transformDefaults
 
     // apply any limits, snapping etc
     const updatedTransformation = applySnapAndUniformScaling(transformDefaults, trans, transformation, settings)
     // return updated state
-    return assocPath([id, trans], updatedTransformation, state)
+    const indexInState = findIndex(entity => entity.meta.id === id)(state)
+    const updatedTranforms = assocPath([trans], updatedTransformation, targetComponent)
+    return update(indexInState, {...state[indexInState], transforms: updatedTranforms}, state)
+    //return assocPath([id, trans], updatedTransformation, state)
   }, state)
 }
 
@@ -132,4 +138,4 @@ export function makeTransformsSystem (actions) {
     transforms$,
     transformActions: actions
   }
-}*/
+} */
