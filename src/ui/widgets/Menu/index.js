@@ -1,25 +1,19 @@
 import { h } from '@cycle/dom'
 import { html } from 'snabbdom-jsx'
-import Class from 'classnames'
+import classes from 'classnames'
 
-//import style from './style.css'
 require('./style.css')
 
-function getToolTip (tooltip, toggleCondition) {
-  if (!toggleCondition) {
-    return {'data-tooltip': tooltip}
-  } else {
-    return undefined
-  }
-}
+const getToolTip = (tooltip, toggleCondition) => !toggleCondition ? {'data-tooltip': tooltip} : undefined
 
 export default function Menu (options) {
   const defaults = {
     toggled: false,
-    disabledCondition: false,
+    disabled: false,
 
     icon: '',
     klass: '',
+    wrapperKlass: '',
     arrow: true,
 
     contentPosition: 'right',
@@ -30,44 +24,37 @@ export default function Menu (options) {
 
     content: undefined
   }
-  const {toggled, disabledCondition, icon, klass, arrow, contentPosition, subItems, tooltip, tooltipPos, content} = Object.assign({}, defaults, options)
+  const {toggled, disabled, icon, klass, wrapperKlass, arrow, contentPosition, subItems, tooltip, tooltipPos, content} = Object.assign({}, defaults, options)
 
-  const subItemsIndicator = subItems ? <span className='subItemsIndicator'/> : ''
+  const subItemsIndicator = subItems ? <span className='subItemsIndicator' /> : ''
   // arrow related
-  const borderNotch = arrow ? <b className='border-notch notch'></b> : ''
-  const notch = arrow ? <b className='notch'></b> : ''
+  const borderNotch = arrow ? <b className='border-notch notch' /> : ''
+  const notch = arrow ? <b className='notch' /> : ''
 
   const button = h('button', {
-      props: {
-        disabled: disabledCondition,
-        className: Class(klass, `tooltip-${tooltipPos}`, {active: toggled})
-      },
-      attrs: getToolTip(tooltip, toggled)
-      },
+    props: {
+      disabled: disabled,
+      className: classes(klass, `tooltip-${tooltipPos}`, {active: toggled})
+    },
+    attrs: getToolTip(tooltip, toggled)
+  },
     [
       h('span', {props: {innerHTML: icon}}),
       subItemsIndicator
     ])
 
-    /*<button
-      disabled={disabledCondition}
-      className={Class(klass, `tooltip-${tooltipPos}`, {active: toggled})}
-      attributes={getToolTip(tooltip, toggled)}>
-      <span innerHTML={icon}/>
-      {subItemsIndicator}
-    </button>*/
-
   let innerContent = ''
   if (content !== undefined && toggled) {
     innerContent = <div
-      className={Class('menu', `menu-${contentPosition}`, {'active-content': toggled, arrowOffset: arrow})}>
-        {content}
-        {borderNotch}
-        {notch}
+      className={classes('menu', `menu-${contentPosition}`, {'active-content': toggled, arrowOffset: arrow})}>
+      {content}
+      {borderNotch}
+      {notch}
     </div>
   }
 
-  return <span className='toolTipButtonContainer'>
+  const rootClassNames = classes('toolTipButtonContainer', wrapperKlass, {disabled})
+  return <span className={rootClassNames}>
     {button}
     {innerContent}
   </span>
