@@ -57,7 +57,7 @@ export function renderScaleUi (state) {
     ]),
     div('.defaultsGroup', [
       label('.resetScaling', [
-        a('.textLink', 'Reset Scaling')
+        a('.textLink.resetScaling', 'Reset Scaling')
       ])
     ])
   ])
