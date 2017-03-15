@@ -1,5 +1,8 @@
 import { injectNormals, injectTMatrix, injectBounds } from './prepHelpers'
 import {transformDefaults, updateComponents, resetScaling as resetTransformsScaling} from './components/transforms'
+import { computeBounds } from '@usco/bounds-utils'
+import applyMat4ToAABB from '../../utils/bounds/applyMat4ToAABB'
+
 
 export function addEntities (state, inputs) {
   return {...state, buildplate: {...state.buildplate, entities: state.buildplate.entities.concat([inputs])}}
@@ -14,8 +17,6 @@ export function setActiveTool (state, activeTool) {
   return {...state, buildplate: {...state.buildplate, activeTool}}
 }
 
-
-
 export function selectEntities (state, selections) {
   console.log('selectEntities', selections)
   return {...state, buildplate: {...state.buildplate, selections: {...state.buildplate.selections, instIds: selections}}}
@@ -26,6 +27,11 @@ export function changeTransforms (state, transforms) {
   console.log('transforms', transforms, state.buildplate.entities)
   const entities = updateComponents(transformDefaults, state.buildplate.entities, transforms)
     .map(entity => injectTMatrix(entity, false))
+    .map(entity => {
+      let bounds = computeBounds({geometry: entity.geometry})
+      bounds = applyMat4ToAABB(entity.transforms.matrix, bounds)
+      return {...entity, bounds}
+    })
   return {...state, buildplate: {...state.buildplate, entities}}
 }
 
