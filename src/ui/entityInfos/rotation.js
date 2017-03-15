@@ -31,7 +31,7 @@ export function renderRotationUi (state) {
   const transforms = pluck('transforms')(filter(idMatch, entities))
 
   // compute the average rotation
-  const avg = pluck('pos')(transforms)
+  const avg = pluck('rot')(transforms)
     .reduce(function (acc, cur) {
       return !acc ? cur : [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]].map(x => x * 0.5)
     }, undefined)
