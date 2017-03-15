@@ -219,274 +219,39 @@ div.disabled{
 /*entity infos */
 #entityInfos{
   position: absolute;
-
-  width: 60px;
-  height: 300px;
+  width: 30px;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 10px;
+  background: #0ca9e3;
 }
 
 #entityInfos button{
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0);
+}
+#entityInfos button path{
+  fill: #f5f0f0;
+}
+#entityInfos .toolTipButtonContainer{
   padding: 10px;
+  padding-left: 4px;
+}
+#entityInfos svg{
+  width: 24px;
+}
+#entityInfos .menu-right.arrowOffset {
+    top: 0%;
+    bottom: auto;
+    left: 170%;
 }
 
 /* FIXME !!!! after this point, just copies of specific css files, need to be remobed from here*/
 
-/* Coming in from the top
-Chrome, Safari, Opera */
-@-webkit-keyframes dropInEffect-fromTop {
-    0%   {opacity: 0; height: 0; margin-top: -20px;}
-    90% {margin-top: 2px;}
-    100% {opacity: 1; height: auto; margin-top: 0px;}
-}
-@keyframes dropInEffect-fromTop {
-  0%   {opacity: 0; height: 0; margin-top: -20px;}
-  90% {margin-top: 2px;}
-  100% {opacity: 1; height: auto; margin-top: 0px;}
-}
-
-/* Coming in from the left
-Chrome, Safari, Opera */
-@-webkit-keyframes dropInEffect-fromLeft {
-    0%   {opacity: 0; height: 0; margin-left: -20px;}
-    90% {margin-left: 2px;}
-    100% {opacity: 1; height: auto; margin-left: 0px;}
-}
-@keyframes dropInEffect-fromLeft {
-  0%   {opacity: 0; height: 0; margin-left: -20px;}
-  90% {margin-left: 2px;}
-  100% {opacity: 1; height: auto; margin-left: 0px;}
-}
-
-.toolTipButtonContainer{
-  position: relative;
-}
-
-.subItemsIndicator{
-  position: absolute;
-  bottom: 2;
-  right: 2;
-  border-bottom: 8px solid rgb(0, 0, 0);
-  border-top: 8px solid rgba(0, 0, 0, 0);
-  border-left: 8px solid rgba(0, 0, 0, 0);
-  /* border-right: 10px solid rgba(0, 0, 0, 0); */
-  /* border-bottom: 10px solid rgb(0, 0, 0); */
-}
-
-.menu {
-  /*
-  padding: 10px 0px;
-  margin-top: 10px;*/
-
-  display: none;
-  position: absolute;
-  z-index: 999;
-  background-color: white;
-  border: 1px solid #dddddd;
-  font-size: 0.8em;
-}
-
-.menu input[type=checkbox]{
-  margin-right: 10px;
-}
-
-.menuContent{
-  display: block;
-  float: left;
-  font-size: 0.8em;
-  cursor: pointer;
-  width: 50%;
-}
-
-.menuContent .checkbox{
-  margin-right: 5px;
-}
-
-.menu.active-content{
-  display: block;
-
-  -webkit-animation-duration: 0.2s; /* Chrome, Safari, Opera */
-  -webkit-animation-timing-function: ease-in-out; /* Chrome, Safari, Opera */
-
-  animation-duration: 0.2s;
-  animation-timing-function: ease-in-out;
-}
-
-.menu-bottom .notch {
-    position: absolute;
-    top: -10px;
-    left: 17px;
-    margin: 0;
-    border-top: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid white;
-    padding: 0;
-    width: 0;
-    height: 0;
-    /* ie6 height fix */
-    font-size: 0;
-    line-height: 0;
-     /* ie6 transparent fix */
-    _border-right-color: pink;
-    _border-left-color: pink;
-    _filter: chroma(color=pink);
-}
-.menu-bottom .border-notch { border-bottom-color: #dddddd; top: -11px}
-
-/*animation for bottom variant*/
-.menu-bottom.active-content{
-  -webkit-animation-name: dropInEffect-fromTop; /* Chrome, Safari, Opera */
-  animation-name: dropInEffect-fromTop;
-}
-
-/* left */
-.menu-left {
-  top: 0%;
-  bottom: auto;
-  right: 120%;
-}
-
-/* right*/
-.menu-right {
-  top: -8;
-  bottom: auto;
-  left: 52;
-}
-
-.menu-right.arrowOffset{
-  top: 0%;
-  bottom: auto;
-  left: 120%;
-}
-
-.menu-right .notch {
-  position: absolute;
-  top: 10px;
-  left: -20px;
-  margin: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid white;
-  border-bottom: 10px solid transparent;
-  border-top: 10px solid transparent;
-  padding: 0;
-  width: 0;
-  height: 0;
-}
-.menu-right .border-notch {
-  border-left: 8px solid transparent;
-  border-right: 11px solid #dddddd;
-  border-top: 12px solid transparent;
-}
-
-/* animation for right variant*/
-.menu-right.active-content{
-  -webkit-animation-name: dropInEffect-fromLeft; /* Chrome, Safari, Opera */
-  animation-name: dropInEffect-fromLeft;
-}
-
-/* top */
-.menu-top {
-
-  right: calc(0% + 2px);
-  bottom: calc(200% + 4px);
-}
-
-.menu-top.arrowOffset{
-  top: -35;
-  bottom: auto;
-  left: -100;
-}
-
-.menu-top .notch {
-  position: absolute;
-  top: 10px;
-  left: -20px;
-  margin: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid white;
-  border-bottom: 10px solid transparent;
-  border-top: 10px solid transparent;
-  padding: 0;
-  width: 0;
-  height: 0;
-}
-.menu-top .border-notch {
-  border-left: 8px solid transparent;
-  border-right: 11px solid #dddddd;
-  border-top: 12px solid transparent;
-}
-
-.menu-top.active-content{
-  -webkit-animation-name: dropInEffect-fromBottom; /* Chrome, Safari, Opera */
-  animation-name: dropInEffect-fromBottom;
-}
-/* animation for top variant*/
-
-/*Coming in from the bottom
-Chrome, Safari, Opera */
-@-webkit-keyframes dropInEffect-fromBottom {
-  0%   {opacity: 0; height: 0; margin-bottom: -20px;}
-  90% {margin-bottom: 2px;}
-  100% {opacity: 1; height: auto; margin-bottom: 0px;}
-}
-@keyframes dropInEffect-fromBottom {
-  0%   {opacity: 0; height: 0; margin-bottom: -20px;}
-  90% {margin-bottom: 2px;}
-  100% {opacity: 1; height: auto; margin-bottom: 0px;}
-}
-
-/* bottom */
-.menu-bottom {
-  right: 20;
-  top: 60;
-}
-
-.menu-bottom.arrowOffset{
-  top: -35;
-  bottom: auto;
-  left: -100;
-}
-
-.menu-bottom .notch {
-  position: absolute;
-  top: 10px;
-  left: -20px;
-  margin: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid white;
-  border-bottom: 10px solid transparent;
-  border-top: 10px solid transparent;
-  padding: 0;
-  width: 0;
-  height: 0;
-}
-.menu-bottom .border-notch {
-  border-left: 8px solid transparent;
-  border-right: 11px solid #dddddd;
-  border-top: 12px solid transparent;
-}
-
-.menu-bottom.active-content{
-  -webkit-animation-name: dropInEffect-fromTop; /* Chrome, Safari, Opera */
-  animation-name: dropInEffect-fromTop;
-}
-
-/*Coming in from the top
-Chrome, Safari, Opera */
-@-webkit-keyframes dropInEffect-fromTop {
-  0%   {opacity: 0; height: 0; margin-top: -20px;}
-  90% {margin-top: 2px;}
-  100% {opacity: 1; height: auto; margin-top: 0px;}
-}
-@keyframes dropInEffect-fromTop {
-  0%   {opacity: 0; height: 0; margin-top: -20px;}
-  90% {margin-top: 2px;}
-  100% {opacity: 1; height: auto; margin-top: 0px;}
-}
-
-
-button path{fill:#555555!important;}
+/*button path{fill:#555555!important;}*/
 button:focus {outline:0;}
 /*button:focus path{fill:white!important;}
 button:focus {background:#555555; outline:0;}*/
@@ -517,230 +282,24 @@ button:enabled:hover svg *{
   fill:white;
 }
 
+button[disabled=disabled], button:disabled{
+  background: rgba(0, 0, 0, 0);
+}
+
 button[disabled=disabled], button:disabled svg *{
-  fill:lightgray;
-  stroke: lightgray;
+  fill:none;
+  stroke: none;
 }
 
 button[disabled=disabled]:hover, button:disabled:hover{
-  stroke: lightgray;
-  fill:lightgray;
+  stroke: none;
+  fill:none;
 }
+
+button[disabled=disabled], button:disabled path{
+  fill:#666868!important;
+}
+
+
 
 /*-----------------*/
-.toolTips .icon{ /* FIXME : is this still used ?*/
-  margin: -10px 0px;
-}
-/*other tooltips from:
-http://cbracco.me/a-simple-css-tooltip/
-*/
-/* Base styles for the element that has a tooltip */
-[data-tooltip],
-.tooltip {
-  position: relative;
-  cursor: pointer;
-}
-
-/* Base styles for the entire tooltip */
-[data-tooltip]:before,
-[data-tooltip]:after,
-.tooltip:before,
-.tooltip:after {
-  position: absolute;
-  visibility: hidden;
-  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
-  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0);
-  opacity: 0;
-  -webkit-transition:
-      opacity 0.2s ease-in-out,
-        visibility 0.2s ease-in-out,
-        -webkit-transform 0.2s cubic-bezier(0.71, 1.7, 0.77, 1.24);
-    -moz-transition:
-        opacity 0.2s ease-in-out,
-        visibility 0.2s ease-in-out,
-        -moz-transform 0.2s cubic-bezier(0.71, 1.7, 0.77, 1.24);
-    transition:
-        opacity 0.2s ease-in-out,
-        visibility 0.2s ease-in-out,
-        transform 0.2s cubic-bezier(0.71, 1.7, 0.77, 1.24);
-  -webkit-transform: translate3d(0, 0, 0);
-  -moz-transform:    translate3d(0, 0, 0);
-  transform:         translate3d(0, 0, 0);
-  pointer-events: none;
-}
-
-/* Show the entire tooltip on hover and focus */
-[data-tooltip]:hover:before,
-[data-tooltip]:hover:after,
-/*[data-tooltip]:focus:before,
-[data-tooltip]:focus:after,*/
-.tooltip:hover:before,
-.tooltip:hover:after
-/*.tooltip:focus:before,
-.tooltip:focus:after*/ {
-  visibility: visible;
-  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
-  filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100);
-  opacity: 1;
-}
-
-/* Base styles for the tooltip's directional arrow */
-.tooltip:before,
-[data-tooltip]:before {
-  z-index: 1001;
-  border: 6px solid transparent;
-  background: transparent;
-  content: "";
-}
-
-/* Base styles for the tooltip's content area */
-.tooltip:after,
-[data-tooltip]:after {
-  z-index: 1000;
-  padding: 3px;
-  width: 60px;
-  background-color: #000;
-  background-color: hsla(0, 0%, 20%, 0.9);
-  color: #fff;
-  content: attr(data-tooltip);
-  font-size: 12px;
-  line-height: 1.0;
-}
-
-/* Directions */
-
-/* Top (default) */
-[data-tooltip]:before,
-[data-tooltip]:after,
-.tooltip:before,
-.tooltip:after,
-.tooltip-top:before,
-.tooltip-top:after {
-  bottom: 100%;
-  left: 50%;
-}
-
-[data-tooltip]:before,
-.tooltip:before,
-.tooltip-top:before {
-  margin-left: -6px;
-  margin-bottom: -11px;
-  border-top-color: #000;
-  border-top-color: hsla(0, 0%, 20%, 0.9);
-}
-
-/* Horizontally align top/bottom tooltips */
-[data-tooltip]:after,
-.tooltip:after,
-.tooltip-top:after {
-  margin-left: -20px;
-}
-
-[data-tooltip]:hover:before,
-[data-tooltip]:hover:after,
-/*[data-tooltip]:focus:before,
-[data-tooltip]:focus:after,*/
-.tooltip:hover:before,
-.tooltip:hover:after,
-/*.tooltip:focus:before,
-.tooltip:focus:after,*/
-.tooltip-top:hover:before,
-.tooltip-top:hover:after
-/*.tooltip-top:focus:before,
-.tooltip-top:focus:after*/ {
-  -webkit-transform: translateY(-12px);
-  -moz-transform:    translateY(-12px);
-  transform:         translateY(-12px);
-}
-
-/* Left */
-.tooltip-left:before,
-.tooltip-left:after {
-  right: 100%;
-  bottom: 50%;
-  left: auto;
-}
-
-.tooltip-left:before {
-  margin-left: 0;
-  margin-right: -12px;
-  margin-bottom: 0;
-  border-top-color: transparent;
-  border-left-color: #000;
-  border-left-color: hsla(0, 0%, 20%, 0.9);
-}
-
-.tooltip-left:hover:before,
-.tooltip-left:hover:after
-/*.tooltip-left:focus:before,
-.tooltip-left:focus:after*/ {
-  -webkit-transform: translateX(-12px);
-  -moz-transform:    translateX(-12px);
-  transform:         translateX(-12px);
-}
-
-/* Bottom */
-.tooltip-bottom:before,
-.tooltip-bottom:after {
-  top: 100%;
-  bottom: auto;
-  left: 50%;
-}
-
-.tooltip-bottom:before {
-  margin-top: -11px;
-  margin-bottom: 0;
-  border-top-color: transparent;
-  border-bottom-color: #000;
-  border-bottom-color: hsla(0, 0%, 20%, 0.9);
-}
-
-.tooltip-bottom:hover:before,
-.tooltip-bottom:hover:after
-/*.tooltip-bottom:focus:before,
-.tooltip-bottom:focus:after */{
-  -webkit-transform: translateY(12px);
-  -moz-transform:    translateY(12px);
-  transform:         translateY(12px);
-}
-
-/* Right */
-.tooltip-right:before,
-.tooltip-right:after {
-  bottom: 50%;
-  left: 100%;
-}
-
-.tooltip-right:before {
-  margin-bottom: 0;
-  margin-left: -12px;
-  border-top-color: transparent;
-  border-right-color: #000;
-  border-right-color: hsla(0, 0%, 20%, 0.9);
-}
-
-.tooltip-right:hover:before,
-.tooltip-right:hover:after
-/*.tooltip-right:focus:before,
-.tooltip-right:focus:after */{
-  -webkit-transform: translateX(12px);
-  -moz-transform:    translateX(12px);
-  transform:         translateX(12px);
-}
-
-/* Move directional arrows down a bit for left/right tooltips */
-.tooltip-left:before,
-.tooltip-right:before {
-  top: 3px;
-}
-
-/* Vertically center tooltip content for left/right tooltips */
-.tooltip-left:after,
-.tooltip-right:after {
-  margin-left: 0;
-  margin-bottom: -16px;
-}
-
-svg{
-  width: 32px;
-}
