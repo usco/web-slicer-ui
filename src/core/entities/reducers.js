@@ -14,6 +14,28 @@ export function setActiveTool (state, activeTool) {
   return {...state, buildplate: {...state.buildplate, activeTool}}
 }
 
+
+
+export function selectEntities (state, selections) {
+  console.log('selectEntities', selections)
+  return {...state, buildplate: {...state.buildplate, selections: {...state.buildplate.selections, instIds: selections}}}
+}
+
+// transforms etc
+export function changeTransforms (state, transforms) {
+  console.log('transforms', transforms, state.buildplate.entities)
+  const entities = updateComponents(transformDefaults, state.buildplate.entities, transforms)
+    .map(entity => injectTMatrix(entity, false))
+  return {...state, buildplate: {...state.buildplate, entities}}
+}
+
+export function resetScaling (state, _) {
+  const entities = resetTransformsScaling(transformDefaults, state.buildplate.entities, state.buildplate.selections.instIds)
+    .map(entity => injectTMatrix(entity, false))
+  return {...state, buildplate: {...state.buildplate, entities}}
+}
+
+// transform settings etc
 export function toggleSnapTranslation (state, snapTranslation) {
   console.log('toggleSnapTranslation', snapTranslation)
   return {...state, buildplate: {...state.buildplate, settings: {...state.buildplate.settings, snapTranslation}}}
@@ -32,22 +54,4 @@ export function toggleSnapScaling (state, snapScaling) {
 export function toggleUniformScaling (state, uniformScaling) {
   console.log('uniformScaling', uniformScaling)
   return {...state, buildplate: {...state.buildplate, settings: {...state.buildplate.settings, uniformScaling}}}
-}
-
-export function selectEntities (state, selections) {
-  console.log('selectEntities', selections)
-  return {...state, buildplate: {...state.buildplate, selections: {...state.buildplate.selections, instIds: selections}}}
-}
-
-export function changeTransforms (state, transforms) {
-  console.log('transforms', transforms, state.buildplate.entities)
-  const entities = updateComponents(transformDefaults, state.buildplate.entities, transforms)
-    .map(entity => injectTMatrix(entity, false))
-  return {...state, buildplate: {...state.buildplate, entities}}
-}
-
-export function resetScaling (state, _) {
-  const entities = resetTransformsScaling(transformDefaults, state.buildplate.entities, state.buildplate.selections.instIds)
-    .map(entity => injectTMatrix(entity, false))
-  return {...state, buildplate: {...state.buildplate, entities}}
 }
