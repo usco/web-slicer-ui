@@ -1,5 +1,5 @@
 import { injectNormals, injectTMatrix, injectBounds } from './prepHelpers'
-import {updateComponents, transformDefaults} from './components/transforms'
+import {transformDefaults, updateComponents, resetScaling as resetTransformsScaling} from './components/transforms'
 
 export function addEntities (state, inputs) {
   return {...state, buildplate: {...state.buildplate, entities: state.buildplate.entities.concat([inputs])}}
@@ -42,6 +42,12 @@ export function selectEntities (state, selections) {
 export function changeTransforms (state, transforms) {
   console.log('transforms', transforms, state.buildplate.entities)
   const entities = updateComponents(transformDefaults, state.buildplate.entities, transforms)
+    .map(entity => injectTMatrix(entity, false))
+  return {...state, buildplate: {...state.buildplate, entities}}
+}
+
+export function resetScaling (state, _) {
+  const entities = resetTransformsScaling(transformDefaults, state.buildplate.entities, state.buildplate.selections.instIds)
     .map(entity => injectTMatrix(entity, false))
   return {...state, buildplate: {...state.buildplate, entities}}
 }

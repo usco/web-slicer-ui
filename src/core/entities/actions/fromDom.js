@@ -44,9 +44,9 @@ export default function intent (sources, params) {
     // console.log('attributes', attributes)
     let dtrans = attributes.transform
     let [trans, idx, extra] = dtrans.split('_')
-    if(trans === 'rot'){
-      val =  toRadian(val)
-    }else if(trans === 'sca'){
+    if (trans === 'rot') {
+      val = toRadian(val)
+    } else if (trans === 'sca') {
       val = extra === 'percent' ? val / 100 : val
     }
 
@@ -58,7 +58,7 @@ export default function intent (sources, params) {
   .multicast()
   .tap(e => console.log('foooobarr', e))
 
-  /*const changePosition$ = changeTransforms$
+  /* const changePosition$ = changeTransforms$
     .filter(c => c.trans === 'pos')
 
   const changeRotation$ = changeTransforms$
@@ -69,7 +69,9 @@ export default function intent (sources, params) {
     .filter(c => c.trans === 'sca')
     .map(change => {
       return {...change, val: change.extra === 'percent' ? change.val / 100 : change.val}
-    })*/
+    }) */
+
+  const resetScaling$ = _domEvent('.resetScaling', 'click').map(x => true)
 
   return {
     setActiveTool$,
@@ -79,8 +81,9 @@ export default function intent (sources, params) {
     toggleSnapTranslation$,
 
     changeTransforms$,
-    /*changePosition$,
+    /* changePosition$,
     changeRotation$,
-    changeScale$*/
+    changeScale$ */
+    resetScaling$
   }
 }

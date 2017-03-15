@@ -1,4 +1,4 @@
-import { pluck, head, assocPath, filter, find,findIndex, propEq, update } from 'ramda'
+import { pluck, head, assocPath, filter, find, findIndex, propEq, update } from 'ramda'
 
 // import { createComponents, removeComponents, duplicateComponents, makeActionsFromApiFns } from './common'
 // import { makeModel, mergeData } from '../../../utils/modelUtils'
@@ -71,8 +71,10 @@ export function mirrorComponents (transformDefaults, state, inputs) {
 // reset scaling to default
 export function resetScaling (transformDefaults, state, inputs) {
   return inputs.reduce(function (state, input) {
-    const updatedScale = Object.assign([], transformDefaults.sca)
-    return assocPath([input.id, 'sca'], updatedScale, state) // return updated state
+    const updatedScale = [...transformDefaults.sca]
+    const index = findIndex(entity => entity.meta.id === input)(state)
+    const updatedEntity = state[index]
+    return update(index, {...updatedEntity, transforms: {...updatedEntity.transforms, sca: updatedScale}}, state) // return updated state
   }, state)
 }
 
@@ -108,7 +110,7 @@ export function updateComponents (transformDefaults, state, inputs) {
     const indexInState = findIndex(entity => entity.meta.id === id)(state)
     const updatedTranforms = assocPath([trans], updatedTransformation, targetComponent)
     return update(indexInState, {...state[indexInState], transforms: updatedTranforms}, state)
-    //return assocPath([id, trans], updatedTransformation, state)
+    // return assocPath([id, trans], updatedTransformation, state)
   }, state)
 }
 
