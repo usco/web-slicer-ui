@@ -134,6 +134,12 @@ div.disabled{
   pointer-events: none;
 }
 
+.disabled{
+  color: #afafaf;
+  /* background: #e8e8e8; */
+  pointer-events: none;
+}
+
 
 /*materialSetup*/
 .materialSetup{
@@ -157,7 +163,7 @@ div.disabled{
 
 /*viewer*/
 #viewer{
-  width: 50%;
+  width: 80%;
   min-height: 400px;
   flex-grow: 0;
   display:inline-block;
@@ -213,6 +219,15 @@ div.disabled{
 /*entity infos */
 #entityInfos{
   position: absolute;
+
+  width: 60px;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+#entityInfos button{
+  padding: 10px;
 }
 
 /* FIXME !!!! after this point, just copies of specific css files, need to be remobed from here*/
