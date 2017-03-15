@@ -23,7 +23,7 @@ export default function intents (sources) {
     baseActions.RefreshPrintersList$,
     of(null)
   )
-  .combine((_, state) => ({state}), state$.map(state => state.settings.printersPollRate).skipRepeats())
+  .combine((_, state) => ({state}), state$.map(state => state.printing.settings.printersPollRate).skipRepeats())
   .map(function (pollRate) { // refresh printers list every 30 seconds
     return constant(null, periodic(pollRate))
   })
@@ -56,12 +56,6 @@ export default function intents (sources) {
     }, [claimedPrinters$, allPrinters$])
   })
 
-  const SetActivePrinterInfos$ = baseActions.SelectPrinter$
-    .flatMap(printerInfos)
-    .filter(x => x !== undefined)
-    .map(x => x.response)
-    .multicast()
-
   const SetActivePrinterSystem$ = baseActions.SelectPrinter$
     .flatMap(printerSystem)
     .filter(x => x !== undefined)
@@ -77,9 +71,24 @@ export default function intents (sources) {
     .map(has('error'))
 
   // camera feed
-  const cameraPollRate$ = state$.map(state => state.settings.cameraPollRate).skipRepeats()
+  const cameraPollRate$ = state$.map(state => state.printing.settings.cameraPollRate).skipRepeats()
 
-  const SetCameraImage$ = baseActions.SelectPrinter$
+  const SetActivePrinterInfos$ = baseActions.SelectPrinter$
+    .combine((id, cameraPollRate) => ({cameraPollRate, id}), cameraPollRate$)
+    .map(function ({id, cameraPollRate}) {
+      return constant(id, periodic(cameraPollRate))
+        .until(baseActions.SelectPrinter$)// get images for the current printer id until we select another
+    })
+    .switch()
+    .flatMap(function (id) {
+      return printerInfos(id)
+        .flatMapError(err => of(undefined))
+        .filter(x => x !== undefined)
+    })
+    .map(x => x.response)
+    .multicast()
+
+  const SetCameraFrame$ = baseActions.SelectPrinter$
     .delay(1000)
     .combine((id, cameraPollRate) => ({cameraPollRate, id}), cameraPollRate$)
     .map(function ({id, cameraPollRate}) {
@@ -87,9 +96,11 @@ export default function intents (sources) {
         .until(baseActions.SelectPrinter$)// get images for the current printer id until we select another
     })
     .switch()
-    .flatMap(printerCamera)
-    .flatMapError(error => of(undefined))
-    .filter(x => x !== undefined)
+    .flatMap(function (id) {
+      return printerCamera(id)
+        .flatMapError(error => of(undefined))
+        .filter(x => x !== undefined)
+    })
     .map(formatImageData.bind(null, 'blob', 'img'))
 
   // for now uses same polling as camera
@@ -101,9 +112,11 @@ export default function intents (sources) {
         .until(baseActions.SelectPrinter$)// get images for the current printer id until we select another
     })
     .switch()
-    .flatMap(printerStatus)
-    .flatMapError(error => of(undefined))
-    .filter(x => x !== undefined)
+    .flatMap(function (id) {
+      return printerStatus(id)
+        .flatMapError(error => of(undefined))
+        .filter(x => x !== undefined)
+    })
     .map(x => x.response)
     .map(function (response) {
       const state = pathOr(response.status, ['job', 'state'])(response)
@@ -119,16 +132,18 @@ export default function intents (sources) {
         'printing': `Printing : ${progress * 100} % Total time : ${totalTime}`
       }
 
+      let busy = true
+      if (state === 'idle') {
+        busy = false
+      }
       const message = messages[state]
-
-      return {message, state, job}
+      return {message, state, job, busy}
     })
-    .tap(x => console.log('printer status', x))
 
   const printStarted$ = sample(state => state, baseActions.StartPrint$, state$.skipRepeats())
     .flatMap(function (state) {
       console.log('start print')
-      const activePrinterInfos = prop('infos', find(propEq('id', state.activePrinterId), state.printers))
+      const activePrinterInfos = prop('infos', find(propEq('id', state.printing.activePrinterId), state.printing.printers))
       const {materials} = extrudersHotendsAndMaterials(activePrinterInfos)
 
       const data = formatDataForPrint(state.buildplate.entities)
@@ -158,24 +173,24 @@ export default function intents (sources) {
         mesh_position_z: 0
       }
 
-      return uploadAndStartPrint(state.activePrinterId, printParams, file)
+      return uploadAndStartPrint(state.printing.activePrinterId, printParams, file)
         .map(response => ({success: true, message: 'print started'}))
         .flatMapError(function (error) {
           return of({success: false, message: error.message})
         })
-      //return of({success: true, message: 'fake'})
+      // return of({success: true, message: 'fake'})
     })
 
   const PauseResumePrint$ = baseActions.PauseResumePrint$.scan((state, newValue) => !state, false)
 
   const printAborted$ = sample(state => state, baseActions.AbortPrint$, state$.skipRepeats())
-      .flatMap(state => abortPrint(state.activePrinterId))
+      .flatMap(state => abortPrint(state.printing.activePrinterId))
 
   const refinedActions = {
     SetPrinters$,
     SetActivePrinterInfos$,
     SetActivePrinterSystem$,
-    SetCameraImage$,
+    SetCameraFrame$,
     SetPrinterStatus$,
     ClaimPrinter$,
     UnClaimPrinter$,
@@ -196,7 +211,7 @@ export default function intents (sources) {
 .combine((_, state) => ({state}), state$.map(state => state. settings).skipRepeats())
 .flatMap(function ({state}) { // refresh printers list every 30 seconds
   console.log('state changed', state)
-  return most.constant(null, most.periodic(state.printersPollRate))
+  return most.constant(null, most.periodic(state.printing.printersPollRate))
 }).forEach(x=>console.log('combined state stuff',x )) */
 
 // not sure how to deal with this one

@@ -5,7 +5,7 @@ import dropRepeats from 'xstream/extra/dropRepeats'
 import * as R from 'ramda'
 
 import {domEvent, fromMost, makeStateAndReducers$, makeDefaultReducer} from '../utils/cycle'
-import {pickExtruders, pickMaterials, pickHotends} from '../core/printers/utils'
+import {pickExtruders, pickMaterials, pickHotends} from '../core/printing/utils'
 import {materials} from '../core/materials/lookupMaterial'
 
 const init = () => ({})
@@ -26,7 +26,6 @@ const view = (state) => {
     hotends: []
   }
 
-  // console.log('here', state.printers, state.activePrinterId)
   // FIXME: temporary hack, look into sanctuary lib or other way of dealing with empty data
   if (state.printers && state.activePrinterId) {
     const activePrinterInfos = R.prop('infos', R.find(R.propEq('id', state.activePrinterId), state.printers))
@@ -82,7 +81,7 @@ function MaterialSetup (sources) {
   const {state$, reducer$} = makeStateAndReducers$({}, actions, sources)
 
   return {
-    DOM: state$.map(state => ({printers: state.printers, activePrinterId: state.activePrinterId, t: state.t })).compose(dropRepeats()).map(view),
+    DOM: state$.map(state => ({printers: state.printing.printers, activePrinterId: state.printing.activePrinterId, t: state.t })).compose(dropRepeats()).map(view),
     onion: reducer$
   }
 }

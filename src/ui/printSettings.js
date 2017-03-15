@@ -95,13 +95,14 @@ const view = (state) => {
     .replace(`<font color='black'>%1$s</font>`, printCores[0])
     .replace(`<font color='black'>%2$s</font>`, printCores[1])
 
+  /*<section className='status info'>
+    {t('activity_print_settings_text_the_app_only_supports')}
+  </section>*/
   return <section className='printSettings'>
     <header>
       {maintext}
     </header>
-    <section className='status info'>
-      {t('activity_print_settings_text_the_app_only_supports')}
-    </section>
+
     <section className='profile'>
       <header>
         <h1>{t('activity_print_settings_text_print_profile')}</h1>

@@ -1,7 +1,6 @@
 // import { run } from '@cycle/most-run'
 import { run } from '@cycle/xstream-run'
 import { makeDOMDriver, div } from '@cycle/dom'
-import { html } from 'snabbdom-jsx'
 // import { of, combine, merge, periodic, combineArray } from 'most'
 import xs from 'xstream'
 const {merge} = xs
@@ -31,36 +30,41 @@ function main (sources) {
       running: false,
       paused: false
     },
-    printers: [
-      /* {id: '080987D', name: 'my printer', infos: {type: 'ultimaker3'}} */
-    ],
-    printersStatus: undefined, // for printers list
-    printerStatus: {message: 'fetching printer data , please wait...', state: undefined}, // for individual printers
-    activePrinterId: undefined,
+
+    printing: {
+      settings: {
+        printersPollRate: 10000, // how often to update the camera
+        cameraPollRate: 10000 // how often to update the camera
+      },
+      printers: [
+        /* {id: '080987D', name: 'my printer', infos: {type: 'ultimaker3'}} */
+      ],
+      // for printers list
+      printersStatus: undefined,
+      // for individual printers
+      printerStatus: {message: 'fetching printer data , please wait...', state: undefined, busy: false},
+      activePrinterId: undefined,
+      frame: undefined
+
+    },
 
     buildplate: {
-      entities: [],
       settings: {
         snapTranslation: false,
         snapRotation: false,
         snapScaling: false,
         uniformScaling: false
       },
+      entities: [],
       activeTool: -1,
       selections: {
         instIds: []
       }
     },
 
-    settings: {
-      printersPollRate: 10000, // how often to update the camera
-      cameraPollRate: 10000 // how often to update the camera
-    },
-
     // ui related
     steps: [{name: 'Printer Setup'}, {name: 'Material Setup'}, {name: 'Monitor Print'}, {name: 'Print Settings'}],
     currentStep: 0,
-    image: undefined,
 
     t: x => ''// stand in
   })
@@ -81,7 +85,7 @@ function main (sources) {
   return {
     DOM: app.DOM,
     events: app.events,
-    //log: app.log,
+    // log: app.log,
     onion: reducer$
   }
 }
