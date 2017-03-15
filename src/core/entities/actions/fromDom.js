@@ -1,6 +1,7 @@
 // import {keycodes, isValidElementEvent} from '../../../interactions/keyboard'
 import {merge, fromEvent} from 'most'
 import {domEvent} from '../../../utils/cycle'
+import {toRadian} from '../../../utils/formatters'
 
 export default function intent (sources, params) {
   const checked = event => event.target.checked
@@ -43,6 +44,12 @@ export default function intent (sources, params) {
     // console.log('attributes', attributes)
     let dtrans = attributes.transform
     let [trans, idx, extra] = dtrans.split('_')
+    if(trans === 'rot'){
+      val =  toRadian(val)
+    }else if(trans === 'sca'){
+      val = extra === 'percent' ? val / 100 : val
+    }
+
     return {val, trans, extra, idx: parseInt(idx, 10)}
   })
   // .filter(exists)
@@ -51,7 +58,7 @@ export default function intent (sources, params) {
   .multicast()
   .tap(e => console.log('foooobarr', e))
 
-  const changePosition$ = changeTransforms$
+  /*const changePosition$ = changeTransforms$
     .filter(c => c.trans === 'pos')
 
   const changeRotation$ = changeTransforms$
@@ -62,7 +69,7 @@ export default function intent (sources, params) {
     .filter(c => c.trans === 'sca')
     .map(change => {
       return {...change, val: change.extra === 'percent' ? change.val / 100 : change.val}
-    })
+    })*/
 
   return {
     setActiveTool$,

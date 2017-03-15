@@ -34,18 +34,22 @@ export default function intents (sources) {
       return current === newValue ? undefined : newValue
     })
 
-  function withLatestFrom(fn, otherStreams, stream$){
+  function withLatestFrom (fn, otherStreams, stream$) {
     console.log(stream$, fn, otherStreams)
     return sample(fn, stream$, ...otherStreams)
   }
 
   const state$ = imitateXstream(sources.onion.state$).skipRepeats()
   const entitiesAndSelections$ = state$.map(state => ({selections: state.buildplate.selections.instIds, entities: state.buildplate.entities, settings: state.buildplate.settings}))
+
   const changeTransforms$ = sample(function (changed, {entities, selections, settings}) {
+    if (!selections || selections.length === 0) {
+      return {value: undefined} // FIXME: fixes a weird bug about selection loss
+    }
     const idMatch = entity => selections.indexOf(entity.meta.id) > -1
     const transforms = pluck('transforms')(filter(idMatch, entities))
 
-    let avg = pluck(changed.trans)(transforms)//(pluck('transforms')(entities)
+    let avg = pluck(changed.trans)(transforms)
       .reduce(reduceToAverage, undefined)
     avg[changed.idx] = changed.val
 
@@ -57,7 +61,7 @@ export default function intents (sources) {
     .map(toArray)// we always expect arrays of data
     .skipRepeats()
     .multicast()
-    //.tap(e => console.log('changeTransforms', e))
+    // .tap(e => console.log('changeTransforms', e))
 
   const refinedActions = {addEntities$, selectEntities$, setActiveTool$, changeTransforms$}
 
