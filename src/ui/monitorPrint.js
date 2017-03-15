@@ -3,11 +3,11 @@ import {section, div, button, img} from '@cycle/dom'
 import renderProgressBar from './widgets/ProgressBar'
 
 import {domEvent, makeStateAndReducers$} from '../utils/cycle'
-import {hotends, bed, jobInfos, formatTime} from '../core/printers/utils'
+import {hotends, bed, jobInfos, formatTime} from '../core/printing/utils'
 
 const init = (state) => {
   console.log('init monitorPrint state', state)
-  state = ({ ...state, image: undefined, print: {...state.print, status: 'paused'} })
+  state = ({ ...state, print: {...state.print, status: 'paused'} })
   return state
 }
 
@@ -16,10 +16,10 @@ export const actions = {
 }
 
 const view = function (state) {
-  const activePrinter = find(propEq('id', state.activePrinterId))(state.printers)
+  const activePrinter = find(propEq('id', state.printing.activePrinterId))(state.printing.printers)
 
   // we consider the printer to be inactive if the state is undefined or idle
-  const isInactive = false// (state.printerStatus.state === undefined || state.printerStatus.state === 'idle')
+  const isInactive = false// (state.printing.printerStatus.state === undefined || state.printing.printerStatus.state === 'idle')
 
   const hTemps = hotends(activePrinter)
     .map((hotend, index) => `T${index}: ${hotend.temperature.current} / ${hotend.temperature.target} °C`)
@@ -28,23 +28,22 @@ const view = function (state) {
   // only show detailed status if printer is active
   const statusUi = isInactive ? null : div('.temperatures', `Temperature: ${hTemps}, ${bedTemp}`)
 
-  const progressData = jobInfos(state.printStatus)
+  const progressData = jobInfos(state.printing.printerStatus)
+  const timeLeft = formatTime(progressData.time_total - progressData.time_elapsed)
   const progressUi = isInactive
     ? null
-    : div('.printProgress', [div('', `Time left:${formatTime(progressData.time_total - progressData.time_elapsed).hours}hrs`)])
-
-  console.log(progressData)
+    : div('.printProgress', [div('', `Time left: ${timeLeft.hours}h ${timeLeft.minutes}min`)])
 
   return section('.MonitorPrint', [
-    div('.printStatus', 'STATUS:' + state.printerStatus.message),
+    div('.printStatus', 'STATUS:' + state.printing.printerStatus.message),
     statusUi,
     progressUi,
-    renderProgressBar({progress: progressData.progress * 100}),
+    renderProgressBar({progress: progressData.progress * 100, hideOnDone: false}),
     div('', [
       button('.pauseResume', state.print.paused ? 'play' : 'pause'),
       button('.abort', 'abort')
     ]),
-    img('.printerCameraFrame', {props: {src: state.image ? state.image : ''}})
+    img('.printerCameraFrame', {props: {src: state.printing.frame ? state.printing.frame : ''}})
   ])
 }
 
@@ -64,7 +63,7 @@ function MonitorPrint (sources) {
   ) */
 
   return {
-    DOM: state$.filter(state => state.activePrinterId !== undefined).map(view).startWith(undefined),
+    DOM: state$.filter(state => state.printing.activePrinterId !== undefined).map(view).startWith(undefined),
     onion: reducer$
     // events
   }
