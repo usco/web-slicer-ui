@@ -20,7 +20,7 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 export function renderScaleUi (state) {
   const {settings, activeTool, selections, entities} = state
   const toggled = activeTool === 'scale'
-  console.log('foo scale', settings, activeTool)
+  const disabled = selections.instIds.length === 0
 
   const snapDefaults = 0.1 // snap scaling snaps to tens of percentages
   const transformStep = settings.snapScaling ? snapDefaults : 0.1
@@ -32,8 +32,18 @@ export function renderScaleUi (state) {
   const transforms = pluck('transforms')(filter(idMatch, entities))
   const bounds = pluck('bounds')(filter(idMatch, entities))
 
-  const valuePercents = (transforms.sca || [0, 0, 0]).map(x => x * 100)
-  const values = bounds ? (bounds.size || [0, 0, 0]).map((x, index) => x * valuePercents[index] / 100) : [0, 0, 0]
+  const avgPcent = pluck('sca')(transforms)
+    .reduce(function (acc, cur) {
+      return !acc ? cur : [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]].map(x => x * 0.5)
+    }, undefined)
+
+  const avg = pluck('size')(bounds)
+    .reduce(function (acc, cur) {
+      return !acc ? cur : [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]].map(x => x * 0.5)
+    }, undefined)
+
+  const valuePercents = (avgPcent || [0, 0, 0]).map(x => x * 100)
+  const values = (avg || [0, 0, 0]).map((x, index) => x * valuePercents[index] / 100)
 //
   const subTools = span('.scalingSubTools .twoColumns', [
     div('.transformsGroup',
@@ -52,32 +62,7 @@ export function renderScaleUi (state) {
     ])
   ])
 
-/*
-  <span className='scalingSubTools twoColumns'>
-    <div className='transformsGroup'>
-      {transformInputs({fieldName: 'sca', unit: '', showPercents: true, step: transformStep, values, valuePercents, precision, min,
-      disabled: false, extraKlasses: ['absScaling'] })}
-    </div>
-
-    <div className='optionsGroup'>
-      <label className='menuContent'>
-        {checkbox({id: 'snapScaling', className: 'snapScaling', checked: state.settings.snapScaling})}
-        snap scaling
-      </label>
-      <label className='menuContent'>
-        {checkbox({id: 'uniformScaling', className: 'uniformScaling', checked: state.settings.uniformScaling})}
-        uniform scaling
-      </label>
-    </div>
-
-    <div className='defaultsGroup'>
-      <label className='resetScaling'>
-        <a className='textLink'>Reset Scaling</a>
-      </label>
-    </div>
-  </span> */
-
-  return Menu({toggled, icon, klass: 'toScaleMode', tooltip: 'scale', tooltipPos: 'bottom', content: subTools})
+  return Menu({toggled, disabled, icon, wrapperKlass: 'scaleMenu', klass: 'toScaleMode', tooltip: 'scale', tooltipPos: 'bottom', content: subTools})
 }
 
 export function view (state$) {

@@ -1,5 +1,4 @@
 import { h } from '@cycle/dom'
-import {html} from 'snabbdom-jsx'
 import { formatNumberTo } from '../../utils/formatters'
 
 export function transformInputs (options) {
@@ -25,7 +24,7 @@ export function transformInputs (options) {
   return axes
     .map(function (axisName, index) {
       const value = formatNumberTo(values[index], precision)
-      const valuePercent = valuePercents[index]
+      const valuePercent = formatNumberTo(valuePercents[index], precision)
       const percentGroup = showPercents ? h('span.percentGroup', [
         h(`input#${axisName}-scale-pcent`,
           { key: `${fieldName}-${axisName}-${index}-percent`, // VERY important, without this, unexpected controls
@@ -35,11 +34,6 @@ export function transformInputs (options) {
         h('span.unit', ['%'])
       ]) : ''
 
-      /*<span className='percentGroup'>
-        <input id={`${axisName}-scale-pcent`} type='number' lang='en' value={valuePercent} step={stepPercents}
-          className='transformsInputPercent percent' attributes={{ 'data-transform': `${fieldName}_${index}` }} />
-        <span className='unit'>%</span>
-      </span> : ''*/
       return h('span', {props: {className: `axisData ${axisName}-axis`}}, [
         h('span.valueGroup', [
           h('span.axisName', [axisName.toUpperCase()]),

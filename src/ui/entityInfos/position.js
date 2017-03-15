@@ -19,6 +19,7 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 export function renderPositionUi (state) {
   const {settings, activeTool, selections, entities} = state
   const toggled = activeTool === 'translate'
+  const disabled = selections.instIds.length === 0
 
   const transformStep = 0.1
   const precision = 2
@@ -47,5 +48,5 @@ export function renderPositionUi (state) {
     ])
   ])
 
-  return Menu({toggled, icon, klass: 'toTranslateMode', tooltip: 'move', tooltipPos: 'bottom', content: subTools})
+  return Menu({toggled, disabled, icon, wrapperKlass: 'positionMenu', klass: 'toTranslateMode', tooltip: 'move', tooltipPos: 'bottom', content: subTools})
 }

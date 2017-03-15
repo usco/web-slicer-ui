@@ -20,6 +20,7 @@ version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/
 export function renderRotationUi (state) {
   const {settings, activeTool, selections, entities} = state
   const toggled = activeTool === 'rotate'
+  const disabled = selections.instIds.length === 0
 
   const snapDefaults = 10 // snap rotation snaps to tens of degrees
   const transformStep = settings.snapRotation ? snapDefaults : 0.5
@@ -49,7 +50,7 @@ export function renderRotationUi (state) {
     ])
   ])
 
-  return Menu({toggled, icon, klass: 'toRotateMode', tooltip: 'rotate', tooltipPos: 'bottom', content: subTools})
+  return Menu({toggled, disabled, icon, wrapperKlass: 'rotationMenu', klass: 'toRotateMode', tooltip: 'rotate', tooltipPos: 'bottom', content: subTools})
 }
 
 export function view (state$) {
