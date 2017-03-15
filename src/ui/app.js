@@ -20,9 +20,9 @@ import {actions as printSettingsActions} from './printSettings'
 import {actions as monitorPrintActions} from './monitorPrint'
 
 import * as entityActions from '../core/entities/reducers'
-import * as printerActions from '../core/printers/reducers'
+import * as printingActions from '../core/printing/reducers'
 
-import {default as printerIntents} from '../core/printers/intents'
+import {default as printingIntents} from '../core/printing/intents'
 import {default as entityIntents} from '../core/entities/intents'
 
 // query printer for infos
@@ -34,7 +34,7 @@ import {default as entityIntents} from '../core/entities/intents'
 const init = makeDefaultReducer({})
 const PrevStep = (state, input) => ({ ...state, currentStep: Math.max(state.currentStep - 1, 0) })
 const NextStep = (state, input) => {
-  const activePrinter = R.find(R.propEq('id', state.activePrinterId))(state.printers)
+  const activePrinter = R.find(R.propEq('id', state.printing.activePrinterId))(state.printing.printers)
   if (activePrinter && activePrinter.hasOwnProperty('infos')) {
     return {...state, currentStep: Math.min(state.currentStep + 1, state.steps.length - 1)}
   }
@@ -44,7 +44,7 @@ const NextStep = (state, input) => {
 const actions = {
   init, PrevStep, NextStep,
 
-  ...printerActions,
+  ...printingActions,
   ...entityActions
 }
 // our main view
@@ -53,11 +53,11 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
   // console.log('state')
   const {steps, currentStep} = state
 
-  const printers = ul('.printersList', state.printers
+  const printers = ul('.printersList', state.printing.printers
     .map(function (printer) {
-      const isSelected = state.activePrinterId === printer.id
+      const isSelected = state.printing.activePrinterId === printer.id
       const isClaimed = printer.claimed
-      const printerText = isSelected ? `${printer.name} ${state.printerStatus.message}` : printer.name
+      const printerText = isSelected ? `${printer.name} ${state.printing.printerStatus.message}` : printer.name
 
       const classes = classNames({'.selected': isSelected, '.printerL': true})
 
@@ -71,7 +71,7 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
     })
   )// printerStatus
   const printerSetup = section('', [
-    state.printers.length > 0 ? div('Select printer', [printers]) : span('please wait, fetching printers ...')
+    state.printing.printers.length > 0 ? div('Select printer', [printers]) : span('please wait, fetching printers ...')
   ])
 
   const stepContents = [
@@ -80,11 +80,12 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
     printSettings,
     monitorPrint
   ]
-  const activePrinter = R.find(R.propEq('id', state.activePrinterId))(state.printers)
+  const activePrinter = R.find(R.propEq('id', state.printing.activePrinterId))(state.printing.printers)
   // console.log(activePrinter, state.activePrinter)
+  const newPrintDisabled =  state.buildplate.entities.length === 0 || state.printing.printerStatus.busy === true
   const prevStepUi = currentStep > 0 ? button('.PrevStep', 'Previous step') : ''
   const nextStepUi = (currentStep < steps.length - 1 && activePrinter && activePrinter.infos) ? button('.NextStep', 'Next step') : ''
-  const startPrintUi = currentStep === steps.length - 1 ? button('.StartPrint', {attrs: {disabled: state.buildplate.entities.length === 0 }}, 'Start Print') : ''
+  const startPrintUi = currentStep === steps.length - 1 ? button('.StartPrint', {attrs: {disabled: newPrintDisabled }}, 'Start Print') : ''
 
   // <h1>{t('app_name')}</h1>
   return section('#wrapper', [
@@ -102,18 +103,18 @@ function App (sources) {
   const PrevStep$ = _domEvent('.PrevStep', 'click')
   const NextStep$ = _domEvent('.NextStep', 'click')
 
-  const _printerIntents = printerIntents(sources)
+  const _printingIntents = printingIntents(sources)
   const _entityIntents = entityIntents(sources)//
   // console.log('_entityIntents', _entityIntents$)
 
   const actions$ = {
     PrevStep$: fromMost(PrevStep$),
-    NextStep$: merge(fromMost(NextStep$), fromMost(_printerIntents.SetActivePrinterInfos$.delay(1000))) // once we have the printerInfos , move to next step
+    NextStep$: merge(fromMost(NextStep$))//, fromMost(_printingIntents.SetActivePrinterInfos$.delay(1000))) // once we have the printerInfos , move to next step
   }
 
-  const printActions$ = Object.keys(_printerIntents)
+  const printActions$ = Object.keys(_printingIntents)
     .reduce((acc, key) => {
-      acc[key] = fromMost(_printerIntents[key])
+      acc[key] = fromMost(_printingIntents[key])
       return acc
     }, {})
   const entityActions$ = Object.keys(_entityIntents)
