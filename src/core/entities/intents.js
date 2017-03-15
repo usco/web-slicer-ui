@@ -61,9 +61,23 @@ export default function intents (sources) {
     .map(toArray)// we always expect arrays of data
     .skipRepeats()
     .multicast()
-    // .tap(e => console.log('changeTransforms', e))
 
-  const refinedActions = {addEntities$, selectEntities$, setActiveTool$, changeTransforms$}
+  // specific to needing z === 0 for printing
+  const bounceBackTransforms$ = changeTransforms$
+    .map(function (x) {
+      // return x.map(data => ({...data, value: data.trans === 'pos' ? [data.value[0], data.value[1], 0] : data.value}))
+      if (x.length > 0) {
+        if (x[0].trans === 'pos') {
+          x[0].value[2] = 0
+          return x
+        }
+      }
+      return undefined
+    })
+    .filter(x => x !== undefined)
+    .delay(500)
+
+  const refinedActions = {addEntities$, selectEntities$, setActiveTool$, changeTransforms$: merge(changeTransforms$, bounceBackTransforms$)}
 
   return {...baseActions, ...refinedActions}
 }
