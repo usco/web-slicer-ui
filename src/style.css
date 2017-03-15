@@ -163,7 +163,7 @@ div.disabled{
 
 /*viewer*/
 #viewer{
-  width: 80%;
+  width: 70%;
   min-height: 400px;
   flex-grow: 0;
   display:inline-block;
@@ -179,11 +179,12 @@ div.disabled{
 }
 
 #settings{
-  width: 50%;
+  width: 30%;
   min-height: 400px;
   flex-grow: 0;
   display:inline-block;
   margin: 10px;
+  font-size: small;
 }
 
 #printerPicker{
