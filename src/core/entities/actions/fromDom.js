@@ -25,7 +25,12 @@ export default function intent (sources, params) {
     _domEvent('.toRotateMode', 'click').constant('rotate'),
     _domEvent('.toScaleMode', 'click').constant('scale'),
     _domEvent('.toMirrorMode', 'click').constant('mirror'),
-    _domEvent('#viewer', 'click').constant(undefined)// to disable active tool by clicking 'outside'
+
+    //_domEvent(':not(#entityInfos)', 'click').constant(undefined),
+
+    _domEvent('#viewer', 'click').constant(undefined),// to disable active tool by clicking 'outside'
+    _domEvent('#settings', 'click').constant(undefined)// to disable active tool by clicking 'outside'
+
   )
 
   const changeTransforms$ = merge(
