@@ -16,11 +16,11 @@ export const actions = {
 }
 
 const view = function (state) {
-  return div('EntityInfos', [
+  return [
     renderPositionUi(state),
     renderRotationUi(state),
     renderScaleUi(state)
-  ])
+  ]
 }
 
 function EntityInfos (sources) {

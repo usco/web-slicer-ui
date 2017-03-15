@@ -89,7 +89,7 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
   // <h1>{t('app_name')}</h1>
   return section('#wrapper', [
     section('#viewer', [viewer]),
-    section('#entityInfos', [entityInfos]),
+    section('#entityInfos', entityInfos),
     section('#settings', [
       h1([steps[currentStep].name, prevStepUi, nextStepUi, startPrintUi]),
       stepContents[currentStep]
