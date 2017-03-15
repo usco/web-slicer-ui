@@ -67,7 +67,7 @@ export default function intents (sources) {
     .map(function (x) {
       // return x.map(data => ({...data, value: data.trans === 'pos' ? [data.value[0], data.value[1], 0] : data.value}))
       if (x.length > 0) {
-        if (x[0].trans === 'pos') {
+        if (x[0].trans === 'pos' && x[0].value[2] !== 0) {
           x[0].value[2] = 0
           return x
         }
