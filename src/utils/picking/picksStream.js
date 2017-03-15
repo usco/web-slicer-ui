@@ -2,17 +2,12 @@ import mat4 from 'gl-mat4'
 import pick from 'camera-picking-ray'
 
 import intersect from './intersect'
-import {sample} from 'most'
-
-function withLatestFrom (fn, sampleStream$, otherStreams) {
-  return sample(function (sampleStream, ...otherStreams) {
-    return fn(...[sampleStream, ...otherStreams])
-  }, sampleStream$, sampleStream$, ...otherStreams)
-}
+import withLatestFrom from '../most/withLatestFrom'
 
 export default function picksStream (taps$, viewport$, camera$, entities$) {
   return withLatestFrom(function (taps, viewport, camera, entities) {
-    return pickAttempt({position: [taps.clientX - viewport.bRect.left, taps.clientY - viewport.bRect.top]}, [viewport.bRect.left, viewport.bRect.top, viewport.bRect.width, viewport.bRect.height], camera, entities)
+    //originalEvent.clientX
+    return pickAttempt({position: [taps.x - viewport.bRect.left, taps.y - viewport.bRect.top]}, [viewport.bRect.left, viewport.bRect.top, viewport.bRect.width, viewport.bRect.height], camera, entities)
   }, taps$, [viewport$, camera$, entities$])
 }
 
