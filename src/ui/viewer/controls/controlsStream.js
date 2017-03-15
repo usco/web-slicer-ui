@@ -1,10 +1,9 @@
+import mat4 from 'gl-mat4'
 import { update, rotate, zoom, setFocus } from '@usco/orbit-controls'
 import { computeCameraToFitBounds, cameraOffsetToEntityBoundsCenter } from '@usco/camera-utils'
 
 import { model } from '../modelUtils'
 import {rafStream} from '../../../utils/most/animationFrames'
-
-import mat4 from 'gl-mat4'
 import limitFlow from '../../../utils/most/limitFlow'
 
 export default function controlsStream (interactions, cameraData, focuses$, entityFocuses$, projection$) {
@@ -12,18 +11,7 @@ export default function controlsStream (interactions, cameraData, focuses$, enti
   const {gestures} = interactions
   const rate$ = rafStream() // heartBeat
 
-  /*let i = 0
-  var newdiv = document.createElement("DIV")
-  newdiv.style.zIndex = 99
-  newdiv.style.position = 'absolute'
-  newdiv.style.color = 'red'
-  newdiv.style.top = '40px'
-  let textNode = document.createTextNode("some text"+i)
-  newdiv.appendChild(textNode)
-  document.body.appendChild(newdiv)*/
-
   const drags$ = gestures.drags
-    // .throttle(16) // FIXME: not sure, could be optimized some more
     .filter(x => x !== undefined)
     .map(data => [-Math.PI * data.delta.x, -Math.PI * data.delta.y])
     .map(x => x.map(y => y * 0.1)) // empirical reduction factor
