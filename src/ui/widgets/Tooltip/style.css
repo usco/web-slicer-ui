@@ -1,0 +1,146 @@
+/* to center tooltips use something like:
+--width: 200px;
+    left: calc(100% - var(--width)/2 - 10px );
+    width: var( --width);
+*/
+.testArea button{
+  position: relative;
+}
+
+.tooltipWrapper {
+  /*-webkit-transform: translateZ(0);*/
+  -webkit-font-smoothing: antialiased;
+  --highlightColor: #60c4f8;
+}
+
+.tooltip {
+  background: var(--highlightColor);
+  color: #fff;
+  display: block;
+  opacity: 0;
+  padding: 5px;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  z-index: 9999;
+  -webkit-transform: translateY(10px);
+     -moz-transform: translateY(10px);
+      -ms-transform: translateY(10px);
+       -o-transform: translateY(10px);
+          transform: translateY(10px);
+  -webkit-transition: all .25s ease-out;
+     -moz-transition: all .25s ease-out;
+      -ms-transition: all .25s ease-out;
+       -o-transition: all .25s ease-out;
+          transition: all .25s ease-out;
+}
+
+.tooltip.top {
+  bottom: 100%;
+  margin-bottom: 15px;
+  left: -25px;
+}
+
+.tooltip.bottom{
+  top: 100%;
+  margin-top: 15px;
+  left: -25px;
+}
+
+.tooltip.left {
+  bottom: 0%;
+  margin-right: 15px;
+  right:100%;
+}
+
+.tooltip.right {
+  top: 25%;
+  /* margin-left: 50%; */
+  /* transform: translateY(-15px) !important; */
+  left: 145%;
+}
+
+/* This bridges the gap so you can mouse into the tooltip without it disappearing */
+.tooltip:before{
+  content: " ";
+  display: block;
+  position: absolute;
+  width: 100%;
+}
+
+.tooltip.top:before {
+  bottom: -20px;
+  left: 0;
+  height: 20px;
+}
+
+.tooltip.bottom:before {
+  top: -20px;
+  left: 0;
+  height: 20px;
+}
+
+.tooltip.left:before {
+  bottom: 0px;
+  right: -20px;
+  width: 20px;
+}
+
+.tooltip.right:before {
+  top: 0px;
+  left: -20px;
+  width: 20px;
+}
+
+/* CSS Triangles - see Trevor's post */
+.tooltip:after{
+  content: " ";
+  height: 0;
+  position: absolute;
+  width: 0;
+}
+
+.tooltip.top:after {
+  border-left: solid transparent 10px;
+  border-right: solid transparent 10px;
+  border-top: solid var(--highlightColor) 10px;
+  bottom: -10px;
+  left: 50%;
+  margin-left: -13px;
+}
+
+.tooltip.bottom:after {
+  border-left: solid transparent 10px;
+  border-right: solid transparent 10px;
+  border-bottom: solid var(--highlightColor) 10px;
+  top: -10px;
+  left: 50%;
+  margin-left: -13px;
+}
+
+.tooltip.left:after {
+  border-top: solid transparent 10px;
+  border-bottom: solid transparent 10px;
+  border-left: solid var(--highlightColor) 10px;
+  right: -10px;
+  bottom: 0px;
+}
+
+.tooltip.right:after {
+  border-top: solid transparent 10px;
+  border-bottom: solid transparent 10px;
+  border-right: solid var(--highlightColor) 10px;
+  left: -10px;
+  bottom: 0px;
+}
+
+/*generic appearance animation*/
+.tooltipWrapper:hover .tooltip {
+  opacity: 1;
+  pointer-events: auto;
+  -webkit-transform: translateY(0px);
+     -moz-transform: translateY(0px);
+      -ms-transform: translateY(0px);
+       -o-transform: translateY(0px);
+          transform: translateY(0px);
+}
