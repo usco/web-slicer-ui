@@ -3,8 +3,6 @@ import classes from 'classnames'
 
 require('./style.css')
 
-const getToolTip = (tooltip, toggleCondition) => !toggleCondition ? {'data-tooltip': tooltip} : undefined
-
 export default function Menu (options) {
   const defaults = {
     toggled: false,
@@ -34,13 +32,13 @@ export default function Menu (options) {
   const togglerButton = button({
     props: {
       disabled: disabled,
-      className: classes(klass, `tooltip-${tooltipPos}`, {active: toggled})
+      className: classes(klass, `tooltipWrapper`, {active: toggled})
     },
-    attrs: getToolTip(tooltip, toggled)
   },
     [
       icon ? span({props: {innerHTML: icon}}) : 'some text',
-      subItemsIndicator
+      subItemsIndicator,
+      toggled ? undefined : span(`.tooltip.${tooltipPos}`, [tooltip])
     ]
   )
 
