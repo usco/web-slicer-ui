@@ -50,7 +50,7 @@ export function renderRotationUi (state) {
     ])
   ])
 
-  return Menu({toggled, disabled, icon, wrapperKlass: 'rotationMenu', klass: 'toRotateMode', tooltip: 'rotate', tooltipPos: 'bottom', content: subTools})
+  return Menu({toggled, disabled, icon, wrapperKlass: 'rotationMenu', klass: 'toRotateMode', tooltip: 'rotate', tooltipPos: 'right', content: subTools})
 }
 
 export function view (state$) {

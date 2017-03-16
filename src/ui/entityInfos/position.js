@@ -48,5 +48,5 @@ export function renderPositionUi (state) {
     ])
   ])
 
-  return Menu({toggled, disabled, icon, wrapperKlass: 'positionMenu', klass: 'toTranslateMode', tooltip: 'move', tooltipPos: 'bottom', content: subTools})
+  return Menu({toggled, disabled, icon, wrapperKlass: 'positionMenu', klass: 'toTranslateMode', tooltip: 'move', tooltipPos: 'right', content: subTools})
 }

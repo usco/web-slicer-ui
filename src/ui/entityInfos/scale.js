@@ -62,7 +62,7 @@ export function renderScaleUi (state) {
     ])
   ])
 
-  return Menu({toggled, disabled, icon, wrapperKlass: 'scaleMenu', klass: 'toScaleMode', tooltip: 'scale', tooltipPos: 'bottom', content: subTools})
+  return Menu({toggled, disabled, icon, wrapperKlass: 'scaleMenu', klass: 'toScaleMode', tooltip: 'scale', tooltipPos: 'right', content: subTools})
 }
 
 export function view (state$) {
