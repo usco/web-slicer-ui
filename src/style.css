@@ -225,7 +225,7 @@ div.disabled{
   display: flex;
   flex-direction: column;
   padding: 10px;
-  background: #0ca9e3;
+  background: #5e606f;/*#0ca9e3;*/
 }
 
 #entityInfos button{
@@ -298,9 +298,17 @@ button[disabled=disabled]:hover, button:disabled:hover{
 }
 
 button[disabled=disabled], button:disabled path{
-  fill:#666868!important;
+  fill:#868686!important;
 }
 
+
+svg {
+  width: 24px;
+}
+
+.printersMenu{
+  
+}
 
 
 /*-----------------*/
