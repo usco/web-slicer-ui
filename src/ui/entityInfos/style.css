@@ -1,4 +1,6 @@
-
+#entityInfos .tooltip{
+  padding: 1px 2px 1px 2px;
+}
 
 /*entity infos*/
 .movingSubTools, .rotationSubTools, .scalingSubTools{
@@ -314,5 +316,4 @@
   width: 100%;
   margin: 2px;
   background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
-
 }

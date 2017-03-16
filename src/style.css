@@ -170,7 +170,7 @@ div.disabled{
   position: relative;
   left:0px;
   top:0px;
-  margin: 10px;
+  margin: 0px;
 }
 #viewer canvas{
   position: relative;
@@ -220,7 +220,6 @@ div.disabled{
 /*entity infos */
 #entityInfos{
   position: absolute;
-  width: 30px;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -239,7 +238,7 @@ div.disabled{
 }
 #entityInfos .toolTipButtonContainer{
   padding: 10px;
-  padding-left: 4px;
+  position: relative;
 }
 #entityInfos svg{
   width: 24px;
@@ -307,8 +306,17 @@ svg {
 }
 
 .printersMenu{
-  
+
 }
 
+/*
+.tooltip{
+  background: red!important;
+}
+.tooltip::after{
+  background: red!important;
+}*/
 
 /*-----------------*/
+/*text-overflow: clip;
+    text-indent: 10px;*/
