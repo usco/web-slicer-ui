@@ -1,5 +1,4 @@
-import { h } from '@cycle/dom'
-import { html } from 'snabbdom-jsx'
+import {b, div, span, button} from '@cycle/dom'
 import classes from 'classnames'
 
 require('./style.css')
@@ -11,7 +10,7 @@ export default function Menu (options) {
     toggled: false,
     disabled: false,
 
-    icon: '',
+    icon: undefined,
     klass: '',
     wrapperKlass: '',
     arrow: true,
@@ -24,14 +23,15 @@ export default function Menu (options) {
 
     content: undefined
   }
-  const {toggled, disabled, icon, klass, wrapperKlass, arrow, contentPosition, subItems, tooltip, tooltipPos, content} = Object.assign({}, defaults, options)
+  const {toggled, disabled, icon, klass, wrapperKlass, arrow,
+    contentPosition, subItems, tooltip, tooltipPos, content} = {...defaults, ...options}
 
-  const subItemsIndicator = subItems ? <span className='subItemsIndicator' /> : ''
+  const subItemsIndicator = subItems ? span('.subItemsIndicator') : undefined
   // arrow related
-  const borderNotch = arrow ? <b className='border-notch notch' /> : ''
-  const notch = arrow ? <b className='notch' /> : ''
+  const borderNotch = arrow ? b('.border-notch notch') : undefined
+  const notch = arrow ? b('.notch') : ''
 
-  const button = h('button', {
+  const togglerButton = button({
     props: {
       disabled: disabled,
       className: classes(klass, `tooltip-${tooltipPos}`, {active: toggled})
@@ -39,23 +39,24 @@ export default function Menu (options) {
     attrs: getToolTip(tooltip, toggled)
   },
     [
-      h('span', {props: {innerHTML: icon}}),
+      icon ? span({props: {innerHTML: icon}}) : 'some text',
       subItemsIndicator
-    ])
+    ]
+  )
 
   let innerContent = ''
   if (content !== undefined && toggled) {
-    innerContent = <div
-      className={classes('menu', `menu-${contentPosition}`, {'active-content': toggled, arrowOffset: arrow})}>
-      {content}
-      {borderNotch}
-      {notch}
-    </div>
+    const contentClassNames = classes('menu', `menu-${contentPosition}`, {'active-content': toggled, arrowOffset: arrow})
+    innerContent = div({props: {className: contentClassNames}}, [
+      content,
+      borderNotch,
+      notch
+    ])
   }
 
-  const rootClassNames = classes('toolTipButtonContainer', wrapperKlass, {disabled})
-  return <span className={rootClassNames}>
-    {button}
-    {innerContent}
-  </span>
+  const rootClassNames = classes(wrapperKlass, 'toolTipButtonContainer', {disabled})
+  return span({props: {className: rootClassNames}}, [
+    togglerButton,
+    innerContent
+  ])
 }
