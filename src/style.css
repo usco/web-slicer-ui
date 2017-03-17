@@ -1,7 +1,7 @@
 /*
   main colors:
     - blue : #0ca9e3;
-    - gray: #f2f2f2;
+    - gray: #f2f2f2;//0.96, 0.96, 0.96, 0.3
 
   status color:s
     - valid/green: #88d128
@@ -13,7 +13,7 @@ html, body {
 }
 
 #app{
-  background: #f2f2f2;
+  background: #F5F5F5;/*rgba(244.6, 244.6, 244.6, 255);*/
   /* width: 100%; */
   height: 100%;
   position: absolute;
@@ -24,7 +24,15 @@ html, body {
   right:0;
   bottom:0;
   overflow: hidden;
-  font-size: 0.8em;
+  font-size: 0.6em;
+  font-family: 'Open Sans', sans-serif;
+
+  --valid-color: #88D128;
+  --invalid-color:#ff6600;
+  --focus-color:#0ca9e3;
+  --background-dark: #5e606f;/*#5e606f;#1f1f1f*/
+  --text-color-light: #fdfdfd;
+  --text-color-dark: #717171;
 }
 
 h1{
@@ -64,22 +72,76 @@ button:focus {
 }
 
 /*print settings*/
-.printSettings{
-
-}
-
-.printSettings .selected button{
-  background: #0ca9e3;
-}
-
-section .info{
-  min-height: 30px;
+.settings .printSettings{
+  border: 0.1px rgb(189, 189, 189) solid;
+  /* border-right: none; */
   padding: 10px;
+  background: var(--background-dark);
+  margin-right: 10px;
+  color: var(--text-color-light);
+}
+
+
+.settings .printSettings button{
+  display: inline-block;
+  margin: 0 10px 0 0;
+  padding: 2px 2px;
+  border: none;
+}
+
+.settings .printSettings .selected button{
   background: #0ca9e3;
-  color: white;
-  text-align: justify;;
-  font-weight: bold;
-  font-size: 1.0em;
+}
+
+.settings .printSettings .tooltipWrapper{
+  position: relative;
+  display: inline-block;
+}
+.settings .printSettings .tooltip{
+  display: block;
+  width: 200px;
+}
+
+.settings .printSettings h1{
+  font-size: 1em;
+  padding: 0px;
+  margin: 10px;
+  margin-left: 0px;
+}
+
+.settings .printSettings .checkbox{
+  margin-left: 20px;
+}
+
+.printSettings .checkbox label:after {
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
+	filter: alpha(opacity=0);
+	opacity: 0;
+	content: '';
+	position: absolute;
+	width: 9px;
+	height: 5px;
+	background: transparent;
+	top: 2px;
+	left: 2px;
+	border: 3px solid var(--text-color-light);
+	border-top: none;
+	border-right: none;
+
+	-webkit-transform: rotate(-45deg);
+	-moz-transform: rotate(-45deg);
+	-o-transform: rotate(-45deg);
+	-ms-transform: rotate(-45deg);
+	transform: rotate(-45deg);
+}
+
+
+.settings .printSettings .SetQualityPreset{
+  font-size: 90%;
+}
+
+.settings .printSettings .SetQualityPreset h2{
+  margin: 0px;
 }
 
 .profile button {
@@ -122,6 +184,20 @@ section .info{
   width:100%;
 }
 
+
+
+section .info{
+  min-height: 30px;
+  padding: 10px;
+  background: #0ca9e3;
+  color: white;
+  text-align: justify;;
+  font-weight: bold;
+  font-size: 1.0em;
+}
+
+
+
 div:disabled{
   color:red;
   background: #ccc;
@@ -163,7 +239,7 @@ div.disabled{
 
 /*viewer*/
 #viewer{
-  width: 70%;
+  width: 80%;
   min-height: 400px;
   flex-grow: 0;
   display:inline-block;
@@ -179,12 +255,18 @@ div.disabled{
 }
 
 #settings{
-  width: 30%;
+  width: 25%;
   min-height: 400px;
   flex-grow: 0;
   display:inline-block;
-  margin: 10px;
-  font-size: small;
+}
+
+.settings button{
+  /*border: 1px solid black;
+position: absolute;
+right: 10px;
+padding: 2px;
+  width: 200px;*/
 }
 
 #printerPicker{
@@ -224,7 +306,7 @@ div.disabled{
   display: flex;
   flex-direction: column;
   padding: 10px;
-  background: #5e606f;/*#0ca9e3;*/
+  background: var(--background-dark);
 }
 
 #entityInfos button{
@@ -306,8 +388,9 @@ svg {
 }
 
 .printersMenu{
-
+  position: relative;
 }
+
 
 /*
 .tooltip{
