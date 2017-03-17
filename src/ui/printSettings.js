@@ -1,8 +1,13 @@
 import classNames from 'classnames'
-import { html } from 'snabbdom-jsx'
-import {domEvent, fromMost, makeStateAndReducers$, makeDefaultReducer, toMost} from '../utils/cycle'
-import { div, button, li, ul, h2 } from '@cycle/dom'
-import * as R from 'ramda'
+import {domEvent, makeStateAndReducers$} from '../utils/cycle'
+import { div, button, li, ul, h1, h2, span, section, header, form, input } from '@cycle/dom'
+import {assocPath, path} from 'ramda'
+
+import {withToolTip} from './widgets/utils'
+import icon from './widgets/icon'
+import {infoIconSvg} from './widgets/icons'
+
+import checkbox from './widgets/Checkbox'
 
 const init = (state) => {
   console.log('init printSettings state', state)
@@ -13,20 +18,20 @@ const init = (state) => {
 const ToggleBrim = (state, input) => {
   console.log('ToggleBrim')
   const propPath = ['print', 'settings', 'brim', 'toggled']
-  state = R.assocPath(propPath, !R.path(propPath)(state), state)
+  state = assocPath(propPath, !path(propPath)(state), state)
   return state
 }
 
 const ToggleSupport = (state, input) => {
   console.log('ToggleSupport')
   const propPath = ['print', 'settings', 'support', 'toggled']
-  state = R.assocPath(propPath, !R.path(propPath)(state), state)
+  state = assocPath(propPath, !path(propPath)(state), state)
   return state
 }
 
 const SetQualityPreset = (state, input) => {
   console.log('SetQualityPreset', input)
-  state = R.assocPath(['print', 'settings', 'qualityPreset'], input, state)
+  state = assocPath(['print', 'settings', 'qualityPreset'], input, state)
   return state
 }
 
@@ -76,70 +81,55 @@ const view = (state) => {
   const supportMaterials = ['pva', 'pla']
 
   const supportMaterialsUi = supportMaterials.map(function (supportMaterial, index) {
-    return <div>
-      <input
-        type='radio'
-        name='supportMaterials'
-        value={supportMaterial}
-        checked={supportMaterial === selectedSupportMaterial}
-               >
-        {supportMaterial}
-      </input>
-             Extruder
-             {index + 1}:
-             {supportMaterial}
-    </div>
+    return div([
+      input({props: {type: 'radio', name: 'supportMaterials', value: supportMaterial, checked: (supportMaterial === selectedSupportMaterial)}}),
+      `Extruder ${index + 1} ${supportMaterial}`
+    ])
   })
 
-  const maintext = t('activity_print_settings_text_info')
+  const maintext = ''/* t('activity_print_settings_text_info')
     .replace(`<font color='black'>%1$s</font>`, printCores[0])
-    .replace(`<font color='black'>%2$s</font>`, printCores[1])
+    .replace(`<font color='black'>%2$s</font>`, printCores[1]) */
 
-  /*<section className='status info'>
+  /* <section className='status info'>
     {t('activity_print_settings_text_the_app_only_supports')}
-  </section>*/
-  return <section className='printSettings'>
-    <header>
-      {maintext}
-    </header>
+  </section> */
 
-    <section className='profile'>
-      <header>
-        <h1>{t('activity_print_settings_text_print_profile')}</h1>
-        {t('activity_print_settings_layer_height_description')}
-      </header>
-      <div className='layerHeights'>
-        <ul>
-          {layerHeightButtons}
-        </ul>
-      </div>
-    </section>
-    <section className='supports'>
-      <header>
-        <h1>
-          <span>{t('activity_print_settings_text_support_structure')}</span>
-          <input type='checkbox' checked={support.toggled} className='ToggleSupport' />
-        </h1>
-      </header>
-      <div className={classNames({ disabled: !support.toggled})} >
-        {t('activity_print_settings_text_select_support_structure_description')}
-        <form>
-          {supportMaterialsUi}
-        </form>
-      </div>
-    </section>
-    <section className='brim'>
-      <header>
-        <h1>
-          <span>{t('activity_print_settings_text_adhesion_brim')}</span>
-          <input type='checkbox' checked={brim.toggled} className='ToggleBrim' />
-        </h1>
-      </header>
-      <div className={classNames({ disabled: !brim.toggled})} >
-        {t('activity_print_settings_text_brim_description')}
-      </div>
-    </section>
-  </section>
+  const profileInfos = withToolTip(span(t('activity_print_settings_text_print_profile')), t('activity_print_settings_layer_height_description'), 'left')
+  const supportInfos = withToolTip(span(t('activity_print_settings_text_support_structure')), t('activity_print_settings_text_select_support_structure_description'), 'left')
+  const brimInfos = withToolTip(span(t('activity_print_settings_text_adhesion_brim')), t('activity_print_settings_text_brim_description'), 'left')
+  return section('.printSettings', [
+    header(maintext),
+
+    section('.profile', [
+      header([h1([profileInfos])]),
+      div('.layerHeights', [
+        ul(layerHeightButtons)
+      ])
+    ]),
+
+    section('.supports', [
+      header([
+        h1([
+          supportInfos,
+          checkbox({id: 'ToggleSupport', className: 'ToggleSupport', checked: support.toggled})
+        ])
+      ]),
+      div(classNames({ '.disabled': !support.toggled}), [
+        form(supportMaterialsUi)
+      ])
+    ]),
+
+    section('.brim', [
+      header([
+        h1([
+          brimInfos,
+          checkbox({id: 'ToggleBrim', className: 'ToggleBrim', checked: brim.toggled})
+        ])
+      ]),
+      div(classNames({ '.disabled': !brim.toggled}))
+    ])
+  ])
 }
 
 function PrintSettings (sources) {
