@@ -46,7 +46,6 @@ Chrome, Safari, Opera */
   z-index: 999;
   background-color: white;
   border: 1px solid #dddddd;
-  font-size: 0.8em;
 }
 
 .menu input[type=checkbox]{
@@ -56,7 +55,6 @@ Chrome, Safari, Opera */
 .menuContent{
   display: block;
   float: left;
-  font-size: 0.8em;
   cursor: pointer;
   width: 50%;
 }
@@ -201,7 +199,7 @@ Chrome, Safari, Opera */
 
 /* bottom */
 .menu-bottom {
-  right: 20;
+  right: 100px;
   top: 60;
 }
 

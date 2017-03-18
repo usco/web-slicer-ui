@@ -1,19 +1,19 @@
 /*
   main colors:
     - blue : #0ca9e3;
+    - lighter blue: #5bc3fa;
     - gray: #f2f2f2;//0.96, 0.96, 0.96, 0.3
+
 
   status color:s
     - valid/green: #88d128
     - invalid/orange: #ff6600
-
 */
 html, body {
     overflow: hidden;
 }
 
 #app{
-  background: #F5F5F5;/*rgba(244.6, 244.6, 244.6, 255);*/
   /* width: 100%; */
   height: 100%;
   position: absolute;
@@ -24,15 +24,37 @@ html, body {
   right:0;
   bottom:0;
   overflow: hidden;
-  font-size: 0.6em;
+  font-size: 0.5em;
   font-family: 'Open Sans', sans-serif;
 
   --valid-color: #88D128;
-  --invalid-color:#ff6600;
-  --focus-color:#0ca9e3;
-  --background-dark: #5e606f;/*#5e606f;#1f1f1f*/
-  --text-color-light: #fdfdfd;
-  --text-color-dark: #717171;
+  --invalid-color: #ff6600;
+  --focus-color: #0ca9e3;
+
+  --background-dark: #333333;/*#5e606f;*//*#5e606f;#1f1f1f*/
+  --text-color-dark: #fdfdfd;
+  --highlight-color-dark: white;/*#f5f0f0;*/
+
+  --background-light: #ffffff;/*#5e606f;#1f1f1f*/
+  --text-color-light: #717171;
+  --highlight-color-light: #5e606f;/*#f5f0f0;*/
+
+
+  --main-text-color: var(--text-color-light);
+  --main-background-color: var(--background-light);
+  --main-semiactive-color: var(--highlight-color-light);
+  --main-hover-color: var(--highlight-color-light);
+  --main-border-color: var(--highlight-color-light);
+
+  /* if main is dark, use light here & vice /versa*/
+  --secondary-text-color: var(--text-color-dark);
+  --secondary-background-color: var(--background-dark);
+  --secondary-semiactive-color: var(--highlight-color-dark);
+  --secondary-hover-color: var(--highlight-color-dark);
+  --secondary-border-color: var(--highlight-color-dark);
+
+  --highlightColor: #60c4f8;
+  background: var(--background-light);/*#F5F5F5;*//*rgba(244.6, 244.6, 244.6, 255);*/
 }
 
 h1{
@@ -49,8 +71,6 @@ button {
 button:focus {
   outline: none
 }
-
-
 
 .valid{
   background: #88d128;
@@ -73,13 +93,36 @@ button:focus {
 
 /*print settings*/
 .settings .printSettings{
-  border: 0.1px rgb(189, 189, 189) solid;
+  border: 0.1px #dddddd solid;
   /* border-right: none; */
   padding: 10px;
-  background: var(--background-dark);
+  background: var(--main-background-color);
   margin-right: 10px;
-  color: var(--text-color-light);
+  color: var(--main-text-color);
+  position: absolute;
+  top: 10px;
+  right: 0px;
+
+  /*box-shadow: 4px 4px 16px rgba(165, 162, 162, 0.19);*/
+
 }
+
+.settings .printSettings:hover{
+
+}
+
+/*.printSettings::after {
+  box-shadow: 10px 5px 15px rgba(0,0,0,0.3);
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.printSettings:hover::after {
+  box-shadow: 10px 5px 15px rgba(0,0,0,0.3);
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+}*/
+
 
 
 .settings .printSettings button{
@@ -124,7 +167,7 @@ button:focus {
 	background: transparent;
 	top: 2px;
 	left: 2px;
-	border: 3px solid var(--text-color-light);
+	border: 3px solid var(--main-text-color);
 	border-top: none;
 	border-right: none;
 
@@ -146,10 +189,6 @@ button:focus {
 
 .profile button {
   background: #f2f2f2;
-}
-
-.profile button:hover{
-  background: #0ca9e3;
 }
 
 .layerHeights ul{
@@ -261,38 +300,22 @@ div.disabled{
   display:inline-block;
 }
 
-.settings button{
-  /*border: 1px solid black;
-position: absolute;
-right: 10px;
-padding: 2px;
-  width: 200px;*/
+.temp{
+  border: 1px solid var(--secondary-border-color);
+  position: absolute;
+  width: 200px;
+
+}
+.startPrint{
+  bottom: 10px;
+  right: 0px;
+  text-transform: capitalize;
 }
 
 #printerPicker{
   position: absolute;
   width: 100%;
 }
-
-.printersList{
-  list-style: none;
-  width: 100%;
-  margin-left: 0px;
-  padding-left: 0px;
-}
-.printersList .selected{
-  background: #0ca9e3;
-}
-
-.printersList .claimed{
-  background: #88d128;
-}
-
-.printersList li {
-  margin: 10px;
-  padding: 0px 10px 0px 10px;
-}
-
 /* monitor*/
 .printerCameraFrame{
   width:100%;
@@ -306,7 +329,7 @@ padding: 2px;
   display: flex;
   flex-direction: column;
   padding: 10px;
-  background: var(--background-dark);
+  background: var(--main-background-color);
 }
 
 #entityInfos button{
@@ -316,7 +339,7 @@ padding: 2px;
   background: rgba(0, 0, 0, 0);
 }
 #entityInfos button path{
-  fill: #f5f0f0;
+  fill: var(--main-semiactive-color);
 }
 #entityInfos .toolTipButtonContainer{
   padding: 10px;
@@ -352,16 +375,16 @@ button {
 }
 
 button:hover:enabled{
-  background: #5bc3fa;/*#555555;*/
+  background: var(--highlightColor); /*#555555;*/
 }
 
 button:enabled:hover path{
-  fill:white !important;
-  stroke: white ! important;
+  fill: var(--main-hover-color);
+  stroke: var(--main-hover-color);
 }
 
 button:enabled:hover svg *{
-  fill:white;
+  fill:var(--main-hover-color);
 }
 
 button[disabled=disabled], button:disabled{
@@ -387,10 +410,69 @@ svg {
   width: 24px;
 }
 
-.printersMenu{
-  position: relative;
+
+.printersList{
+  list-style: none;
+  width: 300px;
+  min-height: 40px;
+  margin-left: 0px;
+  padding-left: 0px;
+  
+  border-collapse: separate;
+  border-spacing: 0px 1px;
 }
 
+.printersList button{
+  background: none;
+  /*padding: 1px 5px 0px 5px;*/
+  width: 100%;
+height: 100%;
+}
+
+.printersList .selected{
+  background: #0ca9e3;
+}
+
+.printersList .claimed{
+  background: #88d128;
+
+}
+
+.printersList li {
+  margin: 10px;
+  padding: 0px 10px 0px 10px;
+}
+
+.printersList svg{
+  width: 16px;
+  height: 16px;
+}
+
+.printersList table{
+  border-collapse: separate;
+  border-spacing: 0px 1px;
+}
+
+.printersList tr:hover{
+  background: var(--highlightColor);
+  cursor: default;;
+}
+
+.printersList td {
+  padding: 5px;
+}
+
+
+
+.printersMenu{
+
+}
+.printersMenu button{
+  /*position: absolute;;
+  bottom:40px;
+  right: 0px;
+  width: 200px;*/
+}
 
 /*
 .tooltip{

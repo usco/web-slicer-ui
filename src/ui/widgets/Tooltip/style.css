@@ -10,7 +10,6 @@
 .tooltipWrapper {
   /*-webkit-transform: translateZ(0);*/
   -webkit-font-smoothing: antialiased;
-  --highlightColor: #60c4f8;
 }
 
 .tooltip {
