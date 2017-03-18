@@ -19,15 +19,15 @@ export default function intents (sources) {
   const baseActions = mergeActionsByName(actionsSources)
   const state$ = imitateXstream(sources.onion.state$).skipRepeats()
 
+
   const SetPrinters$ = merge(
     baseActions.RefreshPrintersList$,
-    of(null)
+    state$.map(state => state.printing.settings.printersPollRate).skipRepeats()
+    .map(function (pollRate) { // refresh printers list every pollRate seconds
+      return constant(null, periodic(pollRate))
+    })
+    .switch()
   )
-  .combine((_, state) => ({state}), state$.map(state => state.printing.settings.printersPollRate).skipRepeats())
-  .map(function (pollRate) { // refresh printers list every 30 seconds
-    return constant(null, periodic(pollRate))
-  })
-  .switch()
   .flatMap(function (_) {
     const allPrinters$ = printers().map(x => x.response)
       .flatMapError(x => of(undefined))// TODO error handling
@@ -55,6 +55,7 @@ export default function intents (sources) {
       return printers
     }, [claimedPrinters$, allPrinters$])
   })
+  .tap(x=>console.log('refreshing printers list'))
 
   const SetActivePrinterSystem$ = baseActions.SelectPrinter$
     .flatMap(printerSystem)
