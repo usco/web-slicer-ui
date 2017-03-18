@@ -2,7 +2,8 @@ import { injectNormals, injectTMatrix, injectBounds } from './prepHelpers'
 import {transformDefaults, updateComponents, resetScaling as resetTransformsScaling} from './components/transforms'
 import { computeBounds } from '@usco/bounds-utils'
 import applyMat4ToAABB from '../../utils/bounds/applyMat4ToAABB'
-
+import applyMat4ToGeometry from '../../utils/geometry/applyMat4ToGeometry'
+import mat4 from 'gl-mat4'
 
 export function addEntities (state, inputs) {
   return {...state, buildplate: {...state.buildplate, entities: state.buildplate.entities.concat([inputs])}}
@@ -30,6 +31,12 @@ export function changeTransforms (state, transforms) {
     .map(entity => {
       let bounds = computeBounds({geometry: entity.geometry})
       bounds = applyMat4ToAABB(entity.transforms.matrix, bounds)
+
+
+      //const geometry = applyMat4ToGeometry(entity.geometry, mat4.translate([], mat4.create(), [0, 0, bounds.size[2] * 0.5]))
+      //bounds = computeBounds({geometry})
+      //const geometry = applyMat4ToGeometry(entity.geometry, mat4.translate([], mat4.create(), [0, 0, 2]))
+      //return {...entity, geometry}
       return {...entity, bounds}
     })
   return {...state, buildplate: {...state.buildplate, entities}}
