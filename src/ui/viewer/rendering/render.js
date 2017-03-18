@@ -17,15 +17,15 @@ module.exports = function render (regl, params) {
   const infiniGridOffset = model({pos: [0, 0, -1.8]})
 
   let command = (props) => {
-    const {entities, machine, camera, view, background, outOfBoundsColor} = props
+    const {entities, machine, camera, view, settings} = props
 
     wrapperScope(props, (context) => {
       regl.clear({
-        color: background,
+        color: settings.background.color,
         depth: 1
       })
       // fogColor is dominant
-      drawInfiniGrid({view, camera, color: [0, 0, 0, 0], fogColor: background, model: infiniGridOffset})
+      //drawInfiniGrid({view, camera, color: [0, 0, 0, 0], fogColor: settings.background.color, model: infiniGridOffset})
 
       const outOfBoundsEntities = entities
         .filter(entity => entity.bounds.outOfBounds)
@@ -41,12 +41,15 @@ module.exports = function render (regl, params) {
           // const color = entity.visuals.color
           // const printableArea = machine ? machine.params.printable_area : [0, 0]
           // this one for single color for outside bounds
-          const color = entity.bounds.outOfBounds ? outOfBoundsColor : entity.visuals.color
+          let color = entity.bounds.outOfBounds ? settings.outOfBoundsColor : entity.visuals.color
+          if (entity.meta.selected) {
+            color = settings.selectionColor
+          }
           const printableArea = undefined
 
           entity.visuals.draw({view, camera, color, model: entity.transforms.matrix, printableArea})
 
-          //helper to display the boundingBox
+          // helper to display the boundingBox
           drawBoundingBox(regl, entity.bounds)({view, camera, model: mat4.identity([])})
         })
 
