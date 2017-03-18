@@ -8,6 +8,7 @@ export default function Menu (options) {
     toggled: false,
     disabled: false,
 
+    name: '',
     icon: undefined,
     klass: '',
     wrapperKlass: '',
@@ -21,7 +22,7 @@ export default function Menu (options) {
 
     content: undefined
   }
-  const {toggled, disabled, icon, klass, wrapperKlass, arrow,
+  const {toggled, disabled, icon, name, klass, wrapperKlass, arrow,
     contentPosition, subItems, tooltip, tooltipPos, content} = {...defaults, ...options}
 
   const subItemsIndicator = subItems ? span('.subItemsIndicator') : undefined
@@ -33,10 +34,10 @@ export default function Menu (options) {
     props: {
       disabled: disabled,
       className: classes(klass, `tooltipWrapper`, {active: toggled})
-    },
+    }
   },
     [
-      icon ? span({props: {innerHTML: icon}}) : 'some text',
+      icon ? span({props: {innerHTML: icon}}) : name,
       subItemsIndicator,
       toggled ? undefined : span(`.tooltip.${tooltipPos}`, [tooltip])
     ]
