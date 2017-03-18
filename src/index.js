@@ -33,7 +33,7 @@ function main (sources) {
 
     printing: {
       settings: {
-        printersPollRate: 10000, // how often to update the camera
+        printersPollRate: 20000, // how often to update the camera
         cameraPollRate: 10000 // how often to update the camera
       },
       printers: [
@@ -65,6 +65,7 @@ function main (sources) {
     // ui related
     steps: [{name: 'Printer Setup'}, {name: 'Material Setup'}, {name: 'Monitor Print'}, {name: 'Print Settings'}],
     currentStep: 0,
+    printerListToggled: true,
 
     t: x => ''// stand in
   })
