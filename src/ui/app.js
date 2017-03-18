@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { html } from 'snabbdom-jsx'
-import { div, button, li, ul, h1, h2, span, section} from '@cycle/dom'
+import { div, button, li, ul, h1, h2, p, span, section} from '@cycle/dom'
 // import {merge} from 'most'
 import xs from 'xstream'
 const {merge} = xs
@@ -24,6 +24,8 @@ import * as printingActions from '../core/printing/reducers'
 
 import {default as printingIntents} from '../core/printing/intents'
 import {default as entityIntents} from '../core/entities/intents'
+
+import printers from './printers'
 
 // query printer for infos
 // => get printhead & material infos
@@ -53,48 +55,44 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
   // console.log('state')
   const {steps, currentStep} = state
 
-  const printers = ul('.printersList', state.printing.printers
-    .map(function (printer) {
-      const isSelected = state.printing.activePrinterId === printer.id
-      const isClaimed = printer.claimed
-      const printerText = isSelected ? `${printer.name} ${state.printing.printerStatus.message}` : printer.name
-
-      const classes = classNames({'.selected': isSelected, '.printerL': true})
-
-      const claimButtons = isClaimed // buttons to claim / unclaim printer
-        ? button('.unClaim .claimed', {attrs: {'data-id': printer.id}}, 'unClaim')
-        : button('.claim', {attrs: {'data-id': printer.id}}, 'claim')
-
-      return li(classes, {attrs: {'data-id': printer.id}}, [
-        printerText, isSelected ? '' : claimButtons
-      ])
-    })
-  )// printerStatus
-  const printerSetup = section('', [
-    state.printing.printers.length > 0 ? div('Select printer', [printers]) : span('please wait, fetching printers ...')
-  ])
-
   const stepContents = [
-    printerSetup,
+    //printerSetup,
     materialSetup,
     printSettings,
     monitorPrint
   ]
   const activePrinter = R.find(R.propEq('id', state.printing.activePrinterId))(state.printing.printers)
   // console.log(activePrinter, state.activePrinter)
-  const newPrintDisabled =  state.buildplate.entities.length === 0 || state.printing.printerStatus.busy === true
+  const newPrintDisabled = state.buildplate.entities.length === 0 || state.printing.printerStatus.busy === true
   const prevStepUi = currentStep > 0 ? button('.PrevStep', 'Previous step') : ''
   const nextStepUi = (currentStep < steps.length - 1 && activePrinter && activePrinter.infos) ? button('.NextStep', 'Next step') : ''
   const startPrintUi = currentStep === steps.length - 1 ? button('.StartPrint', {attrs: {disabled: newPrintDisabled }}, 'Start Print') : ''
+
 
   // <h1>{t('app_name')}</h1>
   return section('#wrapper', [
     section('#viewer', [viewer]),
     section('#entityInfos', entityInfos),
-    section('#settings', [
-      h1([steps[currentStep].name, prevStepUi, nextStepUi, startPrintUi]),
-      stepContents[currentStep]
-    ])
+    section('#settings.settings', [
+      printers(state),
+      button('.startPrint .temp', 'print'),
+      printSettings,
+      monitorPrint
+      //h1([steps[currentStep].name, prevStepUi, nextStepUi, startPrintUi]),
+      //stepContents[currentStep]
+    ]),
+
+    /*div('.testArea',[
+      //withToolTip(button('foooyeah'), 'foooyeah', 'bottom'),
+      //withToolTip(icon(infoIconSvg), 'some stuff here'),
+      //withToolTip(button('foooyeah'), 'foooyeah', 'bottom'),
+      tooltipTopButton,
+      tooltipBottomButton,
+      tooltipLeftButton,
+      tooltipRightButton
+      // addToolTip(button('.tooltip-bottom', {attrs: {'data-tooltip': 'some bla bla'}}, 'infos!'))
+    ])*/
+
   ])
 }
 
