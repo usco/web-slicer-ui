@@ -8,6 +8,11 @@
   status color:s
     - valid/green: #88d128
     - invalid/orange: #ff6600
+
+
+   alternative shheme:
+   - primary : #607D8B;
+   - secondary: red-ish : #E91E63;
 */
 html, body {
     overflow: hidden;
@@ -40,13 +45,13 @@ html, body {
   --highlight-color-light: #5e606f;/*#f5f0f0;*/
 
 
-  --main-text-color: var(--text-color-light);
-  --main-background-color: var(--background-light);
-  --main-semiactive-color: var(--highlight-color-light);
-  --main-hover-color: var(--highlight-color-light);
-  --main-border-color: var(--highlight-color-light);
+  --primary-text-color: var(--text-color-light);
+  --primary-background-color: var(--background-light);
+  --primary-semiactive-color: var(--highlight-color-light);
+  --primary-hover-color: var(--highlight-color-light);
+  --primary-border-color: var(--highlight-color-light);
 
-  /* if main is dark, use light here & vice /versa*/
+  /* if primary is dark, use light here & vice /versa*/
   --secondary-text-color: var(--text-color-dark);
   --secondary-background-color: var(--background-dark);
   --secondary-semiactive-color: var(--highlight-color-dark);
@@ -96,11 +101,11 @@ button:focus {
   border: 0.1px #dddddd solid;
   /* border-right: none; */
   padding: 10px;
-  background: var(--main-background-color);
+  background: var(--primary-background-color);
   margin-right: 10px;
-  color: var(--main-text-color);
+  color: var(--primary-text-color);
   position: absolute;
-  top: 10px;
+  top: 40px;
   right: 0px;
 
   /*box-shadow: 4px 4px 16px rgba(165, 162, 162, 0.19);*/
@@ -167,7 +172,7 @@ button:focus {
 	background: transparent;
 	top: 2px;
 	left: 2px;
-	border: 3px solid var(--main-text-color);
+	border: 3px solid var(--primary-text-color);
 	border-top: none;
 	border-right: none;
 
@@ -278,7 +283,7 @@ div.disabled{
 
 /*viewer*/
 #viewer{
-  width: 80%;
+  width: 100%;
   min-height: 400px;
   flex-grow: 0;
   display:inline-block;
@@ -294,7 +299,7 @@ div.disabled{
 }
 
 #settings{
-  width: 25%;
+  width: 0%;
   min-height: 400px;
   flex-grow: 0;
   display:inline-block;
@@ -329,7 +334,7 @@ div.disabled{
   display: flex;
   flex-direction: column;
   padding: 10px;
-  background: var(--main-background-color);
+  background: var(--primary-background-color);
 }
 
 #entityInfos button{
@@ -339,7 +344,7 @@ div.disabled{
   background: rgba(0, 0, 0, 0);
 }
 #entityInfos button path{
-  fill: var(--main-semiactive-color);
+  fill: var(--primary-semiactive-color);
 }
 #entityInfos .toolTipButtonContainer{
   padding: 10px;
@@ -379,12 +384,12 @@ button:hover:enabled{
 }
 
 button:enabled:hover path{
-  fill: var(--main-hover-color);
-  stroke: var(--main-hover-color);
+  fill: var(--primary-hover-color);
+  stroke: var(--primary-hover-color);
 }
 
 button:enabled:hover svg *{
-  fill:var(--main-hover-color);
+  fill:var(--primary-hover-color);
 }
 
 button[disabled=disabled], button:disabled{
@@ -413,30 +418,39 @@ svg {
 
 .printersList{
   list-style: none;
-  width: 300px;
+  width: 200px;
   min-height: 40px;
+  /*min-width: 400px;*/
   margin-left: 0px;
   padding-left: 0px;
-  
+
   border-collapse: separate;
-  border-spacing: 0px 1px;
+  border-spacing: 0px 5px;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .printersList button{
   background: none;
   /*padding: 1px 5px 0px 5px;*/
   width: 100%;
-height: 100%;
+  height: 100%;
 }
 
 .printersList .selected{
   background: #0ca9e3;
 }
 
+.printersList .claimer{
+  cursor: pointer;
+}
+
 .printersList .claimed{
   background: #88d128;
-
+  /*make it more light*/
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.5);
 }
+
 
 .printersList li {
   margin: 10px;
@@ -448,31 +462,130 @@ height: 100%;
   height: 16px;
 }
 
-.printersList table{
-  border-collapse: separate;
-  border-spacing: 0px 1px;
+.printersList tr{
+  background: #03A9F4;/*#E91E63;*/
+  color: white;
+  fill: white;
+  height: 32px;
+
+  transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.5);
 }
 
 .printersList tr:hover{
-  background: var(--highlightColor);
-  cursor: default;;
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.0);
 }
+
+.printersList tr:hover td{
+  /*background: var(--highlightColor);*/
+}
+
+.gnok{
+  width: 100%;
+display: block;
+height: 100%;
+position: relative;
+overflow: auto;
+}
+
+.gnok:after{
+  -webkit-transition: all 0.3s ease-out;  /* Chrome 1-25, Safari 3.2+ */
+    -moz-transition: all 0.3s ease-out;  /* Firefox 4-15 */
+      -o-transition: all 0.3s ease-out;  /* Opera 10.50–12.00 */
+         transition: all 0.3s ease-out;  /* Chrome 26, Firefox 16+, IE 10+, Opera 12.10+ */
+
+  content: "";
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.0);
+  position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-color: #fff;
+    z-index: -1;
+}
+.gnok:hover:after{
+  background: red;
+}
+
 
 .printersList td {
   padding: 5px;
 }
 
+.printersList td:nth-child(1) {
+  background: #607D8B;
+  color: white;
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.5);
+}
+
+.printersList tr:hover td:nth-child(1) {
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.0);
+}
+
+.printersList td:nth-child(3) {
+  padding: 0px;
+  padding-left: 5px;
+}
+
+.printersList tr:hover .claimed{
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.0);
+}
 
 
 .printersMenu{
-
+  position: absolute;
+  right: 0px;
+  top: 10px;
 }
-.printersMenu button{
+.printersMenu .menuToggler{
   /*position: absolute;;
   bottom:40px;
-  right: 0px;
-  width: 200px;*/
+  right: 0px;*/
+  width: 200px;
+  padding: 2px 5px 2px 5px;
 }
+
+.printersMenu .menuToggler{
+
+}
+.printersMenu .menu-bottom{
+  right:10px;
+}
+
+
+.MonitorPrint{
+  position: absolute;
+top: 50px;
+right: 10px;
+width: 250px;
+background: white;
+padding-top: 10px;
+}
+
+.MonitorPrint .progressPercent{
+  text-align: center;
+}
+
+.MonitorPrint .printStatus{
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.MonitorPrint .timeLeft{
+  text-align: center;
+}
+
+.MonitorPrint .temperatures{
+  list-style: none;
+  display: flex;
+}
+
+.MonitorPrint .temperatures li{
+  text-align: center;
+  padding: 5px;
+}
+
 
 /*
 .tooltip{
