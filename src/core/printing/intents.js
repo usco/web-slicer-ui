@@ -5,7 +5,7 @@ import {constant, periodic, of, merge, combineArray, sample} from 'most'
 import {pathOr, has, find, prop, propEq} from 'ramda'
 import {imitateXstream} from '../../utils/cycle'
 
-import {printers, claimedPrinters, claimPrinter, unclaimPrinter,
+import {printers, claimedPrinters, claimPrinter, unclaimPrinter, printerName,
    printerInfos, printerCamera, printerSystem, printerStatus, uploadAndStartPrint, abortPrint} from '../umc-api'
 import {formatImageData} from '../../utils/image'
 
@@ -19,6 +19,18 @@ export default function intents (sources) {
   const baseActions = mergeActionsByName(actionsSources)
   const state$ = imitateXstream(sources.onion.state$).skipRepeats()
 
+  // helper function to fetch the 'friendly names' of the claimed printers
+  function friendlyNames (printers)
+  {
+    function getName (printer) {
+      return printerName(printer.id)
+        .map(r => r.response)
+        .flatMapError(error => of(undefined))
+    }
+    return combineArray(function (...names) {
+      return printers.map((p, i) => ({...p, friendlyName: names[i]}))
+    }, printers.map(getName))
+  }
 
   const SetPrinters$ = merge(
     baseActions.RefreshPrintersList$,
@@ -32,11 +44,13 @@ export default function intents (sources) {
     const allPrinters$ = printers().map(x => x.response)
       .flatMapError(x => of(undefined))// TODO error handling
       .filter(x => x !== undefined)
-      .map(printers => printers.map(printer => ({...printer, claimed: undefined})))
+      .map(printers => printers.map(printer => ({...printer, claimed: undefined, friendlyName: undefined})))
+
     const claimedPrinters$ = claimedPrinters().map(x => x.response)
       .flatMapError(x => of(undefined))// TODO error handling
       .filter(x => x !== undefined)
-      .map(printers => printers.map(printer => ({...printer, claimed: true})))
+      .map(printers => printers.map(printer => ({...printer, claimed: true, friendlyName: undefined})))
+      .flatMap(friendlyNames)
 
     return combineArray(function (claimedPrinters, allPrinters) {
       let printers = claimedPrinters
@@ -55,7 +69,7 @@ export default function intents (sources) {
       return printers
     }, [claimedPrinters$, allPrinters$])
   })
-  .tap(x=>console.log('refreshing printers list'))
+  .tap(x => console.log('refreshing printers list'))
 
   const SetActivePrinterSystem$ = baseActions.SelectPrinter$
     .flatMap(printerSystem)
