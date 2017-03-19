@@ -43,8 +43,12 @@ const NextStep = (state, input) => {
   return state
 }
 
+const togglePrintersList = (state, input) => {
+  return {...state, printerListToggled: input}
+}
+
 const actions = {
-  init, PrevStep, NextStep,
+  init, PrevStep, NextStep, togglePrintersList,
 
   ...printingActions,
   ...entityActions
@@ -56,7 +60,7 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
   const {steps, currentStep} = state
 
   const stepContents = [
-    //printerSetup,
+    // printerSetup,
     materialSetup,
     printSettings,
     monitorPrint
@@ -68,7 +72,6 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
   const nextStepUi = (currentStep < steps.length - 1 && activePrinter && activePrinter.infos) ? button('.NextStep', 'Next step') : ''
   const startPrintUi = currentStep === steps.length - 1 ? button('.StartPrint', {attrs: {disabled: newPrintDisabled }}, 'Start Print') : ''
 
-
   // <h1>{t('app_name')}</h1>
   return section('#wrapper', [
     section('#viewer', [viewer]),
@@ -78,11 +81,11 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
       button('.startPrint .temp', 'print'),
       printSettings,
       monitorPrint
-      //h1([steps[currentStep].name, prevStepUi, nextStepUi, startPrintUi]),
-      //stepContents[currentStep]
-    ]),
+      // h1([steps[currentStep].name, prevStepUi, nextStepUi, startPrintUi]),
+      // stepContents[currentStep]
+    ])
 
-    /*div('.testArea',[
+    /* div('.testArea',[
       //withToolTip(button('foooyeah'), 'foooyeah', 'bottom'),
       //withToolTip(icon(infoIconSvg), 'some stuff here'),
       //withToolTip(button('foooyeah'), 'foooyeah', 'bottom'),
@@ -91,7 +94,7 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
       tooltipLeftButton,
       tooltipRightButton
       // addToolTip(button('.tooltip-bottom', {attrs: {'data-tooltip': 'some bla bla'}}, 'infos!'))
-    ])*/
+    ]) */
 
   ])
 }
@@ -100,6 +103,7 @@ function App (sources) {
   const _domEvent = domEvent.bind(null, sources)
   const PrevStep$ = _domEvent('.PrevStep', 'click')
   const NextStep$ = _domEvent('.NextStep', 'click')
+  const togglePrintersList$ = _domEvent('.printerMenuToggle', 'click').scan((acc, cur) => !acc, false)
 
   const _printingIntents = printingIntents(sources)
   const _entityIntents = entityIntents(sources)//
@@ -107,7 +111,8 @@ function App (sources) {
 
   const actions$ = {
     PrevStep$: fromMost(PrevStep$),
-    NextStep$: merge(fromMost(NextStep$))//, fromMost(_printingIntents.SetActivePrinterInfos$.delay(1000))) // once we have the printerInfos , move to next step
+    NextStep$: merge(fromMost(NextStep$)), //, fromMost(_printingIntents.SetActivePrinterInfos$.delay(1000))) // once we have the printerInfos , move to next step
+    togglePrintersList$: fromMost(togglePrintersList$)
   }
 
   const printActions$ = Object.keys(_printingIntents)
