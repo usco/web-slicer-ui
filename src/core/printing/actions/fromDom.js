@@ -11,7 +11,7 @@ export default function intent (sources, params) {
   // unclaim a printer
   const UnClaimPrinter$ = _domEvent('.unClaim', 'click').map(x => (x.currentTarget.dataset.id))
 
-  const StartPrint$ = _domEvent('.StartPrint', 'click')// TODO add out of bound checks
+  const StartPrint$ = _domEvent('.startPrint', 'click')// TODO add out of bound checks
 
   // this is from MonitorPrint
   const PauseResumePrint$ = _domEvent('.pauseResume', 'click')

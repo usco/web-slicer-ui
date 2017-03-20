@@ -11,6 +11,7 @@ import {formatImageData} from '../../utils/image'
 
 import {formatDataForPrint} from './formatDataForPrint'
 import {extrudersHotendsAndMaterials} from './utils'
+import {formatNumberTo} from '../../utils/formatters'
 
 export default function intents (sources) {
   const actionsSources = [
@@ -138,13 +139,14 @@ export default function intents (sources) {
       const job = pathOr({}, ['job'])(response)
       const progress = pathOr(0, ['job', 'progress'])(response)
       const totalTime = pathOr(0, ['job', 'time_total'])(response)
+      const progressPercent = formatNumberTo(progress * 100, 2)
 
       const messages = {
         undefined: response.status,
         'idle': `printer available & ready!`,
         'wait_cleanup': `waiting for cleanup, please remove the print from the buildplate`,
         'pre_print': 'preparing print',
-        'printing': `Printing : ${progress * 100} % Total time : ${totalTime}`
+        'printing': 'printing'//`Printing : ${progressPercent} % Total time : ${totalTime}`
       }
 
       let busy = true

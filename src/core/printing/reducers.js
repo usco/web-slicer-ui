@@ -1,4 +1,4 @@
-import {findIndex, prop, propEq, compose, update, sortBy, toLower} from 'ramda'
+import {find, findIndex, prop, propEq, compose, update, sortBy, toLower} from 'ramda'
 
 export const ClaimPrinter = (state, input) => {
   console.log('ClaimPrinter', input)
@@ -37,6 +37,19 @@ export const SetPrinters = (state, printers) => {
   console.log('SetPrinters', printers)
   const sortByNameCaseInsensitive = sortBy(compose(toLower, prop('name')))
   printers = sortByNameCaseInsensitive(printers)
+  
+  // upsert existing data when needed
+  state.printing.printers.forEach(function (printer) {
+    const newIndex = findIndex(propEq('id', printer.id))(printers)
+    const isInNewList = newIndex !== -1
+    if (isInNewList) {
+      printers[newIndex] = {...printer, ...printers[newIndex]}
+    }
+  })
+
+  // const idMatch = entity => selections.instIds.indexOf(entity.meta.id) > -1
+  // const transforms = pluck('transforms')(filter(idMatch, entities))
+
   state = { ...state, printing: {...state.printing, printers} }
   return state
 }
