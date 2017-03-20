@@ -21,7 +21,9 @@ const view = function (state) {
   // we consider the printer to be inactive if the state is undefined or idle
   const isInactive = false// (state.printing.printerStatus.state === undefined || state.printing.printerStatus.state === 'idle')
   const isAvailable = activePrinter && activePrinter.infos
+  const isPrinting = state.printing.printerStatus.state === 'printing' || state.printing.printerStatus.state === 'pre_print'
 
+  console.log('status', state.printing.printerStatus)
   const hTemps = hotends(activePrinter)
     .map((hotend, index) => `T${index}: ${hotend.temperature.current} / ${hotend.temperature.target} °C`)
   const bedTemp = isAvailable ? `Bed: ${bed(activePrinter).temperature.current} / ${bed(activePrinter).temperature.target} °C` : undefined
@@ -32,18 +34,17 @@ const view = function (state) {
 
   // only show detailed status if printer is active
   const temperaturesUi = isInactive ? undefined : ul('.temperatures', [li(nth(0, hTemps)), li(nth(1, hTemps)), li(bedTemp)])
-  const progressTimeUi = progressData === undefined ? undefined : div('.timeLeft', `Time left: ${timeLeft.hours}h ${timeLeft.minutes}min`)
+  const progressTimeUi = progressData === undefined || !isPrinting ? undefined : div('.timeLeft', `Time left: ${timeLeft.hours}h ${timeLeft.minutes}min`)
   const progressBarColor = percent < 1 ? undefined : '#88d128'
 
-  const pauseResumeToggle = button('.pauseResume', state.print.paused ? 'play' : 'pause')
+  const pauseResumeToggle = button('.pauseResume', {attrs: {disabled: !isPrinting}}, state.print.paused ? 'play' : 'pause')
+  const aborter = button('.abort', {attrs: {disabled: !isPrinting}}, 'abort')
 
-  const controlLine = isAvailable ? ul('.controls', [ li([pauseResumeToggle]), li([button('.abort', 'abort')])]) : undefined
-
-  console.log(activePrinter, controlLine)
+  const controlLine = isAvailable ? ul('.controls', [li([pauseResumeToggle]), li([aborter])]) : undefined
 
   return section('.MonitorPrint', [
-    renderProgressBar({progress: percent, hideOnDone: false, color: progressBarColor}),
-    div('.progressPercent', `${percent * 100}%`),
+    isPrinting ? renderProgressBar({progress: percent, hideOnDone: false, color: progressBarColor}) : undefined,
+    isPrinting ? div('.progressPercent', `${percent * 100}%`) : undefined,
     h1('.printStatus', state.printing.printerStatus.message),
     progressTimeUi,
     temperaturesUi,
