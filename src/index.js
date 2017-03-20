@@ -33,8 +33,8 @@ function main (sources) {
 
     printing: {
       settings: {
-        printersPollRate: 20000, // how often to update the camera
-        cameraPollRate: 10000 // how often to update the camera
+        printersPollRate: 30000, // how often to update the camera
+        cameraPollRate: 20000 // how often to update the camera
       },
       printers: [
         /* {id: '080987D', name: 'my printer', infos: {type: 'ultimaker3'}} */
@@ -44,8 +44,8 @@ function main (sources) {
       // for individual printers
       printerStatus: {message: 'fetching printer data , please wait...', state: undefined, busy: false},
       activePrinterId: undefined,
+      connectedPrinters: [],
       frame: undefined
-
     },
 
     buildplate: {
@@ -65,7 +65,7 @@ function main (sources) {
     // ui related
     steps: [{name: 'Printer Setup'}, {name: 'Material Setup'}, {name: 'Monitor Print'}, {name: 'Print Settings'}],
     currentStep: 0,
-    printerListToggled: true,
+    printerListToggled: false,
 
     t: x => ''// stand in
   })
