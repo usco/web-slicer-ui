@@ -18,12 +18,15 @@ export const actions = {
 
 const view = function (state) {
   const activePrinter = find(propEq('id', state.printing.activePrinterId))(state.printing.printers)
+  const printingStates = [ // what are the states where the printer can be considered 'printing' (paused included)
+    'pre_print', 'printing', 'paused', 'resuming'
+  ]
   // we consider the printer to be inactive if the state is undefined or idle
   const isInactive = false// (state.printing.printerStatus.state === undefined || state.printing.printerStatus.state === 'idle')
   const isAvailable = activePrinter && activePrinter.infos
-  const isPrinting = state.printing.printerStatus.state === 'printing' || state.printing.printerStatus.state === 'pre_print'
+  const isPrinting = printingStates.indexOf(state.printing.printerStatus.state) !== -1
+  const isPaused = state.printing.printerStatus.state === 'paused'
 
-  console.log('status', state.printing.printerStatus)
   const hTemps = hotends(activePrinter)
     .map((hotend, index) => `T${index}: ${hotend.temperature.current} / ${hotend.temperature.target} °C`)
   const bedTemp = isAvailable ? `Bed: ${bed(activePrinter).temperature.current} / ${bed(activePrinter).temperature.target} °C` : undefined
@@ -31,25 +34,27 @@ const view = function (state) {
   const progressData = jobInfos(state.printing.printerStatus)
   const timeLeft = timeRemaining(state.printing.printerStatus)// formatTime(progressData.time_total - progressData.time_elapsed)
   const percent = progress(state.printing.printerStatus) // progress percent in 0-1 range, to 2 decimals
+  const message = isAvailable ? state.printing.printerStatus.message : 'please select a printer from the printers list'
 
   // only show detailed status if printer is active
   const temperaturesUi = isInactive ? undefined : ul('.temperatures', [li(nth(0, hTemps)), li(nth(1, hTemps)), li(bedTemp)])
   const progressTimeUi = progressData === undefined || !isPrinting ? undefined : div('.timeLeft', `Time left: ${timeLeft.hours}h ${timeLeft.minutes}min`)
   const progressBarColor = percent < 1 ? undefined : '#88d128'
 
-  const pauseResumeToggle = button('.pauseResume', {attrs: {disabled: !isPrinting}}, state.print.paused ? 'play' : 'pause')
+  const pauseResumeToggle = button('.pauseResume', {attrs: {disabled: !isPrinting}}, isPaused ? 'play' : 'pause')
   const aborter = button('.abort', {attrs: {disabled: !isPrinting}}, 'abort')
 
-  const controlLine = isAvailable ? ul('.controls', [li([pauseResumeToggle]), li([aborter])]) : undefined
+  const controls = isAvailable ? ul('.controls', [li([pauseResumeToggle]), li([aborter])]) : undefined
+  const imageFrame = isAvailable ? img('.printerCameraFrame', {props: {src: state.printing.frame ? state.printing.frame : ''}}) : undefined
 
   return section('.MonitorPrint', [
     isPrinting ? renderProgressBar({progress: percent, hideOnDone: false, color: progressBarColor}) : undefined,
     isPrinting ? div('.progressPercent', `${percent * 100}%`) : undefined,
-    h1('.printStatus', state.printing.printerStatus.message),
+    h1('.printStatus', message),
     progressTimeUi,
     temperaturesUi,
-    controlLine,
-    img('.printerCameraFrame', {props: {src: state.printing.frame ? state.printing.frame : ''}})
+    controls,
+    imageFrame
   ])
 }
 
@@ -69,7 +74,7 @@ function MonitorPrint (sources) {
   ) */
 
   return {
-    DOM: state$.filter(state => state.printing.activePrinterId !== undefined).map(view).startWith(undefined),
+    DOM: state$.map(view).startWith(undefined), //.filter(state => state.printing.activePrinterId !== undefined)
     onion: reducer$
     // events
   }
