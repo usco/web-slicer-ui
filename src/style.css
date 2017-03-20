@@ -105,7 +105,7 @@ button:focus {
   margin-right: 10px;
   color: var(--primary-text-color);
   position: absolute;
-  top: 40px;
+  top: 34px;
   right: 0px;
 
   /*box-shadow: 4px 4px 16px rgba(165, 162, 162, 0.19);*/
@@ -551,7 +551,7 @@ overflow: auto;
   right: 0px;
   padding: 2px 5px 2px 5px;
   */
-  width: 200px;
+  width: 80px;
 
 }
 
@@ -565,12 +565,12 @@ overflow: auto;
 
 .MonitorPrint{
   position: absolute;
-  top: 40px;
-  right: 250px;
+  top: 34px;
+  right: 0px;
   width: 250px;
   background: white;
   padding-top: 10px;
-      border: 0.1px #dddddd solid;
+  border: 0.1px #dddddd solid;
 }
 
 .MonitorPrint .progressPercent{
@@ -612,6 +612,31 @@ overflow: auto;
   width: 80px;
 }
 
+.toPrintSettings{
+  position: absolute;
+  top: 12px;
+  right: 110px;
+  padding: 1px;
+  width: 60px;
+}
+
+.toPrintSettings.selected{
+  border: 0.1px #dddddd solid;
+  background: white;
+}
+
+.toMonitorPrint{
+  position: absolute;
+  top: 12px;
+  right: 172px;
+  padding: 1px;
+  width: 60px;
+}
+
+.toMonitorPrint.selected{
+  border: 0.1px #dddddd solid;
+  background: white;
+}
 
 /*
 .tooltip{
