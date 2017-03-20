@@ -15,6 +15,7 @@ import EntityInfos from './entityInfos'
 import Viewer from './viewer'
 
 import {find, propEq} from 'ramda'
+import {merge as mostMerge} from 'most'
 
 import {actions as printSettingsActions} from './printSettings'
 import {actions as monitorPrintActions} from './monitorPrint'
@@ -68,26 +69,27 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
     monitorPrint
   ]
   const activePrinter = find(propEq('id', state.printing.activePrinterId))(state.printing.printers)
-  const newPrintEnabled = state.buildplate.entities.length > 0 && state.printing.printerStatus.busy !== true && state.printing.activePrinterId !== undefined
+  const newPrintEnabled = state.buildplate.entities.length > 0 && (state.printing.printerStatus !== undefined && state.printing.printerStatus.busy === false) && state.printing.activePrinterId !== undefined
 
-  console.log('newPrintEnabled', newPrintEnabled, state.buildplate.entities.length, state.printing.printerStatus.busy)
+  //console.log('newPrintEnabled', newPrintEnabled)//, state.buildplate.entities.length > 0,(state.printing.printerStatus !== undefined && state.printing.printerStatus.busy === false),state.printing.activePrinterId !== undefined )
 
   const prevStepUi = currentStep > 0 ? button('.PrevStep', 'Previous step') : ''
   const nextStepUi = (currentStep < steps.length - 1 && activePrinter && activePrinter.infos) ? button('.NextStep', 'Next step') : ''
 
   const startPrintTooltip = newPrintEnabled ? '' : 'please select a printer, add a file & be sure the printer is not already busy'
+
+  console.log(startPrintTooltip)
   const startPrintUi = withToolTip(
-    button('.startPrint .temp', {attrs: {disabled: !newPrintEnabled }}, 'Start Print'),
+    button('.startPrint .temp', {attrs: {disabled: !newPrintEnabled}}, 'Start Print'),
    startPrintTooltip, 'top'
  )
 
-  // <h1>{t('app_name')}</h1>
   return section('#wrapper', [
     section('#viewer', [viewer]),
     section('#entityInfos', entityInfos),
     section('#settings.settings', [
       printers(state),
-      //button('.startPrint .temp', 'print'),
+      // button('.startPrint .temp', 'print'),
       startPrintUi,
       printSettings,
       monitorPrint
@@ -113,7 +115,26 @@ function App (sources) {
   const _domEvent = domEvent.bind(null, sources)
   const PrevStep$ = _domEvent('.PrevStep', 'click')
   const NextStep$ = _domEvent('.NextStep', 'click')
-  const togglePrintersList$ = _domEvent('.printerMenuToggle', 'click').scan((acc, cur) => !acc, false)
+  const togglePrintersList$ = mostMerge(
+    _domEvent('.printerMenuToggle', 'click').constant(true),
+    // all the things that disable the printerslist
+    _domEvent('.MonitorPrint', 'click').constant(false),
+    _domEvent('.printSettings', 'click').constant(false),
+    _domEvent('.printerL', 'click').constant(false),
+    _domEvent('#viewer', 'click').constant(false)
+  )
+  .scan((acc, cur) => cur === true ? !acc : false, false)
+
+  function isValidElementEvent (event) {
+    let element = event.target || event.srcElement
+    return !(element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA' || element.isContentEditable)
+  }
+
+  _domEvent('document', 'keydown')
+    .filter(x=>x.code === 'Backspace')
+    .filter(isValidElementEvent)
+    .forEach(x=>console.log('keydown',x))
+  //object.addEventListener("keypress", myScript)
 
   const _printingIntents = printingIntents(sources)
   const _entityIntents = entityIntents(sources)//
@@ -124,6 +145,7 @@ function App (sources) {
     NextStep$: merge(fromMost(NextStep$)), //, fromMost(_printingIntents.SetActivePrinterInfos$.delay(1000))) // once we have the printerInfos , move to next step
     togglePrintersList$: fromMost(togglePrintersList$)
   }
+  // _domEvent('.settings', 'click').forEach(x=>console.log('test',x))
 
   const printActions$ = Object.keys(_printingIntents)
     .reduce((acc, key) => {
