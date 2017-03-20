@@ -6,12 +6,14 @@ import {pathOr, has, find, prop, propEq} from 'ramda'
 import {imitateXstream} from '../../utils/cycle'
 
 import {printers, claimedPrinters, claimPrinter, unclaimPrinter, printerName,
-   printerInfos, printerCamera, printerSystem, printerStatus, uploadAndStartPrint, abortPrint} from '../umc-api'
+   printerInfos, printerCamera, printerSystem, printerStatus, uploadAndStartPrint, abortPrint, pausePrint, resumePrint} from '../umc-api'
 import {formatImageData} from '../../utils/image'
 
 import {formatDataForPrint} from './formatDataForPrint'
 import {extrudersHotendsAndMaterials} from './utils'
 import {formatNumberTo} from '../../utils/formatters'
+
+import withLatestFrom from '../../utils/most/withLatestFrom'
 
 export default function intents (sources) {
   const actionsSources = [
@@ -21,8 +23,7 @@ export default function intents (sources) {
   const state$ = imitateXstream(sources.onion.state$).skipRepeats()
 
   // helper function to fetch the 'friendly names' of the claimed printers
-  function friendlyNames (printers)
-  {
+  function friendlyNames (printers) {
     function getName (printer) {
       return printerName(printer.id)
         .map(r => r.response)
@@ -70,7 +71,6 @@ export default function intents (sources) {
       return printers
     }, [claimedPrinters$, allPrinters$])
   })
-  .tap(x => console.log('refreshing printers list'))
 
   const SetActivePrinterSystem$ = baseActions.SelectPrinter$
     .flatMap(printerSystem)
@@ -146,7 +146,7 @@ export default function intents (sources) {
         'idle': `printer available & ready!`,
         'wait_cleanup': `waiting for cleanup, please remove the print from the buildplate`,
         'pre_print': 'preparing print',
-        'printing': 'printing'//`Printing : ${progressPercent} % Total time : ${totalTime}`
+        'printing': 'printing'// `Printing : ${progressPercent} % Total time : ${totalTime}`
       }
 
       let busy = true
@@ -160,22 +160,26 @@ export default function intents (sources) {
   const printStarted$ = sample(state => state, baseActions.StartPrint$, state$.skipRepeats())
     .flatMap(function (state) {
       console.log('start print')
-      const activePrinterInfos = prop('infos', find(propEq('id', state.printing.activePrinterId), state.printing.printers))
+      const activePrinter = find(propEq('id', state.printing.activePrinterId), state.printing.printers)
+      const activePrinterInfos = prop('infos', activePrinter)
       const {materials} = extrudersHotendsAndMaterials(activePrinterInfos)
 
       const data = formatDataForPrint(state.buildplate.entities)
       const file = new Blob([data], {type: 'application/sla'})
+      const printSettings = state.print.settings
+      const machineSettings = {type: activePrinter.variant || 'ultimaker3'} //'ultimaker3' }
 
-      function download (name) {
+      // for debug purpuses only
+      /* function download (name) {
         var a = document.getElementById('a')
         a.href = URL.createObjectURL(file)
         a.download = name
         a.click()
       }
       console.log('data for print', data, file)
-      download('foo.stl')
+      download('foo.stl') */
 
-      const printParams = {
+      /*const printParams = {
         filename: 'test.stl',
         slicing_quality: 'draft', // draft|fast|normal|high
         slicing_adhesion: false,
@@ -188,18 +192,55 @@ export default function intents (sources) {
         mesh_position_x: 0,
         mesh_position_y: 0,
         mesh_position_z: 0
-      }
+      }*/
+
+      function generateCloudSlicerOptions (printSettings, machineSettings, materials) {
+       return {
+         slicing_quality: printSettings.qualityPreset,
+         slicing_adhesion: printSettings.brim.toggled,
+         slicing_support_extruder: printSettings.supportExtruder, // 1,2, -1
+
+         machine_type: machineSettings.type,
+         material_guid: materials[0],
+
+         // model_file: modelFile,
+         filename: 'test.stl',
+
+         mesh_translations: true,
+         mesh_rotation_matrix: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+         mesh_position_x: 0,
+         mesh_position_y: 0,
+         mesh_position_z: 0
+       }
+     }
+     const printParams = generateCloudSlicerOptions(printSettings, machineSettings, materials)
+     console.log('CloudSlicerOptions', printParams)
+
+     //throw new Error('mlkmlk')
 
       return uploadAndStartPrint(state.printing.activePrinterId, printParams, file)
         .map(response => ({success: true, message: 'print started'}))
         .flatMapError(function (error) {
           return of({success: false, message: error.message})
         })
-      // return of({success: true, message: 'fake'})
     })
 
-  const PauseResumePrint$ = baseActions.PauseResumePrint$.scan((state, newValue) => !state, false)
+  /* Pause & resume*/
+  const requestPauseResumePrint$ = baseActions.PauseResumePrint$
+    .scan((state, newValue) => !state, false)
 
+  const responsePauseResumePrint$ = withLatestFrom((paused, printerId) => ({paused, printerId}), requestPauseResumePrint$, [state$.map(state => state.printing.activePrinterId).skipRepeats()])
+   .flatMap(function ({paused, printerId}) {
+     const call = paused ? pausePrint : resumePrint
+     return call(printerId)
+       .map(response => paused)
+       .flatMapError(function (error) {
+         return of(!paused)
+       })
+   })
+  const PauseResumePrint$ = merge(requestPauseResumePrint$, responsePauseResumePrint$)
+
+  /* Abort */
   const printAborted$ = sample(state => state, baseActions.AbortPrint$, state$.skipRepeats())
       .flatMap(state => abortPrint(state.printing.activePrinterId))
 
