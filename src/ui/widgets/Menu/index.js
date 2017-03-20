@@ -17,7 +17,7 @@ export default function Menu (options) {
     contentPosition: 'right',
     subItems: false,
 
-    tooltip: '',
+    tooltip: undefined,
     tooltipPos: 'bottom',
 
     content: undefined
@@ -29,17 +29,18 @@ export default function Menu (options) {
   // arrow related
   const borderNotch = arrow ? b('.border-notch notch') : undefined
   const notch = arrow ? b('.notch') : ''
+  const tooltipElement = tooltip ? span(`.tooltip.${tooltipPos}`, [tooltip]) : undefined
 
   const togglerButton = button({
     props: {
       disabled: disabled,
-      className: classes(klass, `tooltipWrapper`, {active: toggled})
+      className: classes(klass, `tooltipWrapper`, 'menuToggler', {active: toggled})
     }
   },
     [
       icon ? span({props: {innerHTML: icon}}) : name,
       subItemsIndicator,
-      toggled ? undefined : span(`.tooltip.${tooltipPos}`, [tooltip])
+      toggled ? undefined : tooltipElement// if the menu is not toggled, show tooltip
     ]
   )
 
