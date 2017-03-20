@@ -66,6 +66,7 @@ function main (sources) {
     steps: [{name: 'Printer Setup'}, {name: 'Material Setup'}, {name: 'Monitor Print'}, {name: 'Print Settings'}],
     currentStep: 0,
     printerListToggled: false,
+    selectedPrintTools : 'settings',
 
     t: x => ''// stand in
   })

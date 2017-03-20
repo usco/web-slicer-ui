@@ -39,7 +39,7 @@ import {withToolTip} from './widgets/utils'
 const init = makeDefaultReducer({})
 const PrevStep = (state, input) => ({ ...state, currentStep: Math.max(state.currentStep - 1, 0) })
 const NextStep = (state, input) => {
-  const activePrinter = R.find(R.propEq('id', state.printing.activePrinterId))(state.printing.printers)
+  const activePrinter = find(propEq('id', state.printing.activePrinterId))(state.printing.printers)
   if (activePrinter && activePrinter.hasOwnProperty('infos')) {
     return {...state, currentStep: Math.min(state.currentStep + 1, state.steps.length - 1)}
   }
@@ -50,8 +50,12 @@ const togglePrintersList = (state, input) => {
   return {...state, printerListToggled: input}
 }
 
+const selectPrintTools = (state, selectedPrintTools) => {
+  return {...state, selectedPrintTools}
+}
+
 const actions = {
-  init, PrevStep, NextStep, togglePrintersList,
+  init, PrevStep, NextStep, togglePrintersList, selectPrintTools,
 
   ...printingActions,
   ...entityActions
@@ -71,28 +75,34 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
   const activePrinter = find(propEq('id', state.printing.activePrinterId))(state.printing.printers)
   const newPrintEnabled = state.buildplate.entities.length > 0 && (state.printing.printerStatus !== undefined && state.printing.printerStatus.busy === false) && state.printing.activePrinterId !== undefined
 
-  //console.log('newPrintEnabled', newPrintEnabled)//, state.buildplate.entities.length > 0,(state.printing.printerStatus !== undefined && state.printing.printerStatus.busy === false),state.printing.activePrinterId !== undefined )
+  // console.log('newPrintEnabled', newPrintEnabled)//, state.buildplate.entities.length > 0,(state.printing.printerStatus !== undefined && state.printing.printerStatus.busy === false),state.printing.activePrinterId !== undefined )
 
   const prevStepUi = currentStep > 0 ? button('.PrevStep', 'Previous step') : ''
   const nextStepUi = (currentStep < steps.length - 1 && activePrinter && activePrinter.infos) ? button('.NextStep', 'Next step') : ''
 
   const startPrintTooltip = newPrintEnabled ? '' : 'please select a printer, add a file & be sure the printer is not already busy'
 
-  console.log(startPrintTooltip)
+  console.log('newPrintEnabled', newPrintEnabled, startPrintTooltip)
   const startPrintUi = withToolTip(
     button('.startPrint .temp', {attrs: {disabled: !newPrintEnabled}}, 'Start Print'),
    startPrintTooltip, 'top'
  )
+
+  const settingsSelected = state.selectedPrintTools === 'settings'
+  const monitorSelected = state.selectedPrintTools === 'monitor'
 
   return section('#wrapper', [
     section('#viewer', [viewer]),
     section('#entityInfos', entityInfos),
     section('#settings.settings', [
       printers(state),
-      // button('.startPrint .temp', 'print'),
       startPrintUi,
-      printSettings,
-      monitorPrint
+      settingsSelected ? printSettings : undefined,
+      monitorSelected ? monitorPrint : undefined,
+
+      button('.toPrintSettings' + (settingsSelected ? '.selected' : ''), 'settings'),
+      button('.toMonitorPrint' + (monitorSelected ? '.selected' : ''), 'monitor')
+      // button('.startPrint .temp', 'print'),
       // h1([steps[currentStep].name, prevStepUi, nextStepUi, startPrintUi]),
       // stepContents[currentStep]
     ])
@@ -125,16 +135,21 @@ function App (sources) {
   )
   .scan((acc, cur) => cur === true ? !acc : false, false)
 
+  const selectPrintTools$ = mostMerge(
+    _domEvent('.toPrintSettings', 'click').constant('settings'),
+    _domEvent('.toMonitorPrint', 'click').constant('monitor'),
+  )
+
   function isValidElementEvent (event) {
     let element = event.target || event.srcElement
     return !(element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA' || element.isContentEditable)
   }
 
   _domEvent('document', 'keydown')
-    .filter(x=>x.code === 'Backspace')
+    .filter(x => x.code === 'Backspace')
     .filter(isValidElementEvent)
-    .forEach(x=>console.log('keydown',x))
-  //object.addEventListener("keypress", myScript)
+    .forEach(x => console.log('keydown', x))
+  // object.addEventListener("keypress", myScript)
 
   const _printingIntents = printingIntents(sources)
   const _entityIntents = entityIntents(sources)//
@@ -143,7 +158,8 @@ function App (sources) {
   const actions$ = {
     PrevStep$: fromMost(PrevStep$),
     NextStep$: merge(fromMost(NextStep$)), //, fromMost(_printingIntents.SetActivePrinterInfos$.delay(1000))) // once we have the printerInfos , move to next step
-    togglePrintersList$: fromMost(togglePrintersList$)
+    togglePrintersList$: fromMost(togglePrintersList$),
+    selectPrintTools$: fromMost(selectPrintTools$)
   }
   // _domEvent('.settings', 'click').forEach(x=>console.log('test',x))
 
