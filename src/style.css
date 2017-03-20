@@ -283,7 +283,7 @@ div.disabled{
 
 /*viewer*/
 #viewer{
-  width: 100%;
+  width: 80%;
   min-height: 400px;
   flex-grow: 0;
   display:inline-block;
@@ -309,8 +309,8 @@ div.disabled{
   border: 1px solid var(--secondary-border-color);
   position: absolute;
   width: 200px;
-
 }
+
 .startPrint{
   bottom: 10px;
   right: 0px;
@@ -393,7 +393,9 @@ button:enabled:hover svg *{
 }
 
 button[disabled=disabled], button:disabled{
-  background: rgba(0, 0, 0, 0);
+  /*background: rgba(0, 0, 0, 0);*/
+  color: #c7c7c7;
+  font-style: italic;
 }
 
 button[disabled=disabled], button:disabled svg *{
@@ -556,11 +558,12 @@ overflow: auto;
 
 .MonitorPrint{
   position: absolute;
-top: 50px;
-right: 10px;
-width: 250px;
-background: white;
-padding-top: 10px;
+  top: 40px;
+  right: 10px;
+  width: 250px;
+  background: white;
+  padding-top: 10px;
+      border: 0.1px #dddddd solid;
 }
 
 .MonitorPrint .progressPercent{
@@ -584,6 +587,21 @@ padding-top: 10px;
 .MonitorPrint .temperatures li{
   text-align: center;
   padding: 5px;
+}
+
+.MonitorPrint .controls {
+  list-style: none;
+  display: flex;
+}
+
+.MonitorPrint .controls li{
+  text-align: center;
+  padding: 5px;
+}
+
+.MonitorPrint .controls li button{
+  padding: 2px;
+  width: 80px;
 }
 
 
