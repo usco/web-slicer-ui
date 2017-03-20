@@ -10,10 +10,11 @@ import drawPrintersList from './drawPrintersList'
 
 export default function printers (state) {
   const subItems = drawPrintersList(state)
-  
+
+  //tooltip: 'printers', tooltipPos: 'left', 
   const printersMenu = Menu({toggled: state.printerListToggled, contentPosition: 'bottom', arrow:false,
     wrapperKlass: 'printersMenu', klass: 'printerMenuToggle',
-    tooltip: 'printers', tooltipPos: 'left', content: subItems, name: 'printers'})
+    content: subItems, name: 'printers'})
 
   return printersMenu
 }
