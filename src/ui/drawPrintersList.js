@@ -1,9 +1,10 @@
 import classNames from 'classnames'
-import { div, span, button, li, ul, h2, section, table, th, tr, td, label } from '@cycle/dom'
+import { div, span, button, li, ul, h2, section, table, th, tr, td } from '@cycle/dom'
 import {propEq, find} from 'ramda'
 
 import {videoIconSvg, playIconSvg, pauseIconSvg} from './widgets/icons'
 import icon from './widgets/icon'
+import renderElipsisSpinner from './widgets/spinner/elipsisSpinner'
 
 export default function drawPrintersList (state) {
   const printers = table('.printersList', state.printing.printers
@@ -29,9 +30,15 @@ export default function drawPrintersList (state) {
 
       const pauseResumeButton = isClaimed ? (isPaused ? icon(playIconSvg) : icon(pauseIconSvg)) : ''
       const videoFramesButton = isClaimed ? icon(videoIconSvg) : ''
+      let printerBusy = true //state.printing.activePrinterId === printer.id && state.printing.printerStatus.busy //FIXME: how to do it per printer ?
+      if(state.printing.activePrinterId === printer.id)
+      {
+        printerBusy = state.printing.printerStatus.busy
+      }
 
       return tr(classes, {attrs: {'data-id': printer.id}}, [
         td(printerText),
+        td(printerBusy? 'busy': 'free'),
         /*td(isConnected ? 'connected' : 'not connected'),
         td([pauseResumeButton]),
 
@@ -49,13 +56,15 @@ export default function drawPrintersList (state) {
     })
   )
   const noPrinters = table('.printersList', [
-    tr([td('please wait fetching printers')])
+    tr('.empty',[
+      renderElipsisSpinner()
+    ])
+    //tr([td('please wait fetching printers')])
   ])
   const printerSetup = section('', [
     state.printing.printers.length > 0 ? printers : noPrinters
   ])
 
-  // console.log(activePrinter, state.activePrinter)
   const newPrintDisabled = state.buildplate.entities.length === 0 || state.printing.printerStatus.busy === true
   return printerSetup
 }
