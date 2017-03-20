@@ -20,7 +20,14 @@ export default function intent (sources, params) {
 
   // FIXME: temp workarounds
   // this is from printSettings
-  const SetQualityPreset$ = _domEvent('.SetQualityPreset', 'click').map(x => (x.currentTarget.dataset.index))
+  const SetQualityPreset$ = _domEvent('.SetQualityPreset', 'click')
+    /*.tap(e=>{
+      e.preventDefault()
+      e.stopPropagation()
+      return false
+    })
+    .tap(x=>console.log('SetQualityPreset',x.target))*/
+    .map(x => (x.target.parentNode.dataset.index))
   const ToggleBrim$ = _domEvent('.ToggleBrim', 'click').map(x => x.target.value)
   const ToggleSupport$ = _domEvent('.ToggleSupport', 'click').map(x => x.target.value)
 
