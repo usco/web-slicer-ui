@@ -37,7 +37,7 @@ export const SetPrinters = (state, printers) => {
   console.log('SetPrinters', printers)
   const sortByNameCaseInsensitive = sortBy(compose(toLower, prop('name')))
   printers = sortByNameCaseInsensitive(printers)
-  
+
   // upsert existing data when needed
   state.printing.printers.forEach(function (printer) {
     const newIndex = findIndex(propEq('id', printer.id))(printers)
@@ -91,8 +91,7 @@ export const RefreshPrintersList = (state, input) => ({ ...state, printing: {...
 
 export const PauseResumePrint = (state, input) => {
   console.log('PauseResumePrint')
-  // state.status === 'paused' ? 'running' : 'paused'
-  state = { ...state, print: {...state.print, paused: input} }
+  state = { ...state, printing: {...state.printing, print: {...state.printing.print, paused: input} } }
   return state
 }
 
