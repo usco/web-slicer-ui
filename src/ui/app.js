@@ -14,7 +14,7 @@ import EntityInfos from './entityInfos'
 
 import Viewer from './viewer'
 
-import * as R from 'ramda'
+import {find, propEq} from 'ramda'
 
 import {actions as printSettingsActions} from './printSettings'
 import {actions as monitorPrintActions} from './monitorPrint'
@@ -26,6 +26,8 @@ import {default as printingIntents} from '../core/printing/intents'
 import {default as entityIntents} from '../core/entities/intents'
 
 import printers from './printers'
+
+import {withToolTip} from './widgets/utils'
 
 // query printer for infos
 // => get printhead & material infos
@@ -65,12 +67,19 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
     printSettings,
     monitorPrint
   ]
-  const activePrinter = R.find(R.propEq('id', state.printing.activePrinterId))(state.printing.printers)
-  // console.log(activePrinter, state.activePrinter)
-  const newPrintDisabled = state.buildplate.entities.length === 0 || state.printing.printerStatus.busy === true
+  const activePrinter = find(propEq('id', state.printing.activePrinterId))(state.printing.printers)
+  const newPrintEnabled = state.buildplate.entities.length > 0 && state.printing.printerStatus.busy !== true && state.printing.activePrinterId !== undefined
+
+  console.log('newPrintEnabled', newPrintEnabled, state.buildplate.entities.length, state.printing.printerStatus.busy)
+
   const prevStepUi = currentStep > 0 ? button('.PrevStep', 'Previous step') : ''
   const nextStepUi = (currentStep < steps.length - 1 && activePrinter && activePrinter.infos) ? button('.NextStep', 'Next step') : ''
-  const startPrintUi = currentStep === steps.length - 1 ? button('.StartPrint', {attrs: {disabled: newPrintDisabled }}, 'Start Print') : ''
+
+  const startPrintTooltip = newPrintEnabled ? '' : 'please select a printer, add a file & be sure the printer is not already busy'
+  const startPrintUi = withToolTip(
+    button('.startPrint .temp', {attrs: {disabled: !newPrintEnabled }}, 'Start Print'),
+   startPrintTooltip, 'top'
+ )
 
   // <h1>{t('app_name')}</h1>
   return section('#wrapper', [
@@ -78,7 +87,8 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
     section('#entityInfos', entityInfos),
     section('#settings.settings', [
       printers(state),
-      button('.startPrint .temp', 'print'),
+      //button('.startPrint .temp', 'print'),
+      startPrintUi,
       printSettings,
       monitorPrint
       // h1([steps[currentStep].name, prevStepUi, nextStepUi, startPrintUi]),
