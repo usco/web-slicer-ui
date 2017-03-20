@@ -10,38 +10,40 @@ export default function drawPrintersList (state) {
     .map(function (printer) {
       const isSelected = state.printing.activePrinterId === printer.id
       const isClaimed = printer.claimed
+      const isConnected = printer.claimed // FIXME: for now reusing claimed state
       const isPaused = true
       const activePrinter = find(propEq('id', state.printing.activePrinterId))(state.printing.printers)
 
       const printerName = printer.friendlyName ? printer.friendlyName : printer.name
       const printerText = isSelected ? `${printerName} ${state.printing.printerStatus.message}` : printerName
 
+      const t0Temp = isConnected ? '190°C' : ''
+      const t1Temp = isConnected ? '205°C' : ''
+      const bedTemp = isConnected ? '65°C' : ''
+
       const classes = classNames({'.selected': isSelected, '.printerL': true})
 
-      /*const claimButtons = isClaimed // buttons to claim / unclaim printer
-        ? button('.unClaim .claimed', {attrs: {'data-id': printer.id}}, 'unClaim')
-        : button('.claim', {attrs: {'data-id': printer.id}}, 'claim')*/
       const claimToggler = isClaimed // buttons to claim / unclaim printer
-        ? td('.unClaim .claimed', {attrs: {'data-id': printer.id}}, 'unClaim')
-        : td('.claim', {attrs: {'data-id': printer.id}}, 'claim')
+        ? td('.claimer .unClaim .claimed', {attrs: {'data-id': printer.id}}, 'unClaim')
+        : td('.claimer .claim', {attrs: {'data-id': printer.id}}, 'claim')
 
       const pauseResumeButton = isClaimed ? (isPaused ? icon(playIconSvg) : icon(pauseIconSvg)) : ''
       const videoFramesButton = isClaimed ? icon(videoIconSvg) : ''
 
       return tr(classes, {attrs: {'data-id': printer.id}}, [
-        td([printerText]),
-        td(['connected']),
+        td(printerText),
+        /*td(isConnected ? 'connected' : 'not connected'),
         td([pauseResumeButton]),
 
         td([videoFramesButton]),
 
-        td(['190°C']),
-        td(['205°C']),
-        td(['65°C']),
+        td(t0Temp),
+        td(t1Temp),
+        td(bedTemp),*/
 
-        td([
+        /*td([
           span('.gnok', 'foobar')
-        ]),
+        ]),*/
         claimToggler
       ])
     })
