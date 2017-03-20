@@ -74,15 +74,12 @@ export function uploadAndStartPrint (id, params, file) {
 
 export function pausePrint (id) {
   return queryEndpoint(`/printers/${id}/print/pause`, {method: 'POST'})
-    .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
 }
 
 export function resumePrint (id) {
   return queryEndpoint(`/printers/${id}/print/resume`, {method: 'POST'})
-    .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
 }
 
 export function abortPrint (id) {
   return queryEndpoint(`/printers/${id}/print/abort`, {method: 'POST'})
-    .flatMapError(error => most.of({error: error}))// TODO: dispatch errors
 }
