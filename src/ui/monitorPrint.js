@@ -1,9 +1,9 @@
 import {find, propEq, lensPath, compose, view as rView, nth} from 'ramda'
-import {section, div, button, img, table, tr, td, h1, span, li ,ul} from '@cycle/dom'
+import {section, div, button, img, table, tr, td, h1, span, li, ul} from '@cycle/dom'
 import renderProgressBar from './widgets/ProgressBar'
 
 import {domEvent, makeStateAndReducers$} from '../utils/cycle'
-import {hotends, bed, jobInfos, formatTime} from '../core/printing/utils'
+import {hotends, bed, jobInfos, formatTime, timeRemaining, progress} from '../core/printing/utils'
 import {formatNumberTo} from '../utils/formatters'
 
 const init = (state) => {
@@ -24,26 +24,26 @@ const view = function (state) {
 
   const hTemps = hotends(activePrinter)
     .map((hotend, index) => `T${index}: ${hotend.temperature.current} / ${hotend.temperature.target} °C`)
-  const bedTemp = `Bed: ${bed(activePrinter).temperature.current} / ${bed(activePrinter).temperature.target} °C`
+  const bedTemp = isAvailable ? `Bed: ${bed(activePrinter).temperature.current} / ${bed(activePrinter).temperature.target} °C` : undefined
 
   const progressData = jobInfos(state.printing.printerStatus)
-  const timeLeft = formatTime(progressData.time_total - progressData.time_elapsed)
-  const percent = formatNumberTo(progressData.progress, 2)// progress percent in 0-1 range, to 2 decimals
+  const timeLeft = timeRemaining(state.printing.printerStatus)// formatTime(progressData.time_total - progressData.time_elapsed)
+  const percent = progress(state.printing.printerStatus) // progress percent in 0-1 range, to 2 decimals
 
   // only show detailed status if printer is active
   const temperaturesUi = isInactive ? undefined : ul('.temperatures', [li(nth(0, hTemps)), li(nth(1, hTemps)), li(bedTemp)])
-  const progressTimeUi = isInactive ? undefined : div('.timeLeft', `Time left: ${timeLeft.hours}h ${timeLeft.minutes}min`)
-  const progressBarColor = percent < 1 ? undefined : 'green'
+  const progressTimeUi = progressData === undefined ? undefined : div('.timeLeft', `Time left: ${timeLeft.hours}h ${timeLeft.minutes}min`)
+  const progressBarColor = percent < 1 ? undefined : '#88d128'
 
   const pauseResumeToggle = button('.pauseResume', state.print.paused ? 'play' : 'pause')
 
-  const controlLine = isAvailable ? div([pauseResumeToggle, button('.abort', 'abort')]) : undefined
+  const controlLine = isAvailable ? ul('.controls', [ li([pauseResumeToggle]), li([button('.abort', 'abort')])]) : undefined
 
   console.log(activePrinter, controlLine)
 
   return section('.MonitorPrint', [
     renderProgressBar({progress: percent, hideOnDone: false, color: progressBarColor}),
-    div('.progressPercent', `${percent*100}%`),
+    div('.progressPercent', `${percent * 100}%`),
     h1('.printStatus', state.printing.printerStatus.message),
     progressTimeUi,
     temperaturesUi,

@@ -1,5 +1,6 @@
 import * as R from 'ramda'
 import {compose, prop, propOr, path, nth, map, pathOr} from 'ramda'
+import {formatNumberTo} from '../../utils/formatters'
 
 export const pickExtruders = printerInfos => R.prop('extruders', R.head(R.prop('heads', printerInfos)))
 export const pickMaterials = extruders => R.map(R.path(['active_material', 'guid']), extruders)
@@ -34,7 +35,6 @@ export const bed = compose(
 )
 
 // for print jobs
-const progress = pathOr(0, ['progress'])
 const totalTime = pathOr(0, ['time_total'])
 const elapsedTime = pathOr(0, ['time_elapsed'])
 
@@ -44,8 +44,21 @@ export const jobInfos = compose(
     totalTime,
     elapsedTime
   }),*/
-  propOr({}, 'job')
+  propOr(undefined, 'job')
 )
+
+export const progress = compose(
+  progress => formatNumberTo(progress, 2),
+  pathOr(0, ['progress']),
+  jobInfos
+)
+
+//FIXME: implement in a nice functional manner
+export const timeRemaining = compose(
+  progressData => formatTime(totalTime(progressData) - elapsedTime(progressData)),
+  jobInfos,
+)
+
 export function formatTime (time) {
   const hours = Math.floor(time / 3600)
   time -= hours * 3600
