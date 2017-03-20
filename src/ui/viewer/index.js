@@ -54,6 +54,10 @@ function setup (regl, container, defaults, extState$) {
 
   const baseInteractions = interactionsFromEvents(container)
   const gestures = pointerGestures(baseInteractions)
+  const singleTaps$ = gestures.taps.filter(x => x.nb === 1).map(e => e.list).map(e => e[0])
+
+  /*gestures.holds.forEach(x=>console.log('holds',x))
+  singleTaps$.forEach(e=>console.log('singleTaps', e))*/
 
   const projection$ = elementSize(container)
   const focuses$ = never()
@@ -82,14 +86,14 @@ function setup (regl, container, defaults, extState$) {
           const draw = visuals.drawFn(regl) // one command per mesh, but is faster
           visuals = {...visuals, draw, initialized: true}
         }
-        return {...entity, visuals}
+        const meta = {...entity.meta, selected: buildplate.selections.instIds.indexOf(entity.meta.id) > -1}
+        return {...entity, visuals, meta}
       })
     })
 
   const camera$ = controlsStream({gestures}, {settings: {...cameraDefaults, ...defaults.camera}, camera: defaults.camera}, focuses$, entityFocuses$, projection$)
 
-  // gestures.taps
-  const picks$ = picksStream(fromEvent('click', container), projection$, camera$, entities$)
+  const picks$ = picksStream(singleTaps$, projection$, camera$, entities$)
 
   const visualState$ = makeVisualState(entities$, camera$).multicast()
 
@@ -111,7 +115,7 @@ function setup (regl, container, defaults, extState$) {
 export default function GLComponent (sources) {
   const defaults = {
     camera: {
-      position: [250, 200, 240],
+      position: [-250, 200, 240],
       target: [0, 0, 0],
       fov: Math.PI / 4,
       aspect: 1,
@@ -129,7 +133,7 @@ export default function GLComponent (sources) {
     outOfBoundsColor: [0.55, 0.55, 0.55, 0.8],
     selectionColor: [0.7, 0, 0, 1],
     background: {
-      color: [0.96, 0.96, 0.96, 0.3]
+      color: [1,1,1,1]//[0.2,0.2,0.2,1]//[0.368, 0.376, 0.435, 1.0]//[0.96, 0.96, 0.96, 0.3]
     }
   }
   const init = makeDefaultReducer({})
