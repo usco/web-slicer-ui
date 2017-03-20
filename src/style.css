@@ -396,6 +396,7 @@ button[disabled=disabled], button:disabled{
   /*background: rgba(0, 0, 0, 0);*/
   color: #c7c7c7;
   font-style: italic;
+  cursor: default;
 }
 
 button[disabled=disabled], button:disabled svg *{
@@ -421,7 +422,6 @@ svg {
 .printersList{
   list-style: none;
   width: 200px;
-  min-height: 40px;
   /*min-width: 400px;*/
   margin-left: 0px;
   padding-left: 0px;
@@ -474,12 +474,40 @@ svg {
   box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.5);
 }
 
+.printersList tr.empty{
+  background: white;
+  padding: 0px;
+}
+
 .printersList tr:hover{
   box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.0);
 }
 
 .printersList tr:hover td{
   /*background: var(--highlightColor);*/
+}
+
+.printersList td {
+  padding: 5px;
+}
+
+.printersList td:nth-child(1) {
+  background: #607D8B;
+  color: white;
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.5);
+}
+
+.printersList tr:hover td:nth-child(1) {
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.0);
+}
+
+.printersList td:nth-child(3) {
+  padding: 0px;
+  padding-left: 5px;
+}
+
+.printersList tr:hover .claimed{
+  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.0);
 }
 
 .gnok{
@@ -511,29 +539,6 @@ overflow: auto;
 }
 
 
-.printersList td {
-  padding: 5px;
-}
-
-.printersList td:nth-child(1) {
-  background: #607D8B;
-  color: white;
-  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.5);
-}
-
-.printersList tr:hover td:nth-child(1) {
-  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.0);
-}
-
-.printersList td:nth-child(3) {
-  padding: 0px;
-  padding-left: 5px;
-}
-
-.printersList tr:hover .claimed{
-  box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.0);
-}
-
 
 .printersMenu{
   position: absolute;
@@ -543,9 +548,11 @@ overflow: auto;
 .printersMenu .menuToggler{
   /*position: absolute;;
   bottom:40px;
-  right: 0px;*/
-  width: 200px;
+  right: 0px;
   padding: 2px 5px 2px 5px;
+  */
+  width: 200px;
+
 }
 
 .printersMenu .menuToggler{
@@ -559,7 +566,7 @@ overflow: auto;
 .MonitorPrint{
   position: absolute;
   top: 40px;
-  right: 10px;
+  right: 250px;
   width: 250px;
   background: white;
   padding-top: 10px;
@@ -573,6 +580,7 @@ overflow: auto;
 .MonitorPrint .printStatus{
   text-align: center;
   text-transform: uppercase;
+  padding: 5px;
 }
 
 .MonitorPrint .timeLeft{
