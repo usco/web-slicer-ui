@@ -1,4 +1,5 @@
 import {domEvent} from '../../../utils/cycle'
+import {merge} from 'most'
 
 export default function intent (sources, params) {
   const _domEvent = domEvent.bind(null, sources)
@@ -21,15 +22,20 @@ export default function intent (sources, params) {
   // FIXME: temp workarounds
   // this is from printSettings
   const SetQualityPreset$ = _domEvent('.SetQualityPreset', 'click')
-    /*.tap(e=>{
+    /* .tap(e=>{
       e.preventDefault()
       e.stopPropagation()
       return false
     })
-    .tap(x=>console.log('SetQualityPreset',x.target))*/
+    .tap(x=>console.log('SetQualityPreset',x.target)) */
     .map(x => (x.target.parentNode.dataset.index))
-  const ToggleBrim$ = _domEvent('.ToggleBrim', 'click').map(x => x.target.value)
-  const ToggleSupport$ = _domEvent('.ToggleSupport', 'click').map(x => x.target.value)
+  const ToggleBrim$ = _domEvent('.ToggleBrim', 'click').map(x => x.target.checked)
+  const ToggleSupport$ = _domEvent('.ToggleSupport', 'click').map(x => x.target.checked)
+  const SetSupportExtruder$ = merge(
+    _domEvent('.supportExtruder', 'click').map(x => x.target.value),
+    ToggleSupport$.map(toggled => toggled ? 1 : -1)
+  )
+  // .tap(x=>console.log('ToggleSupport',x))
 
   return {
     RefreshPrintersList$,
@@ -43,6 +49,7 @@ export default function intent (sources, params) {
 
     SetQualityPreset$,
     ToggleBrim$,
-    ToggleSupport$
+    ToggleSupport$,
+    SetSupportExtruder$
   }
 }

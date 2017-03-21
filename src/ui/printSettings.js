@@ -40,7 +40,13 @@ const SetLayerHeight = (state, input) => {
   return state
 }
 
-const actions = {init, ToggleBrim, ToggleSupport, SetLayerHeight, SetQualityPreset}
+const SetSupportExtruder = (state, supportExtruder) => {
+  console.log('SetSupportExtruder', supportExtruder)
+  state = assocPath(['print', 'settings', 'supportExtruder'], supportExtruder, state)
+  return state
+}
+
+const actions = {init, ToggleBrim, ToggleSupport, SetLayerHeight, SetQualityPreset, SetSupportExtruder}
 
 const view = (state) => {
   // console.log('state for PrintSettings',state)
@@ -82,7 +88,7 @@ const view = (state) => {
 
   const supportMaterialsUi = supportMaterials.map(function (supportMaterial, index) {
     return div([
-      input({props: {type: 'radio', name: 'supportMaterials', value: supportMaterial, checked: (supportMaterial === selectedSupportMaterial)}}),
+      input('.supportExtruder', {props: {type: 'radio', name: 'supportMaterials', value: index+1, checked: (supportMaterial === selectedSupportMaterial)}}),
       `Extruder ${index + 1} ${supportMaterial}`
     ])
   })
