@@ -3,12 +3,13 @@
   "version": "0.0.0",
   "description": "",
   "repository": "https://github.com/usco/usco-web-slicer-ui",
-  "main": "src/index.js",
+  "main": "main.js",
   "scripts": {
     "test": "ava './src/utils/**/*.test.js' --require babel-register --verbose",
     "build": "browserify src/index.js -g [envify --NODE_ENV 'production'] -o dist/index.js -t browserify-css  -t [babelify browserify minifyify]",
     "start-dev": "budo src/index.js:dist/index.js --port=8080 --live -- -t browserify-css -t babelify -t brfs -t envify",
     "start-app": "electron main.js",
+    "package-app":"electron-packager . --overwrite",
     "release-patch": "git checkout master; npm version patch && npm run build; git commit -a -m 'chore(dist): built dist/'; git push origin master --tags ",
     "release-minor": "git checkout master; npm version minor && npm run build; git commit -a -m 'chore(dist): built dist/'; git push origin master --tags ",
     "release-major": "git checkout master; npm version major && npm run build; git commit -a -m 'chore(dist): built dist/'; git push origin master --tags "
@@ -67,7 +68,7 @@
     "browserify": "^13.0.0",
     "budo": "^9.4.7",
     "electron": "^1.4.15",
-    "electron-packager": "^8.5.1",
+    "electron-packager": "^8.6.0",
     "envify": "^4.0.0",
     "minifyify": "^7.3.3",
     "rollupify": "^0.3.4",
