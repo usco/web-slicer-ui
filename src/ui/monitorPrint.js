@@ -34,7 +34,7 @@ const view = function (state) {
   const progressData = jobInfos(state.printing.printerStatus)
   const timeLeft = timeRemaining(state.printing.printerStatus)// formatTime(progressData.time_total - progressData.time_elapsed)
   const percent = progress(state.printing.printerStatus) // progress percent in 0-1 range, to 2 decimals
-  const message = isAvailable ? state.printing.printerStatus.message : 'please select a printer from the printers list'
+  const message = state.printing.activePrinterId ? state.printing.printerStatus.message : 'please select a printer from the printers list'
 
   // only show detailed status if printer is active
   const temperaturesUi = isInactive ? undefined : ul('.temperatures', [li(nth(0, hTemps)), li(nth(1, hTemps)), li(bedTemp)])
