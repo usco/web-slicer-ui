@@ -17,8 +17,8 @@ import makeDrawPrintableArea from '@usco/render-utils/dist/drawPrintableArea'
 module.exports = function drawEnclosure (regl, params) {
   const {machine_disallowed_areas, machine_volume, name} = params
 
-  const drawGrid = prepareDrawGrid(regl, { size: machine_volume, ticks: 50, centered: true })
-  const drawGridDense = prepareDrawGrid(regl, { size: machine_volume, ticks: 10, centered: true })
+  const drawGrid = prepareDrawGrid(regl, { size: machine_volume, ticks: 50, centered: true, lineWidth: 1})
+  const drawGridDense = prepareDrawGrid(regl, { size: machine_volume, ticks: 10, centered: true, lineWidth: 1})
   const gridOffset = model({pos: [0, 0, 0.1]})
   const gridOffsetD = model({pos: [0, 0, 0.3]})
 
@@ -27,7 +27,7 @@ module.exports = function drawEnclosure (regl, params) {
   const triMatrix = model({ pos: [-triSize.width / 2, machine_volume[1] * 0.5, 0.1] })
 
   const containerSize = [machine_volume[0], machine_volume[1], machine_volume[2]]
-  const drawCuboid = prepareDrawCuboid(regl, {size: containerSize})
+  const drawCuboid = prepareDrawCuboid(regl, {size: containerSize, lineWidth: 1})
   const containerCuboidMatrix = model({ pos: [0, 0, machine_volume[2] * 0.5] })
 
   const buildPlaneGeo = {
@@ -63,12 +63,12 @@ module.exports = function drawEnclosure (regl, params) {
   const drawDrawOutofBoundsPlane = makeDrawPrintableArea(regl, {machineParams: params, color: hexToRgba('FF660019')})
 
   return ({view, camera, outOfBoundsEntities}) => {
-    drawGrid({view, camera, color: [0, 0, 0, 0.2], model: gridOffset})
-    drawGridDense({view, camera, color: [0, 0, 0, 0.06], model: gridOffsetD})
+    drawGrid({view, camera, color: [0, 0, 0, 0.18], model: gridOffset})
+    drawGridDense({view, camera, color: [0, 0, 0, 0.08], model: gridOffsetD})
 
     // drawTri({view, camera, color: [0, 0, 0, 0.5], model: triMatrix})
     drawBuildPlane({view, camera, color: [1, 1, 1, 1], model: buildPlaneModel})
-    drawCuboid({view, camera, color: [0, 0, 0.0, 0.5], model: containerCuboidMatrix})
+    drawCuboid({view, camera, color: [0, 0, 0.0, 0.08], model: containerCuboidMatrix})
     // dissalowedVolumes.forEach(x => x({view, camera, color: [1, 0, 0, 1]}))
     // logoPlane({view, camera, color: [0.4, 0.4, 0.4, 1], model: logoMatrix2})
     drawLogoMesh({view, camera, color: [0, 0, 0, 0.5], model: logoMatrix})
