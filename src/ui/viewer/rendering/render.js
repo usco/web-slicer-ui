@@ -50,7 +50,7 @@ module.exports = function render (regl, params) {
           entity.visuals.draw({view, camera, color, model: entity.transforms.matrix, printableArea})
 
           // helper to display the boundingBox
-          drawBoundingBox(regl, entity.bounds)({view, camera, model: mat4.identity([])})
+          //drawBoundingBox(regl, entity.bounds)({view, camera, model: mat4.identity([])})
         })
 
     /* entities.map(function (entity) {
