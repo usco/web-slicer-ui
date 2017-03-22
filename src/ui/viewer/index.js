@@ -131,7 +131,7 @@ export default function GLComponent (sources) {
       scale: 1
     },
     outOfBoundsColor: [0.55, 0.55, 0.55, 0.8],
-    selectionColor: [0.7, 0, 0, 1],
+    selectionColor: [0.78, 0.6, 0.2, 1], // nice yellow [0.78, 0.6, 0.2, 1],
     background: {
       color: [1,1,1,1]//[0.2,0.2,0.2,1]//[0.368, 0.376, 0.435, 1.0]//[0.96, 0.96, 0.96, 0.3]
     }
