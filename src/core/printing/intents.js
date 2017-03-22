@@ -102,7 +102,7 @@ export default function intents (sources) {
   const SetActivePrinterInfos$ = SelectPrinter$
     .combine(function (id, cameraPollRate) {
       return constant(id, periodic(cameraPollRate))
-        .until(baseActions.SelectPrinter$)// infos images for the current printer id until we select another
+        .until(SelectPrinter$)// get infos for the current printer id until we select another
     }, cameraPollRate$)
     .switch()
     .flatMap(function (id) {
@@ -115,9 +115,9 @@ export default function intents (sources) {
 
   const SetCameraFrame$ = SelectPrinter$
     .delay(1000)
-    .map(function (id, cameraPollRate) {
+    .combine(function (id, cameraPollRate) {
       return constant(id, periodic(cameraPollRate))
-        .until(baseActions.SelectPrinter$)// get images for the current printer id until we select another
+        .until(SelectPrinter$)// get camera frame for the current printer id until we select another
     }, cameraPollRate$)
     .switch()
     .flatMap(function (id) {
@@ -132,7 +132,7 @@ export default function intents (sources) {
     .delay(1000)
     .combine(function (id, cameraPollRate) {
       return constant(id, periodic(cameraPollRate))
-        .until(baseActions.SelectPrinter$)// get status for the current printer id until we select another
+        .until(SelectPrinter$)// get status for the current printer id until we select another
     }, cameraPollRate$)
     .switch()
     .flatMap(function (id) {
