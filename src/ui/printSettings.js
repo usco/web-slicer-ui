@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import {domEvent, makeStateAndReducers$} from '../utils/cycle'
-import { div, button, li, ul, h1, h2, span, section, header, form, input } from '@cycle/dom'
+import { div, button, li, ul, h1, h2, span, section, header, form, input, label } from '@cycle/dom'
 import {assocPath, path} from 'ramda'
 
 import {withToolTip} from './widgets/utils'
@@ -84,12 +84,14 @@ const view = (state) => {
     ])
   })
 
-  const supportMaterials = ['pva', 'pla']
+  const supportMaterials = ['', '']// 'pva', 'pla']
 
   const supportMaterialsUi = supportMaterials.map(function (supportMaterial, index) {
     return div([
-      input('.supportExtruder', {props: {type: 'radio', name: 'supportMaterials', value: index+1, checked: (supportMaterial === selectedSupportMaterial)}}),
-      `Extruder ${index + 1} ${supportMaterial}`
+      label([
+        input(`.supportExtruder`, {props: {type: 'radio', name: 'supportMaterials', value: index + 1, checked: (supportMaterial === selectedSupportMaterial)}}),
+        `Extruder ${index + 1} ${supportMaterial}`
+      ])
     ])
   })
 
