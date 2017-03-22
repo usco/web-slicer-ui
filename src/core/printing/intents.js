@@ -22,6 +22,16 @@ export default function intents (sources) {
   const baseActions = mergeActionsByName(actionsSources)
   const state$ = imitateXstream(sources.onion.state$).skipRepeats()
 
+  const printers$ = state$.map(state => state.printing.printers).skipRepeats().multicast()
+
+  // only select printers if they are actually claimed
+  const SelectPrinter$ = withLatestFrom((id, printers) => {
+    const printer = find(propEq('id', id), printers)
+    return printer.claimed ? id : undefined
+  }, baseActions.SelectPrinter$, [printers$])
+    .filter(x => x !== undefined)
+    .multicast()
+
   // helper function to fetch the 'friendly names' of the claimed printers
   function friendlyNames (printers) {
     function getName (printer) {
@@ -36,7 +46,7 @@ export default function intents (sources) {
 
   const SetPrinters$ = merge(
     baseActions.RefreshPrintersList$,
-    state$.map(state => state.printing.settings.printersPollRate).skipRepeats()
+    state$.map(state => state.printing.settings.printersPollRate).skipRepeats().multicast()
     .map(function (pollRate) { // refresh printers list every pollRate seconds
       return constant(null, periodic(pollRate))
     })
@@ -72,7 +82,7 @@ export default function intents (sources) {
     }, [claimedPrinters$, allPrinters$])
   })
 
-  const SetActivePrinterSystem$ = baseActions.SelectPrinter$
+  const SetActivePrinterSystem$ = SelectPrinter$
     .flatMap(printerSystem)
     .filter(x => x !== undefined)
     .map(x => x.response)
@@ -80,21 +90,20 @@ export default function intents (sources) {
 
   const ClaimPrinter$ = baseActions.ClaimPrinter$
     .flatMap(claimPrinter)
-    .map(!has('error'))
+    .map(x => !has('error')(x))
 
   const UnClaimPrinter$ = baseActions.UnClaimPrinter$
     .flatMap(unclaimPrinter)
-    .map(has('error'))
+    .map(x => has('error')(x))
 
   // camera feed
-  const cameraPollRate$ = state$.map(state => state.printing.settings.cameraPollRate).skipRepeats()
+  const cameraPollRate$ = state$.map(state => state.printing.settings.cameraPollRate).skipRepeats().multicast()
 
-  const SetActivePrinterInfos$ = baseActions.SelectPrinter$
-    .combine((id, cameraPollRate) => ({cameraPollRate, id}), cameraPollRate$)
-    .map(function ({id, cameraPollRate}) {
+  const SetActivePrinterInfos$ = SelectPrinter$
+    .combine(function (id, cameraPollRate) {
       return constant(id, periodic(cameraPollRate))
-        .until(baseActions.SelectPrinter$)// get images for the current printer id until we select another
-    })
+        .until(baseActions.SelectPrinter$)// infos images for the current printer id until we select another
+    }, cameraPollRate$)
     .switch()
     .flatMap(function (id) {
       return printerInfos(id)
@@ -104,13 +113,12 @@ export default function intents (sources) {
     .map(x => x.response)
     .multicast()
 
-  const SetCameraFrame$ = baseActions.SelectPrinter$
+  const SetCameraFrame$ = SelectPrinter$
     .delay(1000)
-    .combine((id, cameraPollRate) => ({cameraPollRate, id}), cameraPollRate$)
-    .map(function ({id, cameraPollRate}) {
+    .map(function (id, cameraPollRate) {
       return constant(id, periodic(cameraPollRate))
         .until(baseActions.SelectPrinter$)// get images for the current printer id until we select another
-    })
+    }, cameraPollRate$)
     .switch()
     .flatMap(function (id) {
       return printerCamera(id)
@@ -120,13 +128,12 @@ export default function intents (sources) {
     .map(formatImageData.bind(null, 'blob', 'img'))
 
   // for now uses same polling as camera
-  const SetPrinterStatus$ = baseActions.SelectPrinter$
+  const SetPrinterStatus$ = SelectPrinter$
     .delay(1000)
-    .combine((id, cameraPollRate) => ({cameraPollRate, id}), cameraPollRate$)
-    .map(function ({id, cameraPollRate}) {
+    .combine(function (id, cameraPollRate) {
       return constant(id, periodic(cameraPollRate))
-        .until(baseActions.SelectPrinter$)// get images for the current printer id until we select another
-    })
+        .until(baseActions.SelectPrinter$)// get status for the current printer id until we select another
+    }, cameraPollRate$)
     .switch()
     .flatMap(function (id) {
       return printerStatus(id)
@@ -167,7 +174,7 @@ export default function intents (sources) {
       const data = formatDataForPrint(state.buildplate.entities)
       const file = new Blob([data], {type: 'application/sla'})
       const printSettings = state.print.settings
-      const machineSettings = {type: activePrinter.variant || 'ultimaker3'} //'ultimaker3' }
+      const machineSettings = {type: activePrinter.variant || 'ultimaker3'} // 'ultimaker3' }
 
       // for debug purpuses only
       /* function download (name) {
@@ -179,44 +186,26 @@ export default function intents (sources) {
       console.log('data for print', data, file)
       download('foo.stl') */
 
-      /*const printParams = {
-        filename: 'test.stl',
-        slicing_quality: 'draft', // draft|fast|normal|high
-        slicing_adhesion: false,
-        slicing_support_extruder: -1, // -1,1,2
-        machine_type: 'ultimaker3',
-        material_guid: materials[0],
-        mesh_translations: true,
-
-        mesh_rotation_matrix: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-        mesh_position_x: 0,
-        mesh_position_y: 0,
-        mesh_position_z: 0
-      }*/
-
       function generateCloudSlicerOptions (printSettings, machineSettings, materials) {
-       return {
-         slicing_quality: printSettings.qualityPreset,
-         slicing_adhesion: printSettings.brim.toggled,
-         slicing_support_extruder: printSettings.supportExtruder, // 1,2, -1
+        return {
+          slicing_quality: printSettings.qualityPreset,
+          slicing_adhesion: printSettings.brim.toggled,
+          slicing_support_extruder: printSettings.supportExtruder, // 1,2, -1
 
-         machine_type: machineSettings.type,
-         material_guid: materials[0],
+          machine_type: machineSettings.type,
+          material_guid: materials[0],
 
          // model_file: modelFile,
-         filename: 'test.stl',
+          filename: 'test.stl',
 
-         mesh_translations: true,
-         mesh_rotation_matrix: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-         mesh_position_x: 0,
-         mesh_position_y: 0,
-         mesh_position_z: 0
-       }
-     }
-     const printParams = generateCloudSlicerOptions(printSettings, machineSettings, materials)
-     console.log('CloudSlicerOptions', printParams)
-
-     //throw new Error('mlkmlk')
+          mesh_translations: true,
+          mesh_rotation_matrix: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+          mesh_position_x: 0,
+          mesh_position_y: 0,
+          mesh_position_z: 0
+        }
+      }
+      const printParams = generateCloudSlicerOptions(printSettings, machineSettings, materials)
 
       return uploadAndStartPrint(state.printing.activePrinterId, printParams, file)
         .map(response => ({success: true, message: 'print started'}))
@@ -225,11 +214,12 @@ export default function intents (sources) {
         })
     })
 
-  /* Pause & resume*/
+  /* Pause & resume */
   const requestPauseResumePrint$ = baseActions.PauseResumePrint$
     .scan((state, newValue) => !state, false)
 
-  const responsePauseResumePrint$ = withLatestFrom((paused, printerId) => ({paused, printerId}), requestPauseResumePrint$, [state$.map(state => state.printing.activePrinterId).skipRepeats()])
+  const responsePauseResumePrint$ = withLatestFrom((paused, printerId) =>
+    ({paused, printerId}), requestPauseResumePrint$, [state$.map(state => state.printing.activePrinterId).skipRepeats()])
    .flatMap(function ({paused, printerId}) {
      const call = paused ? pausePrint : resumePrint
      return call(printerId)
@@ -253,6 +243,7 @@ export default function intents (sources) {
     ClaimPrinter$,
     UnClaimPrinter$,
 
+    SelectPrinter$,
     PauseResumePrint$,
 
     printStarted$,
@@ -261,27 +252,3 @@ export default function intents (sources) {
 
   return {...baseActions, ...refinedActions}
 }
-
-/* most.merge(
-  imitateXstream(_domEvent('.RefreshPrintersList', 'click')),
-  most.of(null)
-)
-.combine((_, state) => ({state}), state$.map(state => state. settings).skipRepeats())
-.flatMap(function ({state}) { // refresh printers list every 30 seconds
-  console.log('state changed', state)
-  return most.constant(null, most.periodic(state.printing.printersPollRate))
-}).forEach(x=>console.log('combined state stuff',x )) */
-
-// not sure how to deal with this one
-/* const modelUri$ = most.merge(
-sources.adressBar,
-sources.window.modelUri$
-)
-.flatMapError(function (error) {
-  // console.log('error', error)
-  modelLoaded(false) // error)
-  return just(null)
-})
-.filter(x => x !== null)
-.multicast()
-*/
