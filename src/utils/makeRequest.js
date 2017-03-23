@@ -23,7 +23,7 @@ module.exports = function makeRequest (uri, options) {
       }
       return of(response)
     })
-    .tap(x => console.log('response', x))
+    //.tap(x => console.log('response', x))
 }
 
 /* module.exports = function makeRequest (uri, options) {
