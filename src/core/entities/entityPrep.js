@@ -6,6 +6,7 @@ import { drawStaticMesh2 as drawStaticMesh } from '@usco/render-utils'
 import {generateUUID} from '../../utils/utils'
 import applyMat4ToGeometry from '../../utils/geometry/applyMat4ToGeometry'
 import meshReindex from 'mesh-reindex'
+import { computeBounds } from '@usco/bounds-utils'
 
 import mat4 from 'gl-mat4'
 /* Pipeline:
@@ -25,11 +26,15 @@ export default function entityPrep (rawModelData$) {
       const geometry = centerGeometry(data.geometry, data.bounds, data.transforms)
       return Object.assign({}, data, {geometry})
     })
-    .map(function (data) {//offset geometry to rest on 'top' of the x/y plane but NOT the transforms
+    .map(function (data) { // offset geometry to rest on 'top' of the x/y plane but NOT the transforms
       const geometry = applyMat4ToGeometry(data.geometry, mat4.translate([], mat4.create(), [0, 0, data.bounds.size[2] * 0.5]))
-      return {...data, geometry}
+      // compute geometry bounds
+      const bounds = computeBounds({geometry})
+      // bounds = applyMat4ToAABB(entity.transforms.matrix, bounds)
+      return {...data, geometry: {...geometry, bounds}}
     })
     .map(injectBounds)
+
     /* .map(function (data) {
       let transforms = Object.assign({}, data.transforms, offsetTransformsByBounds(data.transforms, data.bounds))
       const entity = Object.assign({}, data, {transforms})
