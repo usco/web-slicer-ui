@@ -4,7 +4,13 @@ import {imitateXstream} from '../../../utils/cycle'
 
 export default function intent (sources, params) {
   return {
-    selectEntities$: imitateXstream(sources.events).filter(x => x.type === 'picks')
-      .map(e => e.data.map(path(['entity', 'meta', 'id'])))
+    selectEntities$: imitateXstream(sources.events)
+      .filter(x => x.type === 'picks')
+      .map(e => e.data.map(path(['entity', 'meta', 'id']))),
+
+    changeBounds$: imitateXstream(sources.events)
+      .filter(x => x.type === 'changeBounds')
+      .map(x => x.data)
+
   }
 }

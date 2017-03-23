@@ -25,7 +25,7 @@ export function selectEntities (state, selections) {
 
 // transforms etc
 export function changeTransforms (state, transforms) {
-  console.log('transforms', transforms, state.buildplate.entities)
+  //console.log('transforms', transforms[0].value, state.buildplate.entities)
   const entities = updateComponents(transformDefaults, state.buildplate.entities, transforms)
     .map(entity => injectTMatrix(entity, false))
     .map(entity => {
@@ -68,3 +68,5 @@ export function toggleUniformScaling (state, uniformScaling) {
   console.log('uniformScaling', uniformScaling)
   return {...state, buildplate: {...state.buildplate, settings: {...state.buildplate.settings, uniformScaling}}}
 }
+
+export const changeBounds = (state, x)=>state

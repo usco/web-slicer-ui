@@ -34,14 +34,10 @@ export default function intents (sources) {
       return current === newValue ? undefined : newValue
     })
 
-  function withLatestFrom (fn, otherStreams, stream$) {
-    console.log(stream$, fn, otherStreams)
-    return sample(fn, stream$, ...otherStreams)
-  }
-
   const state$ = imitateXstream(sources.onion.state$).skipRepeats()
   const entitiesAndSelections$ = state$.map(state => ({selections: state.buildplate.selections.instIds, entities: state.buildplate.entities, settings: state.buildplate.settings}))
 
+  // transforms
   const changeTransforms$ = sample(function (changed, {entities, selections, settings}) {
     if (!selections || selections.length === 0) {
       return {value: undefined} // FIXME: fixes a weird bug about selection loss
@@ -55,6 +51,7 @@ export default function intents (sources) {
 
     return {value: avg, trans: changed.trans, ids: selections, settings}
   }, baseActions.changeTransforms$, baseActions.changeTransforms$, entitiesAndSelections$)
+    .merge(baseActions.changeBounds$)
     // .merge(scaleFromBounds$)
     .filter(x => x.value !== undefined)// if invalid data, ignore
     .map(spreadToAll(['value', 'trans', 'settings']))

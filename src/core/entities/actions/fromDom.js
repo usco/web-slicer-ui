@@ -26,22 +26,20 @@ export default function intent (sources, params) {
     _domEvent('.toScaleMode', 'click').constant('scale'),
     _domEvent('.toMirrorMode', 'click').constant('mirror'),
 
-    //_domEvent(':not(#entityInfos)', 'click').constant(undefined),
+    // _domEvent(':not(#entityInfos)', 'click').constant(undefined),
 
-    _domEvent('#viewer', 'click').constant(undefined),// to disable active tool by clicking 'outside'
+    _domEvent('#viewer', 'click').constant(undefined), // to disable active tool by clicking 'outside'
     //_domEvent('#settings', 'click').constant(undefined)// to disable active tool by clicking 'outside'
-
   )
 
+  //NOTE: do not use input events for this, annoying spammy, does not let you type
   const changeTransforms$ = merge(
     _domEvent('.transformsInput', 'change'),
     _domEvent('.transformsInput', 'blur'),
-    _domEvent('.transformsInput', 'input'),
 
     // special one for scaling
     _domEvent('.transformsInputPercent', 'change'),
     _domEvent('.transformsInputPercent', 'blur'),
-    _domEvent('.transformsInputPercent', 'input')
   )
   .map(function (e) {
     let val = parseFloat(e.target.value)
@@ -52,12 +50,12 @@ export default function intent (sources, params) {
     if (trans === 'rot') {
       val = toRadian(val)
     } else if (trans === 'sca') {
-      val = extra === 'percent' ? val / 100 : val
+      val = extra === 'percent' ? val / 100 : undefined
     }
-
+    //return {val: undefined}
     return {val, trans, extra, idx: parseInt(idx, 10)}
   })
-  // .filter(exists)
+  .filter(x => x.val !== undefined)
   // .filter(data => isNumber(data.val))
   .skipRepeats()
   .multicast()
