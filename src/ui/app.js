@@ -82,7 +82,7 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
 
   const startPrintTooltip = newPrintEnabled ? '' : 'please select a printer, add a file & be sure the printer is not already busy'
 
-  console.log('newPrintEnabled', newPrintEnabled, startPrintTooltip)
+  //console.log('newPrintEnabled', newPrintEnabled, startPrintTooltip)
   const startPrintUi = withToolTip(
     button('.startPrint .temp', {attrs: {disabled: !newPrintEnabled}}, 'Start Print'),
    startPrintTooltip, 'top'
@@ -192,7 +192,7 @@ function App (sources) {
   return {
     DOM: vdom$,
     onion: _reducer$,
-    events: viewer.events
+    events: merge(viewer.events, entityInfos.events)
   }
 }
 
