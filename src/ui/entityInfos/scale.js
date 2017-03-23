@@ -27,27 +27,9 @@ export function renderScaleUi (state) {
   const precision = 2
   const min = 0.01
 
-  // match entities by id from the selections list
-  const idMatch = entity => selections.instIds.indexOf(entity.meta.id) > -1
-  const transforms = pluck('transforms')(filter(idMatch, entities))
-  const bounds = pluck('bounds')(filter(idMatch, entities))
-
-  const avgPcent = pluck('sca')(transforms)
-    .reduce(function (acc, cur) {
-      return !acc ? cur : [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]].map(x => x * 0.5)
-    }, undefined)
-
-  const avg = pluck('size')(bounds)
-    .reduce(function (acc, cur) {
-      return !acc ? cur : [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]].map(x => x * 0.5)
-    }, undefined)
-
-  const valuePercents = (avgPcent || [0, 0, 0]).map(x => x * 100)
-  const values = (avg || [0, 0, 0]).map((x, index) => x * valuePercents[index] / 100)
-//
   const subTools = span('.scalingSubTools .twoColumns', [
     div('.transformsGroup',
-      transformInputs({fieldName: 'sca', unit: '', showPercents: true, step: transformStep, values, valuePercents, precision, min,
+      transformInputs({fieldName: 'sca', unit: '', showPercents: true, step: transformStep, values: state.sizeAverage, valuePercents: state.scalePercentAverage, precision, min,
         disabled: false, extraKlasses: ['absScaling'] })),
     div('.optionsGroup', [
       label('.menuContent', [

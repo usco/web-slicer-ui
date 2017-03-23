@@ -24,21 +24,9 @@ export function renderPositionUi (state) {
   const transformStep = 0.1
   const precision = 2
 
-  // match entities by id from the selections list
-  const idMatch = entity => selections.instIds.indexOf(entity.meta.id) > -1
-  const transforms = pluck('transforms')(filter(idMatch, entities))
-
-  // compute the average position, since we are dealing with 0...n entities
-  const avg = pluck('pos')(transforms)
-    .reduce(function (acc, cur) {
-      return !acc ? cur : [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]].map(x => x * 0.5)
-    }, undefined)
-
-  const values = avg || [0, 0, 0]
-
   const subTools = span('.movingSubTools', [
     div('.transformsGroup',
-      transformInputs({fieldName: 'pos', unit: '', step: transformStep, values, precision})
+      transformInputs({fieldName: 'pos', unit: '', step: transformStep, values: state.positionAverage, precision})
     ),
     div('.optionsGroup', [
       label('.menuContent', [
