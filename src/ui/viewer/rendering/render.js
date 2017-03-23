@@ -7,8 +7,12 @@ import mat4 from 'gl-mat4'
 import drawBoundingBox from './drawBoundingBox'
 
 module.exports = function render (regl, params) {
+  const defaults = {
+    drawBounds: false
+  }
+  const {drawBounds} = {...defaults, ...params}
+
   const wrapperScope = makeWrapperScope(regl)
-  let tick = 0
 
   // infine grid, always there
   // infinite grid
@@ -25,7 +29,7 @@ module.exports = function render (regl, params) {
         depth: 1
       })
       // fogColor is dominant
-      //drawInfiniGrid({view, camera, color: [0, 0, 0, 0], fogColor: settings.background.color, model: infiniGridOffset})
+      // drawInfiniGrid({view, camera, color: [0, 0, 0, 0], fogColor: settings.background.color, model: infiniGridOffset})
 
       const outOfBoundsEntities = entities
         .filter(entity => entity.bounds.outOfBounds)
@@ -50,7 +54,9 @@ module.exports = function render (regl, params) {
           entity.visuals.draw({view, camera, color, model: entity.transforms.matrix, printableArea})
 
           // helper to display the boundingBox
-          //drawBoundingBox(regl, entity.bounds)({view, camera, model: mat4.identity([])})
+          if (drawBounds) {
+            drawBoundingBox(regl, entity.bounds)({view, camera, model: mat4.identity([])})
+          }
         })
 
     /* entities.map(function (entity) {
@@ -69,7 +75,6 @@ module.exports = function render (regl, params) {
   return function render (data) {
     command(data)
     // boilerplate etc
-    tick += 0.01
   // for stats, resizing etc
   // regl.poll()
   }
