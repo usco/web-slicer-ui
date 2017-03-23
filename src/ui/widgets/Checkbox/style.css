@@ -33,7 +33,7 @@
 	background: transparent;
 	top: 2px;
 	left: 2px;
-	border: 3px solid var(--text-color-dark);
+	border: 3px solid var(--text-color-light);
 	border-top: none;
 	border-right: none;
 
