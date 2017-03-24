@@ -1,4 +1,5 @@
 import { pluck, head, assocPath, filter, find, findIndex, propEq, update } from 'ramda'
+import {averageWithDefault} from '../../../utils/maths'
 
 // import { createComponents, removeComponents, duplicateComponents, makeActionsFromApiFns } from './common'
 // import { makeModel, mergeData } from '../../../utils/modelUtils'
@@ -81,18 +82,26 @@ export function resetScaling (transformDefaults, state, inputs) {
   }, state)
 }
 
-// update any transform component (pos, rot, scale) does NOT mutate the original state
+/**
+ * update any transform component (pos, rot, scale) does NOT mutate the original state
+ * all inputs should be idempotent !!
+ * @param  {Object} transformDefaults the defaults for position , rotation scale , typicall {pos: [0,0,0] , rot: [0,0,0], sca: [0,0,0] }
+ * @param  {Object} state the current state
+ * @param  {Object} inputs an array of changes to apply in the form [{trans: 'pos', value:[0,10,0]}]
+ * @return the updated state
+ */
 export function updateComponents (transformDefaults, state, inputs) {
   const idMatch = entity => find(propEq('id', entity.meta.id))(inputs)
   const changedEntities = filter(idMatch, state)
   const transforms = pluck('transforms')(changedEntities) // current transforms from state
 
   const transform = head(inputs)['trans'] // what transform do we want to update?
-  const currentAvg = pluck(transform)(transforms) // we compute the current average of all inputs (multi selection)
+  const currentAvg = averageWithDefault(transform, transformDefaults[transform])(transforms) // we compute the current average of all inputs (multi selection)
+  /*pluck(transform)(transforms)
     .reduce(function (acc, cur) {
       if (!acc) return cur
       return [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]].map(x => x * 0.5)
-    }, undefined)
+    }, undefined)*/
 
   return inputs.reduce(function (state, input) {
     let {id, value, trans, settings} = input

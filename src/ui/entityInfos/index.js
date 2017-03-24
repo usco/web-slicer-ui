@@ -4,6 +4,7 @@ import {pluck, propOr, filter, map, reduce, compose, mapAccum, isNil, not, apply
 import {domEvent, makeStateAndReducers$, imitateXstream, fromMost} from '../../utils/cycle'
 import {toDegree} from '../../utils/formatters'
 import withLatestFrom from '../../utils/most/withLatestFrom'
+import {averageWithDefault} from '../../utils/maths'
 
 import {renderPositionUi} from './position'
 import {renderRotationUi} from './rotation'
@@ -48,18 +49,6 @@ function EntityInfos (sources) {
         map(path(['geometry', 'bounds'])),
         filter(idMatch)
       )(entities)
-
-      const isNotNil = x => not(isNil(x))
-
-      const averageWithDefault = (attr, defaults) => compose(
-        apply((values, acc) => values.map(val => val / (acc.length || 1))),
-        addIndex(mapAccum)(function (acc, cur, idx) { // add every percentage at same index together
-          const val = idx === 0 ? cur : [acc[0] + cur[0], acc[1] + cur[1], acc[2] + cur[2]]
-          return [val, idx]
-        }, defaults),
-        filter(isNotNil),
-        pluck(attr)
-      )
 
       // compute the average scale (%), since we are dealing with 0...n entities
       const scalePercentAverage = compose(
