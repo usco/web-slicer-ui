@@ -2,9 +2,14 @@ import {merge} from 'most'
 import {pluck, propOr, filter, map, reduce, compose, mapAccum, isNil, not, apply, addIndex, path} from 'ramda'
 
 import {domEvent, makeStateAndReducers$, imitateXstream, fromMost} from '../../utils/cycle'
-import {toDegree} from '../../utils/formatters'
+import {toDegree, toRadian} from '../../utils/formatters'
 import withLatestFrom from '../../utils/most/withLatestFrom'
 import {averageWithDefault} from '../../utils/maths'
+import {reduceToAverage, spreadToAll} from '../../utils/various'
+import {toArray} from '../../utils/utils'
+function isNumber (arg) {
+  return typeof arg === 'number'
+}
 
 import {renderPositionUi} from './position'
 import {renderRotationUi} from './rotation'
@@ -51,33 +56,29 @@ function EntityInfos (sources) {
       )(entities)
 
       // compute the average scale (%), since we are dealing with 0...n entities
-      const scalePercentAverage = compose(
-        map(x => x * 100),
+      const scaleAverage = compose(
         averageWithDefault('sca', [1, 1, 1])
       )(transforms)
 
       // compute the average scale(absolute), since we are dealing with 0...n entities
       const initialSizeAverage = compose(
-        // addIndex(map)((x, index) => x * scalePercentAverage[index] / 100),
         averageWithDefault('size', [0, 0, 0])
       )(geomBbox)
 
       const sizeAverage = compose(
-        addIndex(map)((x, index) => x * scalePercentAverage[index] / 100),
+        addIndex(map)((x, index) => x * scaleAverage[index]),
         averageWithDefault('size', [0, 0, 0])
       )(geomBbox)
 
       // compute the average position, since we are dealing with 0...n entities
       const positionAverage = averageWithDefault('pos', [0, 0, 0])(transforms)
-
       // compute the average rotation, since we are dealing with 0...n entities
       const rotationAverage = compose(
         map(toDegree),
         averageWithDefault('rot', [0, 0, 0])
       )(transforms)
-      // console.log('updating viewState', sizeAverage, scalePercentAverage, rotationAverage)
 
-      return {initialSizeAverage, sizeAverage, scalePercentAverage, positionAverage, rotationAverage, selections, settings, activeTool}
+      return {initialSizeAverage, sizeAverage, scaleAverage, positionAverage, rotationAverage, selections, settings, activeTool}
     })
     .skipRepeats()
     .multicast()
@@ -95,21 +96,12 @@ function EntityInfos (sources) {
   .skipRepeats()
   .multicast()
 
-  const changeBounds$ = withLatestFrom((changed, {initialSizeAverage, sizeAverage, scalePercentAverage, selections, settings}) => {
-    // console.log('combining', changed, sizeAverage)
+  const changeBounds$ = withLatestFrom((changed, {initialSizeAverage, sizeAverage, scaleAverage, selections, settings}) => {
     if (!selections || selections.length === 0) {
       return {value: undefined} // FIXME: fixes a weird bug about selection loss
     }
-    /*
-    const currentAverage = sizeAverage
-    let newAverage = [...sizeAverage]
-    newAverage[changed.idx] = changed.val
-    // return {oldValue: sizeAverage, value: newValue, ids: selections}
-    //let newScale = [newAverage[0] / currentAverage[0], newAverage[1] / currentAverage[1], newAverage[2] / currentAverage[2]]
-    //console.log('here', 'sizeAverage', currentAverage, 'newAverage', newAverage, 'newScale', newScale, 'currentScale',currentScale)
 
-    const diff = [newAverage[0] - currentAverage[0], newAverage[1] - currentAverage[1], newAverage[2] - currentAverage[2]] */
-    const currentScale = scalePercentAverage.map(x => x / 100)
+    const currentScale = scaleAverage
     const initialSize = initialSizeAverage
     const currentSize = initialSize.map((x, index) => x * currentScale[index])
     let afterChangeSize = [...currentSize]
@@ -117,22 +109,82 @@ function EntityInfos (sources) {
 
     const diff = [afterChangeSize[0] - currentSize[0], afterChangeSize[1] - currentSize[1], afterChangeSize[2] - currentSize[2]]
     let newScale = currentScale // start with current scale
-      .map((component, index) => component + diff[index] / initialSize[index])
-    /* newScale = newScale.map(function (component, index) {
-      return currentScale[index] !== 1 && index !==changed.idx? currentScale[index] : component
-    }) */
+        .map((component, index) => component + diff[index] / initialSize[index])
     return {value: newScale, trans: 'sca', ids: selections.instIds, settings}
   }, _changeBounds$, [viewState$])
-  .filter(x => x.value !== undefined)
-  // .tap(e => console.log('eeee', e))
+    .filter(x => x.value !== undefined)
+    .skipRepeats()
+    .multicast()
+    .map(x => ({type: 'changeBounds', data: x}))
+
+  // NOTE: do not use input events for this, annoying spammy, does not let you type
+  const _changeTransforms$ = merge(
+      _domEvent('.transformsInput', 'change'),
+      _domEvent('.transformsInput', 'blur'),
+      // special one for scaling
+      _domEvent('.transformsInputPercent', 'change'),
+      _domEvent('.transformsInputPercent', 'blur'),
+    )
+    .map(function (e) {
+      let val = parseFloat(e.target.value)
+      const attributes = e.target.dataset
+      let dtrans = attributes.transform
+      let [trans, idx, extra] = dtrans.split('_')
+      if (trans === 'rot') {
+        val = toRadian(val)
+      } else if (trans === 'sca') {
+        val = extra === 'percent' ? val / 100 : undefined
+      }
+      return {val, trans, extra, idx: parseInt(idx, 10)}
+    })
+    .filter(x => x.val !== undefined)
+    .filter(data => isNumber(data.val))
+    .skipRepeats()
+
+  const changeTransforms$ = withLatestFrom((changed, {positionAverage, rotationAverage, scaleAverage, selections, settings}) => {
+    if (!selections || selections.length === 0) {
+      return {value: undefined} // FIXME: fixes a weird bug about selection loss
+    }
+    let value = {
+      pos: positionAverage,
+      rot: rotationAverage,
+      sca: scaleAverage
+    }[changed.trans]
+    value[changed.idx] = changed.val
+
+    return {value, trans: changed.trans, ids: selections.instIds, settings}
+  }, _changeTransforms$, [viewState$])
+  .merge(changeBounds$.map(x => x.data))
+  .filter(x => x.value !== undefined)// if invalid data, ignore
+  .map(spreadToAll(['value', 'trans', 'settings']))
+  .map(toArray)// we always expect arrays of data
+  .map(x => ({type: 'changeTransforms', data: x}))
   .skipRepeats()
   .multicast()
-  .map(x => ({type: 'changeBounds', data: x}))
+
+  const resetScaling$ = _domEvent('.resetScaling', 'click')
+    .constant(true)
+    .map(x => ({type: 'resetScaling', data: x}))
+    .skipRepeats()
+    .multicast()
+
+    /* const changePosition$ = changeTransforms$
+      .filter(c => c.trans === 'pos')
+
+    const changeRotation$ = changeTransforms$
+      .filter(c => c.trans === 'rot')
+      .map(change => ({...change, val: toRadian(change.val)}))// convert rotated values back from degrees to radians
+
+    const changeScale$ = changeTransforms$
+      .filter(c => c.trans === 'sca')
+      .map(change => {
+        return {...change, val: change.extra === 'percent' ? change.val / 100 : change.val}
+      }) */
 
   return {
     DOM: fromMost(viewState$.skipRepeats().map(view)),
     onion: reducer$,
-    events: fromMost(changeBounds$)
+    events: fromMost(merge(changeTransforms$, changeBounds$, resetScaling$))
   }
 }
 

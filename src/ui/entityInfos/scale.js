@@ -29,7 +29,7 @@ export function renderScaleUi (state) {
 
   const subTools = span('.scalingSubTools .twoColumns', [
     div('.transformsGroup',
-      transformInputs({fieldName: 'sca', unit: '', showPercents: true, step: transformStep, values: state.sizeAverage, valuePercents: state.scalePercentAverage, precision, min,
+      transformInputs({fieldName: 'sca', unit: '', showPercents: true, step: transformStep, values: state.sizeAverage, valuePercents: state.scaleAverage.map(x => x * 100), precision, min,
         disabled: false, extraKlasses: ['absScaling'] })),
     div('.optionsGroup', [
       label('.menuContent', [

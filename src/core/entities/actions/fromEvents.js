@@ -10,7 +10,14 @@ export default function intent (sources, params) {
 
     changeBounds$: imitateXstream(sources.events)
       .filter(x => x.type === 'changeBounds')
-      .map(x => x.data)
+      .map(x => x.data),
 
+    changeTransforms$: imitateXstream(sources.events)
+      .filter(x => x.type === 'changeTransforms')
+      .map(x => x.data),
+
+    resetScaling$: imitateXstream(sources.events)
+      .filter(x => x.type === 'resetScaling')
+      .map(x => x.data)
   }
 }

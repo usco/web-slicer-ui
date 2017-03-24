@@ -37,30 +37,8 @@ export default function intents (sources) {
   const state$ = imitateXstream(sources.onion.state$).skipRepeats()
   const entitiesAndSelections$ = state$.map(state => ({selections: state.buildplate.selections.instIds, entities: state.buildplate.entities, settings: state.buildplate.settings}))
 
-  // transforms
-  const changeTransforms$ = sample(function (changed, {entities, selections, settings}) {
-    if (!selections || selections.length === 0) {
-      return {value: undefined} // FIXME: fixes a weird bug about selection loss
-    }
-    const idMatch = entity => selections.indexOf(entity.meta.id) > -1
-    const transforms = pluck('transforms')(filter(idMatch, entities))
-
-    let avg = pluck(changed.trans)(transforms)
-      .reduce(reduceToAverage, undefined)
-    avg[changed.idx] = changed.val
-
-    return {value: avg, trans: changed.trans, ids: selections, settings}
-  }, baseActions.changeTransforms$, baseActions.changeTransforms$, entitiesAndSelections$)
-    .merge(baseActions.changeBounds$)
-    // .merge(scaleFromBounds$)
-    .filter(x => x.value !== undefined)// if invalid data, ignore
-    .map(spreadToAll(['value', 'trans', 'settings']))
-    .map(toArray)// we always expect arrays of data
-    .skipRepeats()
-    .multicast()
-
   // specific to needing z === 0 for printing
-  const bounceBackTransforms$ = changeTransforms$
+  const bounceBackTransforms$ = baseActions.changeTransforms$
     .map(function (x) {
       // return x.map(data => ({...data, value: data.trans === 'pos' ? [data.value[0], data.value[1], 0] : data.value}))
       if (x.length > 0) {
@@ -74,7 +52,7 @@ export default function intents (sources) {
     .filter(x => x !== undefined)
     .delay(500)
 
-  const refinedActions = {addEntities$, selectEntities$, setActiveTool$, changeTransforms$: merge(changeTransforms$, bounceBackTransforms$)}
+  const refinedActions = {addEntities$, selectEntities$, setActiveTool$, changeTransforms$: merge(baseActions.changeTransforms$, bounceBackTransforms$)}
 
   return {...baseActions, ...refinedActions}
 }

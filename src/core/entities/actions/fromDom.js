@@ -27,65 +27,15 @@ export default function intent (sources, params) {
     _domEvent('.toMirrorMode', 'click').constant('mirror'),
 
     // _domEvent(':not(#entityInfos)', 'click').constant(undefined),
-
     _domEvent('#viewer', 'click').constant(undefined), // to disable active tool by clicking 'outside'
     //_domEvent('#settings', 'click').constant(undefined)// to disable active tool by clicking 'outside'
   )
-
-  //NOTE: do not use input events for this, annoying spammy, does not let you type
-  const changeTransforms$ = merge(
-    _domEvent('.transformsInput', 'change'),
-    _domEvent('.transformsInput', 'blur'),
-
-    // special one for scaling
-    _domEvent('.transformsInputPercent', 'change'),
-    _domEvent('.transformsInputPercent', 'blur'),
-  )
-  .map(function (e) {
-    let val = parseFloat(e.target.value)
-    const attributes = e.target.dataset
-    // console.log('attributes', attributes)
-    let dtrans = attributes.transform
-    let [trans, idx, extra] = dtrans.split('_')
-    if (trans === 'rot') {
-      val = toRadian(val)
-    } else if (trans === 'sca') {
-      val = extra === 'percent' ? val / 100 : undefined
-    }
-    //return {val: undefined}
-    return {val, trans, extra, idx: parseInt(idx, 10)}
-  })
-  .filter(x => x.val !== undefined)
-  // .filter(data => isNumber(data.val))
-  .skipRepeats()
-  .multicast()
-
-  /* const changePosition$ = changeTransforms$
-    .filter(c => c.trans === 'pos')
-
-  const changeRotation$ = changeTransforms$
-    .filter(c => c.trans === 'rot')
-    .map(change => ({...change, val: toRadian(change.val)}))// convert rotated values back from degrees to radians
-
-  const changeScale$ = changeTransforms$
-    .filter(c => c.trans === 'sca')
-    .map(change => {
-      return {...change, val: change.extra === 'percent' ? change.val / 100 : change.val}
-    }) */
-
-  const resetScaling$ = _domEvent('.resetScaling', 'click').map(x => true)
 
   return {
     setActiveTool$,
     toggleSnapScaling$,
     toggleUniformScaling$,
     toggleSnapRotation$,
-    toggleSnapTranslation$,
-
-    changeTransforms$,
-    /* changePosition$,
-    changeRotation$,
-    changeScale$ */
-    resetScaling$
+    toggleSnapTranslation$
   }
 }
