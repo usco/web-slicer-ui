@@ -18,6 +18,10 @@ export default function intent (sources, params) {
 
     resetScaling$: imitateXstream(sources.events)
       .filter(x => x.type === 'resetScaling')
+      .map(x => x.data),
+
+    mirror$: imitateXstream(sources.events)
+      .filter(x => x.type === 'mirror')
       .map(x => x.data)
   }
 }

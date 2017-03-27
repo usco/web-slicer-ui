@@ -61,11 +61,15 @@ function applySnapAndUniformScaling (transformDefaults, transformationType, tran
 
 // mirror on given axis
 export function mirrorComponents (transformDefaults, state, inputs) {
+
   return inputs.reduce(function (state, input) {
-    let updatedScale = [...transformDefaults.sca, ...state[input.id].sca]
+    console.log(state)
+    const index = findIndex(entity => entity.meta.id === input.id)(state)
+    //const updatedTranforms = assocPath([trans], updatedTransformation, targetComponent)
+
+    let updatedScale = [...state[index].transforms.sca]//...transformDefaults.sca .
     updatedScale[input.axis] *= -1 // mirroring is just inverting scale on the given axis
 
-    const index = findIndex(entity => entity.meta.id === input)(state)
     const updatedEntity = state[index]
     return update(index, {...updatedEntity, transforms: {...updatedEntity.transforms, sca: updatedScale}}, state) // return updated state
     //return assocPath([input.id, 'sca'], updatedScale, state) // return updated state

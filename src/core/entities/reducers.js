@@ -1,5 +1,5 @@
 import { injectNormals, injectTMatrix, injectBounds } from './prepHelpers'
-import {transformDefaults, updateComponents, resetScaling as resetTransformsScaling} from './components/transforms'
+import {transformDefaults, updateComponents, mirrorComponents, resetScaling as resetTransformsScaling} from './components/transforms'
 import { computeBounds } from '@usco/bounds-utils'
 import applyMat4ToAABB from '../../utils/bounds/applyMat4ToAABB'
 import applyMat4ToGeometry from '../../utils/geometry/applyMat4ToGeometry'
@@ -41,6 +41,16 @@ export function changeTransforms (state, transforms) {
     })
   return {...state, buildplate: {...state.buildplate, entities}}
 }
+
+export function mirror (state, transforms) {
+  console.log('mirror')
+  const entities = mirrorComponents(transformDefaults, state.buildplate.entities, transforms)
+    .map(entity => injectTMatrix(entity, false))
+    //.map(injectNormals)
+
+  return {...state, buildplate: {...state.buildplate, entities}}
+}
+
 
 export function resetScaling (state, _) {
   const entities = resetTransformsScaling(transformDefaults, state.buildplate.entities, state.buildplate.selections.instIds)

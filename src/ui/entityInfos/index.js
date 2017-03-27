@@ -14,6 +14,7 @@ function isNumber (arg) {
 import {renderPositionUi} from './position'
 import {renderRotationUi} from './rotation'
 import {renderScaleUi} from './scale'
+import {renderMirroringUi} from './mirroring'
 
 require('./style.css')
 
@@ -29,8 +30,9 @@ export const actions = {
 const view = function (state) {
   return [
     renderPositionUi(state),
+    renderScaleUi(state),
     renderRotationUi(state),
-    renderScaleUi(state)
+    renderMirroringUi(state)
   ]
 }
 
@@ -181,10 +183,25 @@ function EntityInfos (sources) {
         return {...change, val: change.extra === 'percent' ? change.val / 100 : change.val}
       }) */
 
+  const _mirror$ = merge(
+    _domEvent('.mirror-x', 'click').constant({axis: 0}),
+    _domEvent('.mirror-y', 'click').constant({axis: 1}),
+    _domEvent('.mirror-z', 'click').constant({axis: 2})
+  )
+
+  const mirror$ = withLatestFrom(({axis}, {scaleAverage, selections, settings}) => {
+    let value = scaleAverage
+    value[axis] *= -1
+    return {...axis, trans: 'sca', value, ids: selections.instIds, settings}
+  }, _mirror$, [viewState$])
+  .map(spreadToAll(['axis', 'trans', 'value', 'settings']))
+  .map(toArray)// we always expect arrays of data
+  .map(x => ({type: 'changeTransforms', data: x}))
+
   return {
     DOM: fromMost(viewState$.skipRepeats().map(view)),
     onion: reducer$,
-    events: fromMost(merge(changeTransforms$, changeBounds$, resetScaling$))
+    events: fromMost(merge(changeTransforms$, changeBounds$, resetScaling$, mirror$))
   }
 }
 
