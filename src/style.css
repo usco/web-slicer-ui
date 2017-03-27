@@ -638,6 +638,15 @@ overflow: auto;
   background: white;
 }
 
+
+/* move to correct place*/
+.icon{
+  fill: currentColor;
+  stroke:currentColor;
+  width: 32px;
+height: 32px;
+}
+
 /*
 .tooltip{
   background: red!important;

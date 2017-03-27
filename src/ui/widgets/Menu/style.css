@@ -25,15 +25,21 @@ Chrome, Safari, Opera */
 }
 
 
+
 .subItemsIndicator{
   position: absolute;
-  bottom: 2;
-  right: 2;
+  bottom: 20%;
+  right: 2px;
   border-bottom: 8px solid rgb(0, 0, 0);
   border-top: 8px solid rgba(0, 0, 0, 0);
   border-left: 8px solid rgba(0, 0, 0, 0);
   /* border-right: 10px solid rgba(0, 0, 0, 0); */
   /* border-bottom: 10px solid rgb(0, 0, 0); */
+}
+
+/*FIXME: needs to be adapted to different meny positions*/
+.disabled .subItemsIndicator{
+  border-bottom-color:#868686;
 }
 
 .menu {
