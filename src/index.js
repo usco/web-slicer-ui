@@ -23,7 +23,7 @@ function main (sources) {
       settings: {
         support: {toggled: true},
         brim: {toggled: true},
-        qualityPreset: undefined,
+        qualityPreset: 'normal',
         supportExtruder: -1
       },
       status: 'n/a',
