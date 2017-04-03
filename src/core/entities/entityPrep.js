@@ -21,8 +21,8 @@ export default function entityPrep (rawModelData$) {
     .map(injectNormals)
     .map(injectBounds)
     .map(function (data) {
-      const foo = meshReindex(data.geometry.positions)
-      console.log('meshReindex', foo, data.geometry)
+      // const foo = meshReindex(data.geometry.positions)
+      // console.log('meshReindex', foo, data.geometry)
       const geometry = centerGeometry(data.geometry, data.bounds, data.transforms)
       return Object.assign({}, data, {geometry})
     })
@@ -54,7 +54,7 @@ export default function entityPrep (rawModelData$) {
     .map(function (data) {
       const {visuals, geometry} = data
       // this simplifies things , removing the need to access regl instance here, by inverting the params order of the drawXXX commands, and providing regl only later
-      const drawFn = (regl) => drawStaticMesh(regl, {geometry})
+      const drawFn = (regl) => drawStaticMesh(regl, {geometry, dynamicCulling: true})
       const entity = {...data, visuals: {...visuals, drawFn, initialized: false}}
       return entity
     })
