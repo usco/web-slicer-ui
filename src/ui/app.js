@@ -37,14 +37,6 @@ import {withToolTip} from './widgets/utils'
 // => provide controls to pause/resume abort print
 
 const init = makeDefaultReducer({})
-const PrevStep = (state, input) => ({ ...state, currentStep: Math.max(state.currentStep - 1, 0) })
-const NextStep = (state, input) => {
-  const activePrinter = find(propEq('id', state.printing.activePrinterId))(state.printing.printers)
-  if (activePrinter && activePrinter.hasOwnProperty('infos')) {
-    return {...state, currentStep: Math.min(state.currentStep + 1, state.steps.length - 1)}
-  }
-  return state
-}
 
 const togglePrintersList = (state, input) => {
   return {...state, printerListToggled: input}
@@ -55,7 +47,7 @@ const selectPrintTools = (state, selectedPrintTools) => {
 }
 
 const actions = {
-  init, PrevStep, NextStep, togglePrintersList, selectPrintTools,
+  init, togglePrintersList, selectPrintTools,
 
   ...printingActions,
   ...entityActions
@@ -63,26 +55,10 @@ const actions = {
 // our main view
 const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entityInfos]) => {
   if (!state.hasOwnProperty('t')) return null // FIXME : bloody hack
-  // console.log('state')
-  const {steps, currentStep} = state
 
-  const stepContents = [
-    // printerSetup,
-    materialSetup,
-    printSettings,
-    monitorPrint
-  ]
-  const activePrinter = find(propEq('id', state.printing.activePrinterId))(state.printing.printers)
   const newPrintEnabled = state.buildplate.entities.length > 0 && (state.printing.printerStatus !== undefined && state.printing.printerStatus.busy === false) && state.printing.activePrinterId !== undefined
-
-  // console.log('newPrintEnabled', newPrintEnabled)//, state.buildplate.entities.length > 0,(state.printing.printerStatus !== undefined && state.printing.printerStatus.busy === false),state.printing.activePrinterId !== undefined )
-
-  const prevStepUi = currentStep > 0 ? button('.PrevStep', 'Previous step') : ''
-  const nextStepUi = (currentStep < steps.length - 1 && activePrinter && activePrinter.infos) ? button('.NextStep', 'Next step') : ''
-
   const startPrintTooltip = newPrintEnabled ? '' : 'please select a printer, add a file & be sure the printer is not already busy'
 
-  //console.log('newPrintEnabled', newPrintEnabled, startPrintTooltip)
   const startPrintUi = withToolTip(
     button('.startPrint .temp', {attrs: {disabled: !newPrintEnabled}}, 'Start Print'),
    startPrintTooltip, 'top'
@@ -102,29 +78,12 @@ const view = ([state, printSettings, materialSetup, viewer, monitorPrint, entity
 
       button('.toPrintSettings' + (settingsSelected ? '.selected' : ''), 'settings'),
       button('.toMonitorPrint' + (monitorSelected ? '.selected' : ''), 'monitor')
-      // button('.startPrint .temp', 'print'),
-      // h1([steps[currentStep].name, prevStepUi, nextStepUi, startPrintUi]),
-      // stepContents[currentStep]
     ])
-
-    /* div('.testArea',[
-      //withToolTip(button('foooyeah'), 'foooyeah', 'bottom'),
-      //withToolTip(icon(infoIconSvg), 'some stuff here'),
-      //withToolTip(button('foooyeah'), 'foooyeah', 'bottom'),
-      tooltipTopButton,
-      tooltipBottomButton,
-      tooltipLeftButton,
-      tooltipRightButton
-      // addToolTip(button('.tooltip-bottom', {attrs: {'data-tooltip': 'some bla bla'}}, 'infos!'))
-    ]) */
-
   ])
 }
 
 function App (sources) {
   const _domEvent = domEvent.bind(null, sources)
-  const PrevStep$ = _domEvent('.PrevStep', 'click')
-  const NextStep$ = _domEvent('.NextStep', 'click')
   const togglePrintersList$ = mostMerge(
     _domEvent('.printerMenuToggle', 'click').constant(true),
     // all the things that disable the printerslist
@@ -148,20 +107,17 @@ function App (sources) {
   _domEvent('document', 'keydown')
     .filter(x => x.code === 'Backspace')
     .filter(isValidElementEvent)
+    .map(x => ({type: 'deleteEntity', data: x}))
     .forEach(x => console.log('keydown', x))
-  // object.addEventListener("keypress", myScript)
 
   const _printingIntents = printingIntents(sources)
   const _entityIntents = entityIntents(sources)//
   // console.log('_entityIntents', _entityIntents$)
 
   const actions$ = {
-    PrevStep$: fromMost(PrevStep$),
-    NextStep$: merge(fromMost(NextStep$)), //, fromMost(_printingIntents.SetActivePrinterInfos$.delay(1000))) // once we have the printerInfos , move to next step
     togglePrintersList$: fromMost(togglePrintersList$),
     selectPrintTools$: fromMost(selectPrintTools$)
   }
-  // _domEvent('.settings', 'click').forEach(x=>console.log('test',x))
 
   const printActions$ = Object.keys(_printingIntents)
     .reduce((acc, key) => {
